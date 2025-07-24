@@ -1,0 +1,87 @@
+erDiagram
+    Recorrido ||--o{ Recorrido_Parada : tiene_paradas
+    Parada ||--o{ Recorrido_Parada : esta_en
+    Parada ||--o{ Parada_Atractivo : tiene_atractivos
+    Atractivo ||--o{ Parada_Atractivo : es_atractivo_de
+
+    Bus_Chofer }|--o| Bus : es_asignado_a
+    Bus_Chofer }|--o| Chofer : es_asignado_a
+    Bus_Chofer ||--|{ Viaje : realiza
+
+    Bus ||--o{ Estado_Bus : tiene_estado
+    Viaje }|--|| Recorrido : asociado_a
+
+
+    Recorrido {
+        int id_recorrido PK "Identificador único del recorrido"
+        str color_recorrido "Color que identifica el recorrido (ej: VERDE)"
+        time duracion_aproximada_recorrido "Duración estimada del circuito completo"
+        str descripcion_recorrido "Descripción general del recorrido"
+    }
+
+    Recorrido_Parada {
+        int id_recorrido_parada PK "PK para la relación Recorrido-Parada"
+        int id_recorrido FK "FK a Recorrido"
+        int id_parada FK "FK a Parada"
+        int orden "Orden de la parada dentro de este recorrido"
+    }
+
+    Parada {
+        int id_parada PK "Identificador único de la parada"
+        str nombre_parada "Nombre de la parada (ej: Obelisco)"
+        str direccion_parada "Dirección física de la parada"
+        str descripcion_parada "Información descriptiva del lugar/zona"
+        str link_foto_parada "URL o ruta a la foto representativa de la parada"
+    }
+
+    Parada_Atractivo {
+        int id_parada_atractivo PK "PK para la relación Parada-Atractivo"
+        int id_parada FK "FK a Parada"
+        int id_atractivo FK "FK a Atractivo"
+    }
+
+    Atractivo {
+        int id_atractivo PK "Identificador único del atractivo"
+        str nombre_atractivo "Nombre del atractivo (ej: Teatro Colón)"
+        int calificacion_estrellas "Calificación del atractivo (en estrellas)"
+        str descripcion_atractivo "Descripción del atractivo"
+    }
+
+    Bus {
+        str patente_bus PK "Patente única del bus (identificador principal)"
+        int numero_unidad "Número de unidad interna del bus"
+        datetime fecha_compra "Fecha de adquisición del bus"
+        int id_estado_bus FK "FK al estado actual del bus (ej: 'Operativo', 'En reparación')"
+    }
+
+    Estado_Bus {
+        int id_estado_bus PK "Identificador único del estado del bus"
+        str nombre_estado "Nombre del estado (ej: 'Operativo', 'En reparación')"
+        str descripcion_estado "Descripción del estado"
+    }
+
+    Chofer {
+        int id_chofer PK "Identificador único del chofer"
+        str nombre_chofer "Nombre del chofer"
+        str apellido_chofer "Apellido del chofer"
+        str legajo_chofer "Número de legajo del chofer (puede ser alfanumérico)"
+    }
+
+    Bus_Chofer {
+        int id_asignacion PK "Identificador único de la asignación bus-chofer"
+        str patente_bus FK "FK al bus asignado"
+        int id_chofer FK "FK al chofer asignado"
+        datetime fecha_programada "Fecha para la cual se programa la dupla"
+        time hora_inicio_programada "Hora de inicio programada del primer viaje con esta dupla"
+        bool es_activo "Indica si la asignación está vigente"
+    }
+
+    Viaje {
+        int numero_viaje PK "Número de viaje asignado"
+        datetime fecha_hora_inicio_real "Fecha y hora real de inicio del viaje (bus en 1ra parada)"
+        datetime fecha_hora_fin_real "Fecha y hora real de fin del viaje (bus en última parada)"
+        int duracion_minutos_real "Duración real del viaje en minutos"
+        int id_recorrido FK "FK al recorrido que se realizó"
+        int id_asignacion_bus_chofer FK "FK a la asignación bus-chofer que realizó el viaje"
+        int demora_inicio_minutos "Demora del inicio real respecto al programado (en minutos)"
+    }
