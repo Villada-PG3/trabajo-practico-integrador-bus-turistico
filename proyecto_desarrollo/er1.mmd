@@ -10,6 +10,8 @@ erDiagram
     Viaje }|--|| Bus : realiza
     Recorrido ||--o{ Viaje : pertenece_a
 
+    Viaje }|--|| EstadoViaje : tiene_estado 
+
     Recorrido {
         int id_recorrido PK
         str color_recorrido
@@ -45,12 +47,16 @@ erDiagram
         str nombre_atractivo
         int calificacion_estrellas
         str descripcion_atractivo
+        str ubicacion_mapa
+        str horarios_visita
+        float precio_entrada
     }
 
     Bus {
         str patente_bus PK
         int numero_unidad
         datetime fecha_compra
+    
     }
 
     Estado_Bus {
@@ -71,16 +77,27 @@ erDiagram
         str nombre_chofer
         str apellido_chofer
         str legajo_chofer
+        int dni_chofer
+        str telefono
+        date fecha_ingreso
+        bool activo
     }
 
     Viaje {
         int id_viaje PK
+        datetime fecha_programada
+        time hora_inicio_programada
         datetime fecha_hora_inicio_real
         datetime fecha_hora_fin_real
-        time hora_inicio_programada
         int demora_inicio_minutos
         int duracion_minutos_real
         str patente_bus FK
         int id_chofer FK
         int id_recorrido FK
+        int id_estado_viaje FK
+    }
+    EstadoViaje {
+        int id_estado_viaje PK
+        str nombre_estado
+        str descripcion_estado
     }
