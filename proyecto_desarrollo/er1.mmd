@@ -1,22 +1,22 @@
 erDiagram
-    %% Diagrama de Entidad-Relación para el sistema de recorridos de buses
     Recorrido ||--o{ Recorrido_Parada : tiene_paradas
-    Parada ||--o{ Recorrido_Parada : esta_en
+    Recorrido_Parada }|--|| Parada : esta_en
     Parada ||--o{ Parada_Atractivo : tiene_atractivos
-    Atractivo ||--o{ Parada_Atractivo : es_atractivo_de
+    Parada_Atractivo }|--|| Atractivo : es_atractivo_de
 
-    Bus_Chofer }|--o| Bus : es_asignado_a
-    Bus_Chofer }|--o| Chofer : es_asignado_a
-    Bus_Chofer ||--|{ Viaje : realiza
-
-    Bus ||--o{ Estado_Bus : tiene_estado
-    Viaje }|--|| Recorrido : asociado_a
+    Bus ||--o{ Estado_Bus_Historial : tiene_estados
+    Estado_Bus_Historial }|--|| Estado_Bus : describe
+    Chofer ||--o{ Viaje : conduce
+    Viaje }|--|| Bus : realiza
+    Recorrido ||--o{ Viaje : pertenece_a
 
     Recorrido {
         int id_recorrido PK
         str color_recorrido
         time duracion_aproximada_recorrido
         str descripcion_recorrido
+        time hora_inicio
+        time hora_fin
     }
 
     Recorrido_Parada {
@@ -51,13 +51,19 @@ erDiagram
         str patente_bus PK
         int numero_unidad
         datetime fecha_compra
-        int id_estado_bus FK
     }
 
     Estado_Bus {
         int id_estado_bus PK
         str nombre_estado
         str descripcion_estado
+    }
+
+    Estado_Bus_Historial {
+        int id_estado_historial PK
+        str patente_bus FK
+        int id_estado_bus FK
+        datetime fecha_inicio_estado
     }
 
     Chofer {
@@ -67,21 +73,14 @@ erDiagram
         str legajo_chofer
     }
 
-    Bus_Chofer {
-        int id_asignacion PK
-        str patente_bus FK
-        int id_chofer FK
-        datetime fecha_programada
-        time hora_inicio_programada
-        bool es_activo
-    }
-
     Viaje {
-        int numero_viaje PK
+        int id_viaje PK
         datetime fecha_hora_inicio_real
         datetime fecha_hora_fin_real
-        int duracion_minutos_real
-        int id_recorrido FK
-        int id_asignacion_bus_chofer FK
+        time hora_inicio_programada
         int demora_inicio_minutos
+        int duracion_minutos_real
+        str patente_bus FK
+        int id_chofer FK
+        int id_recorrido FK
     }
