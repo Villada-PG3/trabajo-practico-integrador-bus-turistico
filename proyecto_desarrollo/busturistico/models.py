@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class Recorrido(models.Model):
     color_recorrido = models.CharField(max_length=50)
@@ -26,7 +28,12 @@ class RecorridoParada(models.Model):
 
 class Atractivo(models.Model):
     nombre_atractivo = models.CharField(max_length=100)
-    calificacion_estrellas = models.IntegerField(max_length=5)
+    calificacion_estrellas = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
     descripcion_atractivo = models.TextField()
     latitud_atractivo = models.FloatField()
     longitud_atractivo = models.FloatField()

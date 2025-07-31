@@ -39,7 +39,8 @@ class EstadoBusAdmin(admin.ModelAdmin):
 
 @admin.register(EstadoBusHistorial)
 class EstadoBusHistorialAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patente_bus', 'id_estado_bus', 'fecha_inicio_estado')
+    list_display = ('id', 'patente_bus', 'estado_bus', 'fecha_inicio_estado')
+
 
 @admin.register(Chofer)
 class ChoferAdmin(admin.ModelAdmin):
@@ -52,10 +53,8 @@ class ViajeAdmin(admin.ModelAdmin):
         'id', 'fecha_programada', 'hora_inicio_programada',
         'fecha_hora_inicio_real', 'fecha_hora_fin_real',
         'demora_inicio_minutos', 'duracion_minutos_real',
-        'patente_bus', 'id_chofer', 'id_recorrido', 'id_estado_viaje'
+        'patente_bus', 'chofer', 'recorrido', 'estado_viaje'
     )
-    list_filter = ('id_estado_viaje',)
-
 @admin.register(EstadoViaje)
 class EstadoViajeAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre_estado', 'descripcion_estado')
