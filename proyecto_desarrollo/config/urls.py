@@ -1,22 +1,22 @@
-"""
-URL configuration for config project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
+from django.urls import path
+from busturistico.views import *
+from busturistico import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+   path('', views.dashboard_view, name='admin-dashboard'),
+    path('choferes/', views.choferes_view, name='admin-choferes'),
+    path('flota/', views.flota_view, name='admin-flota'),
+    path('viajes/', views.viajes_view, name='admin-viajes'),
+    path('paradas/', views.paradas_view, name='admin-paradas'),
+    path('recorridos/', views.recorridos_view, name='admin-recorridos'),
+    path('reportes/', views.reportes_view, name='admin-reportes'),
+    path('nuevo-chofer/', views.crear_chofer, name='admin-nuevo-chofer'),
+    path('nuevo-bus/', views.crear_bus, name='admin-nuevo-bus'),
+    path('nuevo-viaje/', views.crear_viaje, name='admin-nuevo-viaje'),
+    path('nuevo-parada/', views.crear_parada, name='admin-nuevo-parada'),
+    path('nuevo-recorrido/', views.crear_recorrido, name='admin-nuevo-recorrido'),
 ]
+

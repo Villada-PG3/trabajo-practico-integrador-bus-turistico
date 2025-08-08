@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Gestión de Flota - Panel Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <h1 class="mb-2">Gestión de Flota</h1>
+    <p class="mb-4">Administra los buses y sus asignaciones</p>
+    <a href="{% url 'admin-nuevo-bus' %}" class="new-btn">+ Nuevo Bus</a> {# Asegúrate que esta URL esté definida en tu urls.py #}
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5>Total Buses</h5>
+                    <span class="badge bg-primary">{{ buses_total|length }}</span>
+                </div>
+                <div class="d-flex justify-content-around">
+                    <div><span class="status-badge status-operativo">Operativos {{ buses_operativos|length }}</span></div>
+                    <div><span class="status-badge status-en-reparacion">En Reparación {{ buses_reparacion|length }}</span></div>
+                    <div><span class="status-badge status-mantenimiento">Mantenimiento {{ buses_mantenimiento|length }}</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Buscar por patente, unidad o chofer...">
+                <button class="btn btn-outline-secondary" type="button">Buscar</button>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-dark">Todos</button>
+                <button type="button" class="btn btn-success">Operativos</button>
+                <button type="button" class="btn btn-warning">En Reparación</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for bus in buses_total %}
+        <div class="col-md-6 mb-3">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Unidad {{ bus.numero_unidad }}</h5>
+                        <p>Patente: {{ bus.patente_bus }}</p>
+                        <p>Compra: {{ bus.fecha_compra|date:"d/m/Y" }}</p>
+                        <p>Último Mantenimiento: {{ bus.ultimo_mantenimiento|date:"d/m/Y" }}</p>
+                    </div>
+                    <div>
+                        <span class="status-badge 
+                            {% if estado_actual|lower == 'operativo' %}status-operativo{% endif %}
+                            {% if estado_actual|lower == 'en reparación' %}status-en-reparacion{% endif %}
+                            {% if estado_actual|lower == 'en mantenimiento' %}status-mantenimiento{% endif %}">
+                            {{ estado_actual }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No hay buses registrados.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

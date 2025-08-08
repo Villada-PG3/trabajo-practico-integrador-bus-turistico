@@ -39,7 +39,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'busturistico',  # Your custom app
 ]
-
+TEMPLATES = [
+    {
+         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'busturistico' / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                ...
+            ],
+        },
+    },
+]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

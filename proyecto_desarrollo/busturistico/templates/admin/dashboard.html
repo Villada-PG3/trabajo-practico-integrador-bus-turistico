@@ -1,0 +1,28 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard - Panel Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <h1 class="mb-2">Bienvenido al Panel de Administración</h1>
+    <p class="mb-4">Gestiona flota, choferes, viajes y reportes desde aquí.</p>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">
+                    Resumen General
+                </div>
+                <div class="card-body">
+                    <p>Explora las secciones para administrar los recursos del Bus Turístico BA.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Flota: Gestión de buses</li>
+                        <li class="list-group-item">Choferes: Administración de personal</li>
+                        <li class="list-group-item">Viajes: Monitoreo y programación</li>
+                        <li class="list-group-item">Reportes: Análisis de datos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
