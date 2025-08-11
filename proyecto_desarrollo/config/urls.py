@@ -1,8 +1,9 @@
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from busturistico.views import *
 from busturistico import views
+
 
 urlpatterns = [
     path('admin', views.dashboard_view, name='admin-dashboard'),
@@ -17,10 +18,7 @@ urlpatterns = [
     path('nuevo-viaje/', views.crear_viaje, name='admin-nuevo-viaje'),
     path('nuevo-parada/', views.crear_parada, name='admin-nuevo-parada'),
     path('nuevo-recorrido/', views.crear_recorrido, name='admin-nuevo-recorrido'),
-    path('', views.UsuarioInicioView.as_view(), name='usuario-inicio'),
-    path('recorridos/', views.UsuarioRecorridosView.as_view(), name='usuario-recorridos'),
-    path('recorridos/<int:pk>/', views.UsuarioDetalleRecorridoView.as_view(), name='usuario-detalle-recorrido'),
-    path('paradas/<int:pk>/', views.UsuarioDetalleParadaView.as_view(), name='usuario-detalle-parada'),
-    path('contacto/', views.UsuarioContactoView.as_view(), name='usuario-contacto'),
+    path('', include('busturistico.urls_usuario')),
+    
 ]
 

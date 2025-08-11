@@ -1,0 +1,21 @@
+{% extends 'usuario/base_usuario.html' %}
+{% block title %}Recorridos - Bus Turístico{% endblock %}
+{% block content %}
+<h2>Recorridos Disponibles</h2>
+<div class="row">
+    {% for recorrido in recorridos %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ recorrido.nombre }}</h5>
+                <p class="card-text">{{ recorrido.descripcion|truncatewords:20 }}</p>
+                <p><strong>Duración:</strong> {{ recorrido.duracion }}</p>
+                <a href="{% url 'usuario-detalle-recorrido' recorrido.pk %}" class="btn btn-primary">Ver detalles</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No hay recorridos disponibles.</p>
+    {% endfor %}
+</div>
+{% endblock %}

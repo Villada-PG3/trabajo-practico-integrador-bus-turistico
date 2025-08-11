@@ -1,0 +1,10 @@
+{% extends 'usuario/base_usuario.html' %}
+{% block title %}Inicio - Bus Turístico{% endblock %}
+{% block content %}
+<div class="text-center">
+    <h1>Bienvenido al Bus Turístico</h1>
+    <p class="lead">Descubre la ciudad de una manera única y cómoda</p>
+    <img src="https://via.placeholder.com/900x300" class="img-fluid rounded mb-4" alt="Bus Turístico">
+    <a href="{% url 'usuario-recorridos' %}" class="btn btn-primary btn-lg">Ver recorridos</a>
+</div>
+{% endblock %}
