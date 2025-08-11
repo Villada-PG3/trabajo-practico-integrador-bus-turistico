@@ -7,10 +7,10 @@ from .models import (
 
 @admin.register(Recorrido)
 class RecorridoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'color_recorrido', 'duracion_aproximada_recorrido', 'hora_inicio', 'hora_fin', 'numero_paradas')
+    list_display = ('id', 'color_recorrido', 'duracion_aproximada_recorrido',)
     search_fields = ('color_recorrido',)
 
-@admin.register(RecorridoParada)
+@admin.register(RecorridoParada)    
 class RecorridoParadaAdmin(admin.ModelAdmin):
     list_display = ('id', 'recorrido', 'parada', 'orden')
 
