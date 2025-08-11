@@ -1,10 +1,318 @@
 {% extends 'usuario/base_usuario.html' %}
+
 {% block title %}Inicio - Bus Turístico{% endblock %}
+
 {% block content %}
-<div class="text-center">
-    <h1>Bienvenido al Bus Turístico</h1>
-    <p class="lead">Descubre la ciudad de una manera única y cómoda</p>
-    <img src="https://via.placeholder.com/900x300" class="img-fluid rounded mb-4" alt="Bus Turístico">
-    <a href="{% url 'usuario-recorridos' %}" class="btn btn-primary btn-lg">Ver recorridos</a>
-</div>
-{% endblock %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">Descubre La Calera como nunca antes</h1>
+                    <p class="hero-subtitle">Viaja cómodamente y conoce todos los atractivos turísticos de nuestra hermosa ciudad con nuestros recorridos guiados.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'usuario-recorridos' %}" class="btn btn-hero">
+                            <i class="fas fa-route me-2"></i>Ver Recorridos
+                        </a>
+                        <a href="#servicios" class="btn btn-outline-light">
+                            <i class="fas fa-info-circle me-2"></i>Más Info
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image text-center">
+                    <i class="fas fa-bus" style="font-size: 15rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Servicios Destacados -->
+<section id="servicios" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 animate-on-scroll">
+            <h2 class="display-5 fw-bold text-primary mb-3">Nuestros Servicios</h2>
+            <p class="lead text-muted">Experiencias únicas diseñadas para que disfrutes al máximo</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6 animate-on-scroll">
+                <div class="modern-card h-100 text-center p-4">
+                    <div class="card-icon mx-auto">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Tours Guiados</h4>
+                    <p class="text-muted mb-4">Recorridos con guías expertos que te contarán la historia y curiosidades de cada lugar.</p>
+                    <div class="d-flex justify-content-between text-sm text-muted">
+                        <span><i class="fas fa-clock me-1"></i>2-3 horas</span>
+                        <span><i class="fas fa-users me-1"></i>Max 30 personas</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card h-100 text-center p-4">
+                    <div class="card-icon mx-auto">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Tours Nocturnos</h4>
+                    <p class="text-muted mb-4">Descubre la magia de La Calera bajo las estrellas con nuestros tours especiales nocturnos.</p>
+                    <div class="d-flex justify-content-between text-sm text-muted">
+                        <span><i class="fas fa-clock me-1"></i>2 horas</span>
+                        <span><i class="fas fa-star me-1"></i>Romántico</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 animate-on-scroll" style="animation-delay: 0.4s;">
+                <div class="modern-card h-100 text-center p-4">
+                    <div class="card-icon mx-auto">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Tours Privados</h4>
+                    <p class="text-muted mb-4">Personaliza tu experiencia con tours exclusivos para ti y tu grupo.</p>
+                    <div class="d-flex justify-content-between text-sm text-muted">
+                        <span><i class="fas fa-clock me-1"></i>Flexible</span>
+                        <span><i class="fas fa-crown me-1"></i>Premium</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Estadísticas -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-3 col-md-6 mb-4 animate-on-scroll">
+                <div class="p-4">
+                    <div class="display-4 fw-bold text-primary mb-2">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold text-primary counter" data-target="1500">0</h3>
+                    <p class="text-muted mb-0">Turistas Satisfechos</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 animate-on-scroll">
+                <div class="p-4">
+                    <div class="display-4 fw-bold text-success mb-2">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold text-success counter" data-target="25">0</h3>
+                    <p class="text-muted mb-0">Rutas Disponibles</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 animate-on-scroll">
+                <div class="p-4">
+                    <div class="display-4 fw-bold text-warning mb-2">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold text-warning counter" data-target="12">0</h3>
+                    <p class="text-muted mb-0">Buses Modernos</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 animate-on-scroll">
+                <div class="p-4">
+                    <div class="display-4 fw-bold text-info mb-2">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="display-6 fw-bold text-info">4.9</h3>
+                    <p class="text-muted mb-0">Calificación Promedio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Lugares Destacados -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 animate-on-scroll">
+            <h2 class="display-5 fw-bold text-primary mb-3">Lugares Imperdibles</h2>
+            <p class="lead text-muted">Los destinos más populares en nuestros recorridos</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="modern-card overflow-hidden">
+                    <div style="height: 300px; background: linear-gradient(45deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-mountain text-white" style="font-size: 4rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 20px; left: 20px; color: white;">
+                            <h4 class="fw-bold mb-1">Cerro La Cruz</h4>
+                            <p class="mb-0 opacity-75">Vista panorámica de la ciudad</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-muted fst-italic">"Una experiencia única en familia. Los niños se divirtieron muchísimo y nosotros también. ¡Volveremos pronto!"</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-0">Ana Rodríguez</h6>
+                            <small class="text-muted">Mendoza</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5">
+    <div class="container">
+        <div class="modern-card p-5 text-center animate-on-scroll" style="background: var(--gradient-bg); color: white;">
+            <h2 class="display-5 fw-bold mb-3">¿Listo para la aventura?</h2>
+            <p class="lead mb-4">Reserva tu lugar ahora y vive una experiencia inolvidable en La Calera</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{% url 'usuario-recorridos' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-calendar-check me-2"></i>Ver Horarios
+                </a>
+                <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-phone me-2"></i>Contactar
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Counter animation
+function animateCounters() {
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / 100;
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                counter.textContent = Math.ceil(current);
+                setTimeout(updateCounter, 20);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        
+        // Start animation when element is visible
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !counter.classList.contains('animated')) {
+                    counter.classList.add('animated');
+                    updateCounter();
+                }
+            });
+        });
+        
+        observer.observe(counter);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', animateCounters);
+</script>
+{% endblock %}d mb-3">El punto más alto de La Calera ofrece una vista espectacular de toda la región.</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary-subtle text-primary">Mirador</span>
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>30 min parada</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card overflow-hidden">
+                    <div style="height: 300px; background: linear-gradient(45deg, #f093fb, #f5576c); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-church text-white" style="font-size: 4rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 20px; left: 20px; color: white;">
+                            <h4 class="fw-bold mb-1">Iglesia Histórica</h4>
+                            <p class="mb-0 opacity-75">Patrimonio arquitectónico</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-muted mb-3">Una joya colonial que guarda siglos de historia y tradición religiosa.</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success-subtle text-success">Histórico</span>
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>45 min visita</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5 animate-on-scroll">
+            <h2 class="display-5 fw-bold text-primary mb-3">Lo que dicen nuestros turistas</h2>
+            <p class="lead text-muted">Experiencias reales de personas que vivieron la magia de La Calera</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 animate-on-scroll">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-muted fst-italic">"Increíble experiencia! Los guías son muy conocedores y el bus súper cómodo. Definitivamente regresaremos."</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-0">María González</h6>
+                            <small class="text-muted">Buenos Aires</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-muted fst-italic">"Perfecta organización y lugares hermosos. El tour nocturno es mágico, se los recomiendo mucho."</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-0">Carlos Mendoza</h6>
+                            <small class="text-muted">Rosario</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.4s;">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-mute
