@@ -6,9 +6,6 @@ class Recorrido(models.Model):
     color_recorrido = models.CharField(max_length=50)
     duracion_aproximada_recorrido = models.TimeField()
     descripcion_recorrido = models.TextField()
-    hora_inicio = models.TimeField()
-    hora_fin = models.TimeField()
-    numero_paradas = models.IntegerField()
     foto_recorrido = models.ImageField(upload_to='recorridos/', null=True, blank=True)
 
     def __str__(self):
@@ -98,7 +95,9 @@ class UbicacionColectivo(models.Model):
     latitud = models.FloatField()
     longitud = models.FloatField()
     timestamp_ubicacion = models.DateTimeField()
-    parada = models.ForeignKey(Parada, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Ubicación {self.id} - ({self.latitud}, {self.longitud})"
 
 
 class EstadoViaje(models.Model):
@@ -121,6 +120,7 @@ class Viaje(models.Model):
     chofer = models.ForeignKey(Chofer, on_delete=models.CASCADE)
     recorrido = models.ForeignKey(Recorrido, on_delete=models.CASCADE)
     estado_viaje = models.ForeignKey(EstadoViaje, on_delete=models.CASCADE)
+    ubicacion_colectivo = models.ForeignKey(UbicacionColectivo, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Viaje {self.id} - {self.recorrido}"
@@ -130,6 +130,6 @@ class HistorialEstadoViaje(models.Model):
     viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE)
     estado_viaje = models.ForeignKey(EstadoViaje, on_delete=models.CASCADE)
     fecha_cambio_estado = models.DateTimeField()
-    latitud = models.FloatField()
-    longitud = models.FloatField()
-    parada = models.ForeignKey(Parada, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"Historial Estado Viaje {self.id} - Viaje {self.viaje.id} - Estado {self.estado_viaje.nombre_estado}"
