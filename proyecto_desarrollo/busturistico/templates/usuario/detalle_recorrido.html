@@ -1,0 +1,18 @@
+{% extends 'usuario/base_usuario.html' %}
+{% block title %}{{ recorrido.nombre }} - Bus Turístico{% endblock %}
+{% block content %}
+<h2>{{ recorrido.nombre }}</h2>
+<p>{{ recorrido.descripcion }}</p>
+<p><strong>Duración:</strong> {{ recorrido.duracion }}</p>
+
+<h4>Paradas</h4>
+<ol>
+    {% for parada in paradas %}
+    <li>
+        <a href="{% url 'usuario-detalle-parada' parada.parada.pk %}">{{ parada.parada.nombre }}</a>
+    </li>
+    {% empty %}
+    <p>No hay paradas registradas para este recorrido.</p>
+    {% endfor %}
+</ol>
+{% endblock %}
