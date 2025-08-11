@@ -6,17 +6,32 @@ from busturistico.views import *
 from busturistico import views
 
 urlpatterns = [
-   path('', views.dashboard_view, name='admin-dashboard'),
-    path('choferes/', views.choferes_view, name='admin-choferes'),
-    path('flota/', views.flota_view, name='admin-flota'),
-    path('viajes/', views.viajes_view, name='admin-viajes'),
-    path('paradas/', views.paradas_view, name='admin-paradas'),
-    path('recorridos/', views.recorridos_view, name='admin-recorridos'),
-    path('reportes/', views.reportes_view, name='admin-reportes'),
-    path('nuevo-chofer/', views.crear_chofer, name='admin-nuevo-chofer'),
-    path('nuevo-bus/', views.crear_bus, name='admin-nuevo-bus'),
-    path('nuevo-viaje/', views.crear_viaje, name='admin-nuevo-viaje'),
-    path('nuevo-parada/', views.crear_parada, name='admin-nuevo-parada'),
-    path('nuevo-recorrido/', views.crear_recorrido, name='admin-nuevo-recorrido'),
-]
+    # Dashboard
+    path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),
 
+    # Choferes
+    path('admin/choferes/', views.ChoferesView.as_view(), name='admin-choferes'),
+    path('admin/nuevo-chofer/', views.CrearChoferView.as_view(), name='admin-nuevo-chofer'),
+
+    # Flota (Buses)
+    path('admin/flota/', views.FlotaView.as_view(), name='admin-flota'),
+    path('admin/nuevo-bus/', views.CrearBusView.as_view(), name='admin-nuevo-bus'),
+
+    # Viajes
+    path('admin/viajes/', views.ViajesView.as_view(), name='admin-viajes'),
+    path('admin/nuevo-viaje/', views.CrearViajeView.as_view(), name='admin-nuevo-viaje'),
+
+    # Paradas
+    path('admin/paradas/', views.ParadasView.as_view(), name='admin-paradas'),
+    path('admin/nuevo-parada/', views.CrearParadaView.as_view(), name='admin-nuevo-parada'),
+
+    # Recorridos
+    path('admin/recorridos/', views.RecorridosView.as_view(), name='admin-recorridos'),
+    path('admin/nuevo-recorrido/', views.CrearRecorridoView.as_view(), name='admin-nuevo-recorrido'),
+
+    # Reportes
+    path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
+
+    # Usuario público
+    path('', views.BaseUsuarioView.as_view(), name='usuario-base'),
+]
