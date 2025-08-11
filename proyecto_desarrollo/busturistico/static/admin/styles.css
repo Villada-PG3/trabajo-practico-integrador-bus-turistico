@@ -1,0 +1,76 @@
+:root {
+            --primary-color: #FFFEF9;
+            --secondary-color: #6D676E;
+            --accent-color: #026FEB;
+            --warning-color: #D41B06;
+            --background-color: #FFFFFF;
+        }
+        body {
+            background-color: var(--background-color);
+            color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            color: black;
+            border-bottom: var(--secondary-color) 4px solid;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: -5px;
+        }
+        .navbar-brand {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+        .navbar-brand:hover {
+            color: #796e6e;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+        .nav-link {
+            color: var(--secondary-color);
+            margin: 0 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        .nav-link:hover {
+            color: var(--accent-color);
+        }
+        .nav-link .nav-icon {
+            margin-right: 0.3rem;
+        }
+        main {
+            padding: 20px;
+        }
+        .new-btn {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            float: right;
+        }
+        .new-btn:hover {
+            background-color: #333;
+            color: #fff;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .status-activo { background-color: #28a745; color: #fff; }
+        .status-en-licencia { background-color: #ffc107; color: #fff; }
+        .status-inactivo { background-color: #dc3545; color: #fff; }
+        .status-operativo { background-color: #28a745; color: #fff; }
+        .status-en-reparacion { background-color: #ffc107; color: #fff; }
+        .status-mantenimiento { background-color: #fd7e14; color: #fff; }
+        .status-en-curso { background-color: #28a745; color: #fff; }
+        .status-programado { background-color: #17a2b8; color: #fff; }
+        .status-completado { background-color: #6c757d; color: #fff; }
+
+        

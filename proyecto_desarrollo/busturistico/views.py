@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import TemplateView, ListView, CreateView
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -6,8 +7,16 @@ from .forms import ChoferForm, BusForm
 from django.db.models import Count, OuterRef, Subquery
 from django.urls import reverse_lazy
 
-# Vistas principales del dashboard
-class DashboardView(TemplateView):
+class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        # Redirigir a la página pública en lugar de mostrar 403
+        return redirect('usuario-base')
+
+# Vistas principales del dashboard (restringida a superusuarios)
+class DashboardView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/dashboard.html'
 
     def get_context_data(self, **kwargs):
@@ -30,8 +39,8 @@ class DashboardView(TemplateView):
         })
         return context
 
-# Vistas de gestión de entidades
-class ChoferesView(ListView):
+# Vistas de gestión de entidades (restringidas a superusuarios)
+class ChoferesView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/chofer.html'
     model = Chofer
     context_object_name = 'choferes_total'
@@ -54,7 +63,7 @@ class ChoferesView(ListView):
         })
         return context
 
-class FlotaView(TemplateView):
+class FlotaView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/flota.html'
 
     def get_context_data(self, **kwargs):
@@ -81,7 +90,7 @@ class FlotaView(TemplateView):
         })
         return context
 
-class ViajesView(TemplateView):
+class ViajesView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/viajes.html'
 
     def get_context_data(self, **kwargs):
@@ -93,31 +102,31 @@ class ViajesView(TemplateView):
         })
         return context
 
-class ParadasView(ListView):
+class ParadasView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/paradas.html'
     model = Parada
     context_object_name = 'paradas'
 
-class RecorridosView(ListView):
+class RecorridosView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/recorridos.html'
     model = Recorrido
     context_object_name = 'recorridos'
 
-class ReportesView(TemplateView):
+class ReportesView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/reportes.html'
 
-# Vistas para la creación de nuevos elementos
-class CrearChoferView(CreateView):
+# Vistas para la creación de nuevos elementos (restringidas a superusuarios)
+class CrearChoferView(SuperUserRequiredMixin, CreateView):
     model = Chofer
     form_class = ChoferForm
     template_name = 'admin/chofer_form.html'
-    success_url = reverse_lazy('admin/chofer.html')
+    success_url = reverse_lazy('admin-choferes')
 
-class CrearBusView(CreateView):
+class CrearBusView(SuperUserRequiredMixin, CreateView):
     model = Bus
     form_class = BusForm
     template_name = 'admin/crear_bus.html'
-    success_url = reverse_lazy('admin:admin-flota')
+    success_url = reverse_lazy('admin-flota')
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -129,23 +138,24 @@ class CrearBusView(CreateView):
         )
         return response
 
-class CrearViajeView(TemplateView):
+class CrearViajeView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/crear_viaje.html'
 
     def post(self, request, *args, **kwargs):
-        # No form processing, just redirect to viajes page
-        return redirect('admin:admin-viajes')
+        return redirect('admin-viajes')
 
-class CrearParadaView(TemplateView):
+class CrearParadaView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/crear_parada.html'
 
     def post(self, request, *args, **kwargs):
-        # No form processing, just redirect to paradas page
-        return redirect('admin:admin-paradas')
+        return redirect('admin-paradas')
 
-class CrearRecorridoView(TemplateView):
+class CrearRecorridoView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/crear_recorrido.html'
 
     def post(self, request, *args, **kwargs):
-        # No form processing, just redirect to recorridos page
-        return redirect('admin:admin-recorridos')
+        return redirect('admin-recorridos')
+
+# Vista pública (accesible por cualquiera)
+class BaseUsuarioView(TemplateView):
+    template_name = 'usuario/base_usuario.html'
