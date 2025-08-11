@@ -53,7 +53,7 @@ class ViajeAdmin(admin.ModelAdmin):
         'id', 'fecha_programada', 'hora_inicio_programada',
         'fecha_hora_inicio_real', 'fecha_hora_fin_real',
         'demora_inicio_minutos', 'duracion_minutos_real',
-        'patente_bus', 'chofer', 'recorrido', 'estado_viaje'
+        'patente_bus', 'chofer', 'recorrido',
     )
 @admin.register(EstadoViaje)
 class EstadoViajeAdmin(admin.ModelAdmin):

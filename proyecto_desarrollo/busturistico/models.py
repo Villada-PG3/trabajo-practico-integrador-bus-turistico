@@ -31,6 +31,7 @@ class RecorridoParada(models.Model):
 
     class Meta:
         unique_together = ('recorrido', 'parada', 'orden')
+        verbose_name_plural = "RecorridoParadas"
 
 
 class Atractivo(models.Model):
@@ -53,6 +54,7 @@ class ParadaAtractivo(models.Model):
 
     class Meta:
         unique_together = ('parada', 'atractivo')
+        verbose_name_plural = "ParadaAtractivos"
 
 
 class Bus(models.Model):
@@ -77,6 +79,9 @@ class EstadoBusHistorial(models.Model):
     estado_bus = models.ForeignKey(EstadoBus, on_delete=models.CASCADE)
     fecha_inicio_estado = models.DateTimeField()
 
+    class Meta:
+        verbose_name_plural = "EstadoBusHistorial"
+
 
 class Chofer(models.Model):
     nombre_chofer = models.CharField(max_length=100)
@@ -91,19 +96,9 @@ class Chofer(models.Model):
         return f"{self.nombre_chofer} {self.apellido_chofer}"
 
 
-class UbicacionColectivo(models.Model):
-    latitud = models.FloatField()
-    longitud = models.FloatField()
-    timestamp_ubicacion = models.DateTimeField()
-
-    def __str__(self):
-        return f"Ubicación {self.id} - ({self.latitud}, {self.longitud})"
-
-
 class EstadoViaje(models.Model):
     nombre_estado = models.CharField(max_length=100)
     descripcion_estado = models.TextField()
-    ubicacion_colectivo = models.ForeignKey(UbicacionColectivo, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.nombre_estado
@@ -119,17 +114,28 @@ class Viaje(models.Model):
     patente_bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
     chofer = models.ForeignKey(Chofer, on_delete=models.CASCADE)
     recorrido = models.ForeignKey(Recorrido, on_delete=models.CASCADE)
-    estado_viaje = models.ForeignKey(EstadoViaje, on_delete=models.CASCADE)
-    ubicacion_colectivo = models.ForeignKey(UbicacionColectivo, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Viaje {self.id} - {self.recorrido}"
+
+
+class UbicacionColectivo(models.Model):
+    latitud = models.FloatField()
+    longitud = models.FloatField()
+    timestamp_ubicacion = models.DateTimeField()
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = "UbicacionColectivos"
 
 
 class HistorialEstadoViaje(models.Model):
     viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE)
     estado_viaje = models.ForeignKey(EstadoViaje, on_delete=models.CASCADE)
     fecha_cambio_estado = models.DateTimeField()
+
+    class Meta:
+        verbose_name_plural = "HistorialEstadoViajes"
 
     def __str__(self):
         return f"Historial Estado Viaje {self.id} - Viaje {self.viaje.id} - Estado {self.estado_viaje.nombre_estado}"
