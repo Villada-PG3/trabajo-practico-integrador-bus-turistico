@@ -13,7 +13,7 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def handle_no_permission(self):
         # Redirigir a la página pública en lugar de mostrar 403
-        return redirect('usuario-inicio')
+        return redirect('admin:login')
 
 
 # Vistas principales del dashboarad (restringida a superusuarios)

@@ -1,56 +1,234 @@
 {% extends 'usuario/base_usuario.html' %}
 
-{% block title %}Recorridos para Chofer - Bus Turístico{% endblock %}
+{% block title %}Recorridos para Chofer - Bus Turístico Buenos Aires{% endblock %}
 
 {% block content %}
-<section class="container py-4">
-    <h2 class="mb-4">Recorridos disponibles para iniciar</h2>
-    <div class="row">
-        {% for recorrido in recorridos %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title mb-2">{{ recorrido.color_recorrido }}</h5>
-                    <p class="card-text">Recorrido #{{ recorrido.id }}</p>
-                    <p class="card-text text-muted">{{ recorrido.descripcion_recorrido|truncatewords:20 }}</p>
-                    <p class="card-text">
-                        <small class="text-muted">
-                            <i class="fas fa-clock"></i> Duración: {{ recorrido.duracion_aproximada_recorrido }}
-                        </small>
-                    </p>
-                    <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-play"></i> Iniciar Recorrido
-                        </button>
-                    </form>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="text-center">
+            <h1 class="hero-title">Recorridos Disponibles</h1>
+            <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
+        </div>
+    </div>
+</section>
+
+<!-- Recorridos Grid -->
+<section class="py-5">
+    <div class="container">
+        {% if recorridos %}
+            <div class="row g-4">
+                {% for recorrido in recorridos %}
+                <div class="col-lg-4 col-md-6 animate-on-scroll">
+                    <div class="modern-card h-100 overflow-hidden">
+                        <!-- Imagen del recorrido -->
+                        <div style="height: 200px; background: linear-gradient(45deg, #0d6efd, #6610f2); position: relative; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-route text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                            <div style="position: absolute; top: 15px; right: 15px;">
+                                <span class="badge bg-white text-primary">
+                                    <i class="fas fa-clock me-1"></i>{{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
+                            <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
+                            
+                            <!-- Información adicional -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-route me-1"></i>Recorrido #{{ recorrido.id }}
+                                </small>
+                                <span class="badge bg-success-subtle text-success">Disponible</span>
+                            </div>
+                            
+                            <!-- Barrios del recorrido -->
+                            <div class="mb-3">
+                                <small class="text-muted fw-semibold">Barrios principales:</small>
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary small">Centro</span>
+                                    <span class="badge bg-success-subtle text-success small">San Telmo</span>
+                                    <span class="badge bg-warning-subtle text-warning small">La Boca</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón de acción -->
+                            <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-play me-2"></i>Iniciar Recorrido
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación -->
+            {% if is_paginated %}
+            <div class="d-flex justify-content-center mt-5">
+                <nav>
+                    <ul class="pagination pagination-lg">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paginator.num_pages }}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-route" style="font-size: 4rem; color: #e2e8f0;"></i>
+                </div>
+                <h3 class="text-muted mb-3">No hay recorridos disponibles</h3>
+                <p class="text-muted mb-4">
+                    Actualmente no hay recorridos programados para iniciar.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Información para Choferes -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h3 class="fw-bold mb-3">Instrucciones para Choferes</h3>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Verifica tu bus asignado</h6>
+                                <p class="text-muted small">Antes de iniciar, confirma que el bus esté en condiciones óptimas</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Revisa el itinerario</h6>
+                                <p class="text-muted small">Conoce las paradas y tiempos estimados del recorrido</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="mb-3">
+                        <div class="d-flex">
+                            <div class="me-3 text-primary">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Reporta incidencias</h6>
+                                <p class="text-muted small">Notifica cualquier problema al iniciar o durante el recorrido</p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <div class="modern-card p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="card-icon me-3" style="background: var(--ba-blue);">
+                            <i class="fas fa-bus"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Estado Actual</h5>
+                            <small class="text-muted">Información de tu unidad asignada</small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Bus:</strong> {% if chofer.bus_asignado_actual %}{{ chofer.bus_asignado_actual }}{% else %}No asignado{% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-tools me-2"></i>Reportar Problema
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <p class="text-center text-muted">No hay recorridos disponibles.</p>
-        </div>
-        {% endfor %}
     </div>
-    {% if is_paginated %}
-    <div class="d-flex justify-content-center">
-        <nav>
-            <ul class="pagination">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-                {% endif %}
-                {% for num in page_obj.paginator.page_range %}
-                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-                {% endfor %}
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-    {% endif %}
 </section>
+
+<style>
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+
+.animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+
+<script>
+// Animaciones al scroll
+document.addEventListener('DOMContentLoaded', function() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => observer.observe(el));
+});
+</script>
 {% endblock %}
