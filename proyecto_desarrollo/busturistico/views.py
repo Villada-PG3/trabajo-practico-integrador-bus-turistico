@@ -17,7 +17,7 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # para que el usuario vuelva a la página que intentaba ver.
         return redirect('admin:login')
 
-# Vistas principales del dashboard (restringida a superusuarios)
+# Vistas principales del dashboarad (restringida a superusuarios)
 class DashboardView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/dashboard.html'
 
