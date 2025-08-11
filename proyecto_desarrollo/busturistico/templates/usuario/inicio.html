@@ -1,6 +1,6 @@
 {% extends 'usuario/base_usuario.html' %}
 
-{% block title %}Inicio - Bus Turístico{% endblock %}
+{% block title %}Inicio - Bus Turístico Buenos Aires{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -9,8 +9,8 @@
         <div class="row align-items-center">
             <div class="col-lg-6">
                 <div class="hero-content">
-                    <h1 class="hero-title">Descubre La Calera como nunca antes</h1>
-                    <p class="hero-subtitle">Viaja cómodamente y conoce todos los atractivos turísticos de nuestra hermosa ciudad con nuestros recorridos guiados.</p>
+                    <h1 class="hero-title">Descubre Buenos Aires como nunca antes</h1>
+                    <p class="hero-subtitle">Recorre los barrios más emblemáticos de la Ciudad Autónoma desde Plaza de Mayo. Vive la experiencia porteña con vistas panorámicas de lugares históricos, espacios culturales y barrios únicos.</p>
                     <div class="d-flex flex-wrap gap-3">
                         <a href="{% url 'usuario-recorridos' %}" class="btn btn-hero">
                             <i class="fas fa-route me-2"></i>Ver Recorridos
@@ -23,7 +23,8 @@
             </div>
             <div class="col-lg-6">
                 <div class="hero-image text-center">
-                    <i class="fas fa-bus" style="font-size: 15rem; opacity: 0.3;"></i>
+                    <i class="fas fa-city" style="font-size: 12rem; opacity: 0.3;"></i>
+                    <i class="fas fa-bus" style="font-size: 8rem; opacity: 0.5; position: absolute; margin-left: -3rem; margin-top: 2rem;"></i>
                 </div>
             </div>
         </div>
@@ -35,20 +36,20 @@
     <div class="container">
         <div class="text-center mb-5 animate-on-scroll">
             <h2 class="display-5 fw-bold text-primary mb-3">Nuestros Servicios</h2>
-            <p class="lead text-muted">Experiencias únicas diseñadas para que disfrutes al máximo</p>
+            <p class="lead text-muted">Experiencias únicas para conocer la verdadera esencia porteña</p>
         </div>
         
         <div class="row g-4">
             <div class="col-lg-4 col-md-6 animate-on-scroll">
                 <div class="modern-card h-100 text-center p-4">
                     <div class="card-icon mx-auto">
-                        <i class="fas fa-map-marked-alt"></i>
+                        <i class="fas fa-city"></i>
                     </div>
-                    <h4 class="fw-bold mb-3">Tours Guiados</h4>
-                    <p class="text-muted mb-4">Recorridos con guías expertos que te contarán la historia y curiosidades de cada lugar.</p>
+                    <h4 class="fw-bold mb-3">Tours Centro Histórico</h4>
+                    <p class="text-muted mb-4">Comenzando desde Plaza de Mayo, recorre el corazón del Centro Porteño con guías expertos en historia argentina.</p>
                     <div class="d-flex justify-content-between text-sm text-muted">
-                        <span><i class="fas fa-clock me-1"></i>2-3 horas</span>
-                        <span><i class="fas fa-users me-1"></i>Max 30 personas</span>
+                        <span><i class="fas fa-clock me-1"></i>3-4 horas</span>
+                        <span><i class="fas fa-users me-1"></i>Max 40 personas</span>
                     </div>
                 </div>
             </div>
@@ -56,13 +57,13 @@
             <div class="col-lg-4 col-md-6 animate-on-scroll" style="animation-delay: 0.2s;">
                 <div class="modern-card h-100 text-center p-4">
                     <div class="card-icon mx-auto">
-                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-palette"></i>
                     </div>
-                    <h4 class="fw-bold mb-3">Tours Nocturnos</h4>
-                    <p class="text-muted mb-4">Descubre la magia de La Calera bajo las estrellas con nuestros tours especiales nocturnos.</p>
+                    <h4 class="fw-bold mb-3">Barrios Emblemáticos</h4>
+                    <p class="text-muted mb-4">San Telmo, La Boca, Palermo y Recoleta. Descubre la diversidad cultural de Buenos Aires en un solo recorrido.</p>
                     <div class="d-flex justify-content-between text-sm text-muted">
-                        <span><i class="fas fa-clock me-1"></i>2 horas</span>
-                        <span><i class="fas fa-star me-1"></i>Romántico</span>
+                        <span><i class="fas fa-clock me-1"></i>4-5 horas</span>
+                        <span><i class="fas fa-camera me-1"></i>Fotogénico</span>
                     </div>
                 </div>
             </div>
@@ -70,13 +71,13 @@
             <div class="col-lg-4 col-md-6 animate-on-scroll" style="animation-delay: 0.4s;">
                 <div class="modern-card h-100 text-center p-4">
                     <div class="card-icon mx-auto">
-                        <i class="fas fa-user-friends"></i>
+                        <i class="fas fa-moon"></i>
                     </div>
-                    <h4 class="fw-bold mb-3">Tours Privados</h4>
-                    <p class="text-muted mb-4">Personaliza tu experiencia con tours exclusivos para ti y tu grupo.</p>
+                    <h4 class="fw-bold mb-3">Buenos Aires Nocturno</h4>
+                    <p class="text-muted mb-4">Vive la magia de la ciudad que nunca duerme. Puerto Madero iluminado y el tango en las calles de San Telmo.</p>
                     <div class="d-flex justify-content-between text-sm text-muted">
-                        <span><i class="fas fa-clock me-1"></i>Flexible</span>
-                        <span><i class="fas fa-crown me-1"></i>Premium</span>
+                        <span><i class="fas fa-clock me-1"></i>3 horas</span>
+                        <span><i class="fas fa-star me-1"></i>Romántico</span>
                     </div>
                 </div>
             </div>
@@ -93,7 +94,7 @@
                     <div class="display-4 fw-bold text-primary mb-2">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h3 class="display-6 fw-bold text-primary counter" data-target="1500">0</h3>
+                    <h3 class="display-6 fw-bold text-primary counter" data-target="25000">0</h3>
                     <p class="text-muted mb-0">Turistas Satisfechos</p>
                 </div>
             </div>
@@ -102,7 +103,7 @@
                     <div class="display-4 fw-bold text-success mb-2">
                         <i class="fas fa-route"></i>
                     </div>
-                    <h3 class="display-6 fw-bold text-success counter" data-target="25">0</h3>
+                    <h3 class="display-6 fw-bold text-success counter" data-target="15">0</h3>
                     <p class="text-muted mb-0">Rutas Disponibles</p>
                 </div>
             </div>
@@ -111,7 +112,7 @@
                     <div class="display-4 fw-bold text-warning mb-2">
                         <i class="fas fa-bus"></i>
                     </div>
-                    <h3 class="display-6 fw-bold text-warning counter" data-target="12">0</h3>
+                    <h3 class="display-6 fw-bold text-warning counter" data-target="20">0</h3>
                     <p class="text-muted mb-0">Buses Modernos</p>
                 </div>
             </div>
@@ -120,7 +121,7 @@
                     <div class="display-4 fw-bold text-info mb-2">
                         <i class="fas fa-star"></i>
                     </div>
-                    <h3 class="display-6 fw-bold text-info">4.9</h3>
+                    <h3 class="display-6 fw-bold text-info">4.8</h3>
                     <p class="text-muted mb-0">Calificación Promedio</p>
                 </div>
             </div>
@@ -133,21 +134,109 @@
     <div class="container">
         <div class="text-center mb-5 animate-on-scroll">
             <h2 class="display-5 fw-bold text-primary mb-3">Lugares Imperdibles</h2>
-            <p class="lead text-muted">Los destinos más populares en nuestros recorridos</p>
+            <p class="lead text-muted">Los destinos más icónicos de Buenos Aires en nuestros recorridos</p>
         </div>
         
         <div class="row g-4">
             <div class="col-lg-6 animate-on-scroll">
                 <div class="modern-card overflow-hidden">
-                    <div style="height: 300px; background: linear-gradient(45deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-mountain text-white" style="font-size: 4rem; opacity: 0.7;"></i>
+                    <div style="height: 300px; background: linear-gradient(45deg, #0d6efd, #6610f2); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-landmark text-white" style="font-size: 4rem; opacity: 0.7;"></i>
                         <div style="position: absolute; bottom: 20px; left: 20px; color: white;">
-                            <h4 class="fw-bold mb-1">Cerro La Cruz</h4>
-                            <p class="mb-0 opacity-75">Vista panorámica de la ciudad</p>
+                            <h4 class="fw-bold mb-1">Plaza de Mayo</h4>
+                            <p class="mb-0 opacity-75">Corazón político e histórico de Argentina</p>
                         </div>
                     </div>
                     <div class="p-4">
-                        <p class="text-muted fst-italic">"Una experiencia única en familia. Los niños se divirtieron muchísimo y nosotros también. ¡Volveremos pronto!"</p>
+                        <p class="text-muted">Casa Rosada, Cabildo y Catedral Metropolitana. El lugar donde nació nuestra patria y centro de la vida política nacional.</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary-subtle text-primary">Histórico</span>
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>45 min parada</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card overflow-hidden">
+                    <div style="height: 300px; background: linear-gradient(45deg, #fd7e14, #dc3545); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-paint-brush text-white" style="font-size: 4rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 20px; left: 20px; color: white;">
+                            <h4 class="fw-bold mb-1">La Boca</h4>
+                            <p class="mb-0 opacity-75">Color, tango y tradición futbolera</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-muted">Caminito, La Bombonera y el arte callejero. El barrio más colorido y vibrante de Buenos Aires.</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-warning-subtle text-warning">Cultural</span>
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>60 min visita</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4 mt-2">
+            <div class="col-lg-4 animate-on-scroll">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-muted fst-italic">"Una experiencia increíble recorriendo Buenos Aires. El guía nos contó historias fascinantes sobre cada barrio. ¡Muy recomendable!"</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-0">María González</h6>
+                            <small class="text-muted">Rosario, Santa Fe</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-muted fst-italic">"Perfect para conocer la ciudad en poco tiempo. Los buses son cómodos y el recorrido muy completo. La Boca nos encantó."</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-0">Carlos Mendoza</h6>
+                            <small class="text-muted">Mendoza</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.4s;">
+                <div class="modern-card text-center p-4">
+                    <div class="mb-3">
+                        <div class="text-warning mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-muted fst-italic">"Excelente servicio! Pudimos conocer desde Plaza de Mayo hasta Puerto Madero. Una experiencia única en familia."</p>
                     </div>
                     <div class="d-flex align-items-center justify-content-center">
                         <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
@@ -155,7 +244,7 @@
                         </div>
                         <div class="text-start">
                             <h6 class="fw-bold mb-0">Ana Rodríguez</h6>
-                            <small class="text-muted">Mendoza</small>
+                            <small class="text-muted">Córdoba Capital</small>
                         </div>
                     </div>
                 </div>
@@ -168,8 +257,8 @@
 <section class="py-5">
     <div class="container">
         <div class="modern-card p-5 text-center animate-on-scroll" style="background: var(--gradient-bg); color: white;">
-            <h2 class="display-5 fw-bold mb-3">¿Listo para la aventura?</h2>
-            <p class="lead mb-4">Reserva tu lugar ahora y vive una experiencia inolvidable en La Calera</p>
+            <h2 class="display-5 fw-bold mb-3">¿Listo para descubrir Buenos Aires?</h2>
+            <p class="lead mb-4">Reserva tu lugar ahora y vive una experiencia inolvidable recorriendo los barrios más emblemáticos desde Plaza de Mayo</p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
                 <a href="{% url 'usuario-recorridos' %}" class="btn btn-light btn-lg">
                     <i class="fas fa-calendar-check me-2"></i>Ver Horarios
@@ -217,29 +306,36 @@ function animateCounters() {
 
 document.addEventListener('DOMContentLoaded', animateCounters);
 </script>
-{% endblock %}d mb-3">El punto más alto de La Calera ofrece una vista espectacular de toda la región.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-primary-subtle text-primary">Mirador</span>
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i>30 min parada</small>
+{% endblock %}-card overflow-hidden">
+                    <div style="height: 250px; background: linear-gradient(45deg, #198754, #20c997); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-tree text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 15px; left: 15px; color: white;">
+                            <h5 class="fw-bold mb-1">Palermo</h5>
+                            <small class="opacity-75">Parques y vida nocturna</small>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-6 animate-on-scroll" style="animation-delay: 0.2s;">
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.2s;">
                 <div class="modern-card overflow-hidden">
-                    <div style="height: 300px; background: linear-gradient(45deg, #f093fb, #f5576c); position: relative; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-church text-white" style="font-size: 4rem; opacity: 0.7;"></i>
-                        <div style="position: absolute; bottom: 20px; left: 20px; color: white;">
-                            <h4 class="fw-bold mb-1">Iglesia Histórica</h4>
-                            <p class="mb-0 opacity-75">Patrimonio arquitectónico</p>
+                    <div style="height: 250px; background: linear-gradient(45deg, #6f42c1, #d63384); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-university text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 15px; left: 15px; color: white;">
+                            <h5 class="fw-bold mb-1">Recoleta</h5>
+                            <small class="opacity-75">Elegancia y cultura</small>
                         </div>
                     </div>
-                    <div class="p-4">
-                        <p class="text-muted mb-3">Una joya colonial que guarda siglos de historia y tradición religiosa.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-success-subtle text-success">Histórico</span>
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i>45 min visita</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.4s;">
+                <div class="modern-card overflow-hidden">
+                    <div style="height: 250px; background: linear-gradient(45deg, #0dcaf0, #0d6efd); position: relative; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-ship text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                        <div style="position: absolute; bottom: 15px; left: 15px; color: white;">
+                            <h5 class="fw-bold mb-1">Puerto Madero</h5>
+                            <small class="opacity-75">Modernidad y río</small>
                         </div>
                     </div>
                 </div>
@@ -253,66 +349,9 @@ document.addEventListener('DOMContentLoaded', animateCounters);
     <div class="container">
         <div class="text-center mb-5 animate-on-scroll">
             <h2 class="display-5 fw-bold text-primary mb-3">Lo que dicen nuestros turistas</h2>
-            <p class="lead text-muted">Experiencias reales de personas que vivieron la magia de La Calera</p>
+            <p class="lead text-muted">Experiencias reales de personas que vivieron la magia de Buenos Aires</p>
         </div>
         
         <div class="row g-4">
             <div class="col-lg-4 animate-on-scroll">
-                <div class="modern-card text-center p-4">
-                    <div class="mb-3">
-                        <div class="text-warning mb-2">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-muted fst-italic">"Increíble experiencia! Los guías son muy conocedores y el bus súper cómodo. Definitivamente regresaremos."</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-center">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="text-start">
-                            <h6 class="fw-bold mb-0">María González</h6>
-                            <small class="text-muted">Buenos Aires</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.2s;">
-                <div class="modern-card text-center p-4">
-                    <div class="mb-3">
-                        <div class="text-warning mb-2">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-muted fst-italic">"Perfecta organización y lugares hermosos. El tour nocturno es mágico, se los recomiendo mucho."</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-center">
-                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="text-start">
-                            <h6 class="fw-bold mb-0">Carlos Mendoza</h6>
-                            <small class="text-muted">Rosario</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 animate-on-scroll" style="animation-delay: 0.4s;">
-                <div class="modern-card text-center p-4">
-                    <div class="mb-3">
-                        <div class="text-warning mb-2">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-mute
+                <div class="modern

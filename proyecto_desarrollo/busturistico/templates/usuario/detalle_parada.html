@@ -1,27 +1,341 @@
 {% extends 'usuario/base_usuario.html' %}
-{% block title %}{{ parada.nombre }} - Bus Turístico{% endblock %}
+{% block title %}{{ parada.nombre_parada }} - Bus Turístico Buenos Aires{% endblock %}
 {% block content %}
-<h2>{{ parada.nombre }}</h2>
-<p>{{ parada.descripcion }}</p>
-{% if parada.latitud and parada.longitud %}
-<div class="mb-3">
-    <iframe
-        width="100%"
-        height="300"
-        style="border:0"
-        loading="lazy"
-        allowfullscreen
-        src="https://www.google.com/maps?q={{ parada.latitud }},{{ parada.longitud }}&hl=es&z=15&output=embed">
-    </iframe>
-</div>
+
+<section class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Información Principal -->
+            <div class="modern-card p-4 mb-4">
+                <div class="d-flex align-items-start mb-4">
+                    <div class="card-icon me-3 flex-shrink-0">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h1 class="h2 fw-bold text-primary mb-2">{{ parada.nombre_parada }}</h1>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-pin me-2"></i>
+                            {{ parada.direccion_parada }}
+                        </p>
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-primary-subtle text-primary">
+                                <i class="fas fa-clock me-1"></i>30-45 min de visita
+                            </span>
+                            <span class="badge bg-success-subtle text-success">
+                                <i class="fas fa-camera me-1"></i>Ideal para fotos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-3">Descripción</h4>
+                    <p class="text-muted leading-relaxed">{{ parada.descripcion_parada }}</p>
+                </div>
+
+                <!-- Coordenadas y Mapa -->
+                {% if parada.latitud_parada and parada.longitud_parada %}
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-3">
+                        <i class="fas fa-map text-primary me-2"></i>Ubicación
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted fw-semibold">Coordenadas GPS:</small>
+                            <p class="font-monospace small">
+                                {{ parada.latitud_parada }}, {{ parada.longitud_parada }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <a href="https://maps.google.com/?q={{ parada.latitud_parada }},{{ parada.longitud_parada }}" 
+                                   target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Google Maps
+                                </a>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="copyCoordinates()">
+                                    <i class="fas fa-copy me-1"></i>Copiar GPS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mapa Placeholder -->
+                    <div class="modern-card overflow-hidden mb-3">
+                        <div style="height: 300px; background: linear-gradient(45deg, #f8f9fa, #e9ecef); display: flex; align-items: center; justify-content: center; position: relative;">
+                            <div class="text-center">
+                                <i class="fas fa-map-marked-alt text-primary" style="font-size: 3rem; opacity: 0.5;"></i>
+                                <h6 class="mt-2 text-muted">Mapa Interactivo</h6>
+                            </div>
+                            <div class="position-absolute top-0 end-0 p-3">
+                                <span class="badge bg-white text-primary">
+                                    <i class="fas fa-crosshairs me-1"></i>{{ parada.latitud_parada|floatformat:4 }}, {{ parada.longitud_parada|floatformat:4 }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Información de Accesibilidad -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <i class="fas fa-subway text-primary me-3" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Transporte Público</h6>
+                                <small class="text-muted">Accesible por subte y colectivos</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <i class="fas fa-wheelchair text-success me-3" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Accesibilidad</h6>
+                                <small class="text-muted">Apto para personas con movilidad reducida</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Atractivos Cercanos -->
+            {% if atractivos %}
+            <div class="modern-card p-4">
+                <h4 class="fw-bold mb-4">
+                    <i class="fas fa-star text-warning me-2"></i>Atractivos en Esta Parada
+                </h4>
+                
+                <div class="row g-3">
+                    {% for pa in atractivos %}
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-1">{{ pa.atractivo.nombre_atractivo }}</h6>
+                                <div class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= pa.atractivo.calificacion_estrellas %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">{{ pa.atractivo.descripcion_atractivo|truncatewords:15 }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="modern-card p-4 text-center">
+                <i class="fas fa-info-circle text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                <h5 class="text-muted mt-3">Información de Atractivos</h5>
+                <p class="text-muted">Los detalles específicos de esta parada se completarán durante el tour con nuestros guías especializados.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recorridos que incluyen esta parada -->
+            {% if recorridos_relacionados %}
+            <div class="modern-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-route text-primary me-2"></i>Recorridos que Incluyen Esta Parada
+                </h5>
+                
+                {% for recorrido in recorridos_relacionados %}
+                <div class="border-bottom pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
+                    <h6 class="fw-bold mb-1">
+                        <a href="{% url 'usuario-detalle-recorrido' recorrido.pk %}" class="text-decoration-none">
+                            {{ recorrido.color_recorrido }}
+                        </a>
+                    </h6>
+                    <p class="text-muted small mb-2">{{ recorrido.descripcion_recorrido|truncatewords:10 }}</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-info-subtle text-info small">
+                            <i class="fas fa-clock me-1"></i>{{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Información Práctica -->
+            <div class="modern-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-info-circle text-primary me-2"></i>Información Práctica
+                </h5>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-clock text-muted me-2"></i>
+                        <strong>Tiempo de visita:</strong> 30-45 minutos
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-walking text-muted me-2"></i>
+                        <strong>Actividad:</strong> Caminata ligera
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-camera text-muted me-2"></i>
+                        <strong>Fotografías:</strong> Permitidas
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-restroom text-muted me-2"></i>
+                        <strong>Servicios:</strong> Baños cercanos
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-coffee text-muted me-2"></i>
+                        <strong>Cafeterías:</strong> Disponibles en la zona
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Consejos para la Visita -->
+            <div class="modern-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>Consejos para tu Visita
+                </h5>
+                
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-sun me-2"></i>
+                    <strong>Mejor momento:</strong> Mañana temprano o tarde para evitar multitudes
+                </div>
+                
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Lleva zapatos cómodos para caminar
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Protector solar y sombrero recomendados
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Mantén tus pertenencias seguras
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Respeta las indicaciones del guía
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="modern-card p-4" style="background: linear-gradient(135deg, var(--primary-color), var(--ba-blue)); color: white;">
+                <h5 class="fw-bold mb-3">¿Te interesa conocer este lugar?</h5>
+                <p class="mb-3 opacity-90">Reserva tu lugar en uno de nuestros recorridos</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'usuario-recorridos' %}" class="btn btn-light">
+                        <i class="fas fa-route me-2"></i>Ver Recorridos
+                    </a>
+                    <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-light">
+                        <i class="fas fa-phone me-2"></i>Contactar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Paradas Relacionadas -->
+{% if recorridos_relacionados %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold text-primary mb-3">Otras Paradas que Te Pueden Interesar</h3>
+            <p class="text-muted">Descubre más lugares emblemáticos de Buenos Aires</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Estas serían paradas relacionadas, por ahora usamos ejemplos -->
+            <div class="col-lg-4 col-md-6">
+                <div class="modern-card text-center p-4">
+                    <div style="height: 120px; background: linear-gradient(45deg, #0d6efd, #6610f2); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-landmark text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Plaza de Mayo</h5>
+                    <p class="text-muted small mb-3">Casa Rosada, Cabildo y Catedral</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Ver Detalles</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="modern-card text-center p-4">
+                    <div style="height: 120px; background: linear-gradient(45deg, #dc3545, #fd7e14); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-palette text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Caminito - La Boca</h5>
+                    <p class="text-muted small mb-3">El barrio más colorido de Buenos Aires</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Ver Detalles</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="modern-card text-center p-4">
+                    <div style="height: 120px; background: linear-gradient(45deg, #0dcaf0, #0d6efd); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-ship text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Puerto Madero</h5>
+                    <p class="text-muted small mb-3">Modernidad y gastronomía junto al río</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endif %}
 
-<h4>Atractivos Cercanos</h4>
-<ul>
-    {% for pa in atractivos %}
-    <li>{{ pa.atractivo.nombre }} - Calificación: {{ pa.atractivo.calificacion }}/5</li>
-    {% empty %}
-    <p>No hay atractivos cercanos registrados.</p>
-    {% endfor %}
-</ul>
+<script>
+function copyCoordinates() {
+    const coordinates = '{{ parada.latitud_parada }}, {{ parada.longitud_parada }}';
+    navigator.clipboard.writeText(coordinates).then(function() {
+        // Mostrar mensaje de éxito
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check me-1"></i>¡Copiado!';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    });
+}
+
+// Simular carga de mapa (en producción sería Google Maps real)
+document.addEventListener('DOMContentLoaded', function() {
+    // Aquí podrías inicializar Google Maps o Leaflet
+    console.log('Parada:', {
+        nombre: '{{ parada.nombre_parada }}',
+        lat: {{ parada.latitud_parada|default:0 }},
+        lng: {{ parada.longitud_parada|default:0 }}
+    });
+});
+</script>
+
+<style>
+.leading-relaxed {
+    line-height: 1.7;
+}
+
+.last\:border-0:last-child {
+    border-bottom: none !important;
+}
+
+.last\:pb-0:last-child {
+    padding-bottom: 0 !important;
+}
+
+.last\:mb-0:last-child {
+    margin-bottom: 0 !important;
+}
+</style>
 {% endblock %}

@@ -1,14 +1,14 @@
 {% extends 'usuario/base_usuario.html' %}
 
-{% block title %}Recorridos - Bus Turístico{% endblock %}
+{% block title %}Recorridos - Bus Turístico Buenos Aires{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
         <div class="text-center">
-            <h1 class="hero-title">Nuestros Recorridos</h1>
-            <p class="hero-subtitle">Descubre todos los lugares increíbles que tenemos preparados para ti</p>
+            <h1 class="hero-title">Nuestros Recorridos por Buenos Aires</h1>
+            <p class="hero-subtitle">Descubre todos los barrios emblemáticos desde Plaza de Mayo con vistas panorámicas únicas</p>
         </div>
     </div>
 </section>
@@ -24,7 +24,7 @@
                             <i class="fas fa-search text-muted"></i>
                         </span>
                         <input type="text" class="form-control border-start-0" 
-                               placeholder="Buscar recorridos..." 
+                               placeholder="Buscar recorridos por barrios..." 
                                name="search" 
                                value="{{ search_query }}">
                     </div>
@@ -52,17 +52,22 @@
                 <div class="col-lg-4 col-md-6 animate-on-scroll">
                     <div class="modern-card h-100 overflow-hidden">
                         <!-- Imagen del recorrido -->
-                        <div style="height: 250px; background: linear-gradient(45deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-route text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                        <div style="height: 250px; background: linear-gradient(45deg, #0d6efd, #6610f2); position: relative; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-city text-white" style="font-size: 3rem; opacity: 0.7;"></i>
                             <div style="position: absolute; top: 15px; right: 15px;">
                                 <span class="badge bg-white text-primary">
                                     <i class="fas fa-map-marker-alt me-1"></i>{{ recorrido.total_paradas }} parada{{ recorrido.total_paradas|pluralize }}
                                 </span>
                             </div>
+                            <div style="position: absolute; top: 15px; left: 15px;">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-star me-1"></i>Popular
+                                </span>
+                            </div>
                         </div>
                         
                         <div class="p-4">
-                            <h5 class="fw-bold mb-2">{{ recorrido.color_recorrido }}</h5>
+                            <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
                             <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
                             
                             <!-- Información adicional -->
@@ -70,23 +75,34 @@
                                 <div class="d-flex gap-3">
                                     <small class="text-muted">
                                         <i class="fas fa-clock me-1"></i>
-                                        {{ recorrido.duracion_aproximada_recorrido|default:"2h" }}
+                                        {{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
                                     </small>
                                     <small class="text-muted">
-                                        <i class="fas fa-users me-1"></i>Max 30
+                                        <i class="fas fa-users me-1"></i>Max 40
                                     </small>
                                 </div>
                                 <span class="badge bg-success-subtle text-success">Disponible</span>
+                            </div>
+                            
+                            <!-- Barrios destacados -->
+                            <div class="mb-3">
+                                <small class="text-muted fw-semibold">Incluye barrios:</small>
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary small">Centro</span>
+                                    <span class="badge bg-success-subtle text-success small">San Telmo</span>
+                                    <span class="badge bg-warning-subtle text-warning small">La Boca</span>
+                                    <small class="text-muted ms-1 align-self-center">+más</small>
+                                </div>
                             </div>
                             
                             <!-- Próximos horarios -->
                             <div class="mb-3">
                                 <small class="text-muted fw-semibold">Próximos horarios:</small>
                                 <div class="d-flex gap-2 mt-1">
-                                    <span class="badge bg-primary-subtle text-primary">09:00</span>
-                                    <span class="badge bg-primary-subtle text-primary">11:30</span>
-                                    <span class="badge bg-primary-subtle text-primary">14:00</span>
-                                    <small class="text-muted ms-1">+3 más</small>
+                                    <span class="badge bg-info-subtle text-info">09:30</span>
+                                    <span class="badge bg-info-subtle text-info">12:00</span>
+                                    <span class="badge bg-info-subtle text-info">15:30</span>
+                                    <small class="text-muted ms-1">+más</small>
                                 </div>
                             </div>
                             
@@ -158,7 +174,7 @@
                 <h3 class="text-muted mb-3">No se encontraron recorridos</h3>
                 <p class="text-muted mb-4">
                     {% if search_query %}
-                        No hay resultados para "{{ search_query }}". Intenta con otros términos.
+                        No hay resultados para "{{ search_query }}". Intenta con nombres de barrios como San Telmo, La Boca, Palermo.
                     {% else %}
                         No hay recorridos disponibles en este momento.
                     {% endif %}
@@ -173,16 +189,93 @@
     </div>
 </section>
 
+<!-- Información de Barrios -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5 animate-on-scroll">
+            <h3 class="fw-bold mb-3">Barrios que Visitamos</h3>
+            <p class="lead text-muted">Cada uno con su historia, cultura y personalidad única</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-landmark" style="font-size: 2rem; color: var(--ba-blue);"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Centro</h6>
+                    <small class="text-muted">Plaza de Mayo</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.1s;">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-guitar" style="font-size: 2rem; color: #dc3545;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">San Telmo</h6>
+                    <small class="text-muted">Tango y Antigüedades</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-palette" style="font-size: 2rem; color: #fd7e14;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">La Boca</h6>
+                    <small class="text-muted">Caminito</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.3s;">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-tree" style="font-size: 2rem; color: #198754;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Palermo</h6>
+                    <small class="text-muted">Parques y Diseño</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.4s;">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-university" style="font-size: 2rem; color: #6f42c1;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Recoleta</h6>
+                    <small class="text-muted">Museos y Cultura</small>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.5s;">
+                <div class="text-center p-3">
+                    <div class="mb-2">
+                        <i class="fas fa-ship" style="font-size: 2rem; color: #0dcaf0;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Puerto Madero</h6>
+                    <small class="text-muted">Modernidad</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Call to Action -->
 {% if recorridos %}
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container text-center">
         <div class="animate-on-scroll">
-            <h3 class="fw-bold mb-3">¿Necesitas ayuda para elegir?</h3>
-            <p class="lead text-muted mb-4">Nuestros expertos en turismo te ayudan a encontrar el recorrido perfecto</p>
-            <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-phone me-2"></i>Contactar Asesor
-            </a>
+            <h3 class="fw-bold mb-3">¿Necesitas ayuda para elegir tu recorrido?</h3>
+            <p class="lead text-muted mb-4">Nuestros expertos en turismo porteño te ayudan a encontrar el recorrido perfecto según tus intereses</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-phone me-2"></i>Contactar Asesor
+                </a>
+                <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                </a>
+            </div>
         </div>
     </div>
 </section>

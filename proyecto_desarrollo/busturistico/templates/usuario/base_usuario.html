@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Bus Turístico{% endblock %}</title>
+    <title>{% block title %}Bus Turístico Buenos Aires{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary-color: #64748b;
-            --accent-color: #f59e0b;
-            --success-color: #10b981;
-            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #0d6efd;
+            --primary-dark: #0a58ca;
+            --secondary-color: #6c757d;
+            --accent-color: #ffc107;
+            --success-color: #198754;
+            --gradient-bg: linear-gradient(135deg, #0d6efd 0%, #6610f2 50%, #d63384 100%);
+            --ba-gold: #c5a572;
+            --ba-blue: #0066cc;
             --card-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
@@ -30,23 +32,21 @@
             min-height: 100vh;
         }
 
-        /* Navbar Moderna */
+        /* Navbar Estilo Buenos Aires */
         .navbar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 3px solid var(--ba-gold);
             padding: 1rem 0;
             transition: all 0.3s ease;
         }
 
         .navbar-brand {
             font-weight: 700;
-            font-size: 1.5rem;
-            background: var(--gradient-bg);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 1.6rem;
+            color: var(--ba-blue) !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .nav-link {
@@ -61,13 +61,13 @@
 
         .nav-link:hover,
         .nav-link.active {
-            background: var(--primary-color);
+            background: var(--ba-blue);
             color: white !important;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
         }
 
-        /* Hero Section */
+        /* Hero Section Buenos Aires */
         .hero-section {
             background: var(--gradient-bg);
             color: white;
@@ -108,7 +108,7 @@
 
         .btn-hero {
             background: white;
-            color: var(--primary-color);
+            color: var(--ba-blue);
             border: none;
             padding: 12px 30px;
             border-radius: 30px;
@@ -121,10 +121,11 @@
         .btn-hero:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: var(--primary-color);
+            color: var(--ba-blue);
+            background: var(--ba-gold);
         }
 
-        /* Cards Modernas */
+        /* Cards Estilo Porteño */
         .modern-card {
             background: white;
             border-radius: 20px;
@@ -147,7 +148,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--gradient-bg);
+            background: linear-gradient(90deg, var(--ba-blue) 0%, var(--ba-gold) 100%);
         }
 
         .card-icon {
@@ -186,12 +187,13 @@
             transform: translateY(0);
         }
 
-        /* Footer Moderno */
+        /* Footer Porteño */
         .modern-footer {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             color: white;
             padding: 3rem 0 1rem;
             margin-top: 4rem;
+            border-top: 3px solid var(--ba-gold);
         }
 
         .footer-section h5 {
@@ -209,7 +211,7 @@
         }
 
         .footer-link:hover {
-            color: var(--accent-color);
+            color: var(--ba-gold);
             transform: translateX(5px);
         }
 
@@ -227,7 +229,7 @@
         }
 
         .social-icons a:hover {
-            background: var(--accent-color);
+            background: var(--ba-gold);
             transform: translateY(-3px);
             color: white;
         }
@@ -264,7 +266,7 @@
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'usuario-inicio' %}">
-                <i class="fas fa-bus me-2"></i>Bus Turístico
+                <i class="fas fa-bus me-2"></i>Bus Turístico Buenos Aires
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -301,8 +303,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4">
-                    <h5><i class="fas fa-bus me-2"></i>Bus Turístico</h5>
-                    <p class="text-muted mb-3">Descubre la ciudad de una manera única y cómoda con nuestros recorridos turísticos.</p>
+                    <h5><i class="fas fa-bus me-2"></i>Bus Turístico Buenos Aires</h5>
+                    <p class="text-muted mb-3">Descubre los barrios más emblemáticos de Buenos Aires con nuestros recorridos turísticos desde Plaza de Mayo.</p>
                     <div class="social-icons">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
@@ -320,26 +322,27 @@
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="footer-section">
-                        <h5>Servicios</h5>
-                        <a href="#" class="footer-link">Tours Diarios</a>
-                        <a href="#" class="footer-link">Tours Nocturnos</a>
-                        <a href="#" class="footer-link">Tours Privados</a>
-                        <a href="#" class="footer-link">Eventos Especiales</a>
+                        <h5>Barrios</h5>
+                        <a href="#" class="footer-link">San Telmo</a>
+                        <a href="#" class="footer-link">La Boca</a>
+                        <a href="#" class="footer-link">Palermo</a>
+                        <a href="#" class="footer-link">Recoleta</a>
+                        <a href="#" class="footer-link">Puerto Madero</a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="footer-section">
                         <h5>Contacto</h5>
-                        <p class="footer-link"><i class="fas fa-map-marker-alt me-2"></i>La Calera, Córdoba</p>
-                        <p class="footer-link"><i class="fas fa-phone me-2"></i>+54 9 11 1234-5678</p>
-                        <p class="footer-link"><i class="fas fa-envelope me-2"></i>info@busturistico.com</p>
+                        <p class="footer-link"><i class="fas fa-map-marker-alt me-2"></i>Plaza de Mayo, CABA</p>
+                        <p class="footer-link"><i class="fas fa-phone me-2"></i>+54 11 4000-0000</p>
+                        <p class="footer-link"><i class="fas fa-envelope me-2"></i>info@busturisticoba.com.ar</p>
                     </div>
                 </div>
             </div>
             <hr style="border-color: #475569;">
             <div class="row">
                 <div class="col-12 text-center">
-                    <p class="mb-0 text-muted">&copy; {{ now|date:"Y" }} Bus Turístico. Todos los derechos reservados.</p>
+                    <p class="mb-0 text-muted">&copy; {{ now|date:"Y" }} Bus Turístico Buenos Aires. Todos los derechos reservados.</p>
                 </div>
             </div>
         </div>
