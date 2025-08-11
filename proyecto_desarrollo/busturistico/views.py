@@ -15,7 +15,7 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # Redirige al login del panel de administración
         # Django ya manejará la redirección después del login
         # para que el usuario vuelva a la página que intentaba ver.
-        return redirect('admin:login')
+        return redirect('#')
 
 # Vistas principales del dashboard (restringida a superusuarios)
 class DashboardView(SuperUserRequiredMixin, TemplateView):
