@@ -62,7 +62,7 @@
                         </div>
                         
                         <div class="p-4">
-                            <h5 class="fw-bold mb-2">{{ recorrido.nombre_recorrido }}</h5>
+                            <h5 class="fw-bold mb-2">{{ recorrido.color_recorrido }}</h5>
                             <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
                             
                             <!-- Información adicional -->
@@ -70,13 +70,7 @@
                                 <div class="d-flex gap-3">
                                     <small class="text-muted">
                                         <i class="fas fa-clock me-1"></i>
-                                        {% with duracion=recorrido.total_paradas|mul:30 %}
-                                            {% if duracion < 60 %}
-                                                {{ duracion }} min
-                                            {% else %}
-                                                {{ duracion|div:60|floatformat:1 }}h
-                                            {% endif %}
-                                        {% endwith %}
+                                        {{ recorrido.duracion_aproximada_recorrido|default:"2h" }}
                                     </small>
                                     <small class="text-muted">
                                         <i class="fas fa-users me-1"></i>Max 30

@@ -12,15 +12,9 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-<<<<<<< HEAD
-        # Redirige al login del panel de administración
-        # Django ya manejará la redirección después del login
-        # para que el usuario vuelva a la página que intentaba ver.
-        return redirect('#')
-=======
         # Redirigir a la página pública en lugar de mostrar 403
         return redirect('usuario-inicio')
->>>>>>> 1b03129edd087d20bae0fce3cd37664f9fac7a2c
+
 
 # Vistas principales del dashboarad (restringida a superusuarios)
 class DashboardView(SuperUserRequiredMixin, TemplateView):

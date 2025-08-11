@@ -1,0 +1,56 @@
+{% extends 'usuario/base_usuario.html' %}
+
+{% block title %}Recorridos para Chofer - Bus Turístico{% endblock %}
+
+{% block content %}
+<section class="container py-4">
+    <h2 class="mb-4">Recorridos disponibles para iniciar</h2>
+    <div class="row">
+        {% for recorrido in recorridos %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ recorrido.color_recorrido }}</h5>
+                    <p class="card-text">Recorrido #{{ recorrido.id }}</p>
+                    <p class="card-text text-muted">{{ recorrido.descripcion_recorrido|truncatewords:20 }}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> Duración: {{ recorrido.duracion_aproximada_recorrido }}
+                        </small>
+                    </p>
+                    <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-play"></i> Iniciar Recorrido
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">No hay recorridos disponibles.</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+    <div class="d-flex justify-content-center">
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

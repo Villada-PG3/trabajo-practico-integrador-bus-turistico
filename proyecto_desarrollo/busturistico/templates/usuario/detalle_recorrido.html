@@ -1,18 +1,173 @@
 {% extends 'usuario/base_usuario.html' %}
-{% block title %}{{ recorrido.nombre }} - Bus Turístico{% endblock %}
+{% block title %}{{ recorrido.color_recorrido }} - Bus Turístico{% endblock %}
 {% block content %}
-<h2>{{ recorrido.nombre }}</h2>
-<p>{{ recorrido.descripcion }}</p>
-<p><strong>Duración:</strong> {{ recorrido.duracion }}</p>
+<section class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="modern-card p-4 mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="card-icon me-3">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">{{ recorrido.color_recorrido }}</h1>
+                        <small class="text-muted">Recorrido #{{ recorrido.id }}</small>
+                    </div>
+                </div>
+                
+                <p class="lead text-muted mb-4">{{ recorrido.descripcion_recorrido }}</p>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Duración:</strong>
+                        </div>
+                        <span class="text-muted">{{ recorrido.duracion_aproximada_recorrido|default:"2 horas aproximadamente" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            <strong>Total Paradas:</strong>
+                        </div>
+                        <span class="text-muted">{{ total_paradas }} parada{{ total_paradas|pluralize }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Capacidad:</strong>
+                        </div>
+                        <span class="text-muted">Hasta 30 personas</span>
+                    </div>
+                </div>
 
-<h4>Paradas</h4>
-<ol>
-    {% for parada in paradas %}
-    <li>
-        <a href="{% url 'usuario-detalle-parada' parada.parada.pk %}">{{ parada.parada.nombre }}</a>
-    </li>
-    {% empty %}
-    <p>No hay paradas registradas para este recorrido.</p>
-    {% endfor %}
-</ol>
+                <!-- Próximos horarios -->
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-3">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>Próximos Horarios
+                    </h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for horario in proximos_horarios %}
+                            <span class="badge bg-primary-subtle text-primary fs-6 p-2">{{ horario }}</span>
+                        {% empty %}
+                            <p class="text-muted">No hay horarios disponibles en este momento.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paradas del recorrido -->
+            <div class="modern-card p-4">
+                <h4 class="fw-bold mb-4">
+                    <i class="fas fa-map-marked-alt text-primary me-2"></i>Paradas del Recorrido
+                </h4>
+                
+                {% if paradas %}
+                    <div class="timeline">
+                        {% for parada_recorrido in paradas %}
+                            <div class="timeline-item d-flex mb-4">
+                                <div class="timeline-marker bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="min-width: 40px; height: 40px;">
+                                    {{ parada_recorrido.orden }}
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="fw-bold mb-1">
+                                        <a href="{% url 'usuario-detalle-parada' parada_recorrido.parada.pk %}" class="text-decoration-none">
+                                            {{ parada_recorrido.parada.nombre_parada }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">{{ parada_recorrido.parada.direccion_parada }}</p>
+                                    <small class="text-muted">{{ parada_recorrido.parada.descripcion_parada|truncatewords:20 }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay paradas registradas para este recorrido.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="modern-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-ticket-alt text-primary me-2"></i>Reservar Ahora
+                </h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-phone me-2"></i>Llamar para Reservar
+                    </a>
+                    <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-primary">
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold">Información de Contacto</h6>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-phone me-1"></i>+54 9 11 1234-5678
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-envelope me-1"></i>info@busturistico.com
+                    </small>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="modern-card p-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-info-circle text-primary me-2"></i>Información Importante
+                </h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Guía turístico profesional
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Bus climatizado y cómodo
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Seguro incluido
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Agua y snacks básicos
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.timeline-item:last-child::after {
+    display: none;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    width: 2px;
+    height: calc(100% + 20px);
+    background: #dee2e6;
+    z-index: 0;
+}
+
+.timeline {
+    position: relative;
+}
+
+.timeline-marker {
+    position: relative;
+    z-index: 1;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+</style>
 {% endblock %}
