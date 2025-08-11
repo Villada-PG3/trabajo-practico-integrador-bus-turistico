@@ -1,0 +1,129 @@
+erDiagram
+    Recorrido ||--o{ Recorrido_Parada : tiene_paradas
+    Recorrido_Parada }|--|| Parada : esta_en
+    Parada ||--o{ Parada_Atractivo : tiene_atractivos
+    Parada_Atractivo }|--|| Atractivo : es_atractivo_de
+
+    Bus ||--o{ Estado_Bus_Historial : tiene_estados
+    Estado_Bus_Historial }|--|| Estado_Bus : describe
+    Chofer ||--o{ Viaje : conduce
+    Viaje }|--|| Bus : realiza
+    Recorrido ||--o{ Viaje : pertenece_a
+
+    Viaje }|--|| EstadoViaje : tiene_estado 
+    EstadoViaje }|--|| Ubicacion_Colectivo : tiene_ubicacion
+    Viaje ||--o{ Historial_Estado_Viaje : tiene_historial
+    Historial_Estado_Viaje }|--|| EstadoViaje : describe
+
+    Recorrido {
+        int id_recorrido PK
+        str color_recorrido
+        time duracion_aproximada_recorrido
+        str descripcion_recorrido
+        time hora_inicio
+        time hora_fin 
+        int numero_paradas
+        str foto_recorrido
+    }
+
+    Recorrido_Parada {
+        int id_recorrido_parada PK
+        int id_recorrido FK
+        int id_parada FK
+        int orden
+    }
+
+    Parada {
+        int id_parada PK
+        str nombre_parada
+        str direccion_parada
+        str descripcion_parada
+        str foto_parada
+        int latitud_parada
+        int longitud_parada
+    }
+
+    Parada_Atractivo {
+        int id_parada_atractivo PK
+        int id_parada FK
+        int id_atractivo FK
+    }
+
+    Atractivo {
+        int id_atractivo PK
+        str nombre_atractivo
+        int calificacion_estrellas
+        str descripcion_atractivo
+        int latitud_atractivo
+        int longitud_atractivo
+        str foto_atractivo
+    }
+
+    Bus {
+        str patente_bus PK
+        int numero_unidad
+        datetime fecha_compra
+    
+    }
+
+    Estado_Bus {
+        int id_estado_bus PK
+        str nombre_estado
+        str descripcion_estado
+    }
+
+    Estado_Bus_Historial {
+        int id_estado_historial PK
+        str patente_bus FK
+        int id_estado_bus FK
+        datetime fecha_inicio_estado
+    }
+
+    Chofer {
+        int id_chofer PK
+        str nombre_chofer
+        str apellido_chofer
+        str legajo_chofer
+        int dni_chofer
+        str telefono
+        date fecha_ingreso
+        bool activo
+    }
+
+    Viaje {
+        int id_viaje PK
+        datetime fecha_programada
+        time hora_inicio_programada
+        datetime fecha_hora_inicio_real
+        datetime fecha_hora_fin_real
+        int demora_inicio_minutos
+        int duracion_minutos_real
+        str patente_bus FK
+        int id_chofer FK
+        int id_recorrido FK
+        int id_estado_viaje FK
+    }
+    EstadoViaje {
+        int id_estado_viaje PK
+        str nombre_estado
+        str descripcion_estado
+        int id_ubicacion_colectivo FK
+    }
+
+    Ubicacion_Colectivo {
+        int id_ubicacion_colectivo PK
+        float latitud
+        float longitud
+        datetime timestamp_ubicacion
+        int id_parada FK 
+    }
+
+    Historial_Estado_Viaje {
+        int id_historial_estado_viaje PK
+        int id_viaje FK
+        int id_estado_viaje FK
+        datetime fecha_cambio_estado
+        float latitud
+        float longitud
+        int id_parada FK 
+    }
