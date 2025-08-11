@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import TemplateView, ListView, CreateView
 from django.shortcuts import redirect
 from django.utils import timezone
-from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido
+from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
 from .forms import ChoferForm, BusForm
 from django.db.models import Count, OuterRef, Subquery
 from django.urls import reverse_lazy
@@ -12,10 +12,8 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        # Redirige al login del panel de administración
-        # Django ya manejará la redirección después del login
-        # para que el usuario vuelva a la página que intentaba ver.
-        return redirect('admin:login')
+        # Redirigir a la página pública en lugar de mostrar 403
+        return redirect('usuario-inicio')
 
 # Vistas principales del dashboarad (restringida a superusuarios)
 class DashboardView(SuperUserRequiredMixin, TemplateView):

@@ -1,11 +1,12 @@
 
 from django.contrib import admin
-from django.urls import path
-from django.urls import path
+from django.urls import path, include 
 from busturistico.views import *
 from busturistico import views
-
+from busturistico.views_usuario import *
+from busturistico import views_usuario, urls_usuario
 urlpatterns = [
+    
     # Dashboard
     path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),
 
@@ -33,5 +34,6 @@ urlpatterns = [
     path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
 
     # Usuario público
-    path('', views.BaseUsuarioView.as_view(), name='usuario-base'),
+    path('', include('busturistico.urls_usuario')),
+    path('admin/', admin.site.urls), 
 ]
