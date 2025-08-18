@@ -1,18 +1,377 @@
 {% extends 'usuario/base_usuario.html' %}
-{% block title %}{{ recorrido.nombre }} - Bus Turístico{% endblock %}
+{% block title %}{{ recorrido.color_recorrido }} - Bus Turístico Buenos Aires{% endblock %}
 {% block content %}
-<h2>{{ recorrido.nombre }}</h2>
-<p>{{ recorrido.descripcion }}</p>
-<p><strong>Duración:</strong> {{ recorrido.duracion }}</p>
+<section class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="modern-card p-4 mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="card-icon me-3">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 fw-bold mb-1 text-primary">{{ recorrido.color_recorrido }}</h1>
+                        <small class="text-muted">Recorrido por Buenos Aires #{{ recorrido.id }}</small>
+                    </div>
+                </div>
+                
+                <p class="lead text-muted mb-4">{{ recorrido.descripcion_recorrido }}</p>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Duración:</strong>
+                        </div>
+                        <span class="text-muted">{{ recorrido.duracion_aproximada_recorrido|default:"3-4 horas aproximadamente" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            <strong>Total Paradas:</strong>
+                        </div>
+                        <span class="text-muted">{{ total_paradas }} parada{{ total_paradas|pluralize }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Capacidad:</strong>
+                        </div>
+                        <span class="text-muted">Hasta 40 personas</span>
+                    </div>
+                </div>
 
-<h4>Paradas</h4>
-<ol>
-    {% for parada in paradas %}
-    <li>
-        <a href="{% url 'usuario-detalle-parada' parada.parada.pk %}">{{ parada.parada.nombre }}</a>
-    </li>
-    {% empty %}
-    <p>No hay paradas registradas para este recorrido.</p>
-    {% endfor %}
-</ol>
+                <!-- Punto de partida -->
+                <div class="mb-4 p-3 bg-light rounded">
+                    <h5 class="fw-bold mb-2">
+                        <i class="fas fa-play-circle text-success me-2"></i>Punto de Partida
+                    </h5>
+                    <p class="mb-1"><strong>Plaza de Mayo</strong> - Corazón del Centro Porteño</p>
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        A metros de Casa Rosada, Cabildo y Catedral Metropolitana
+                    </small>
+                </div>
+
+                <!-- Próximos horarios -->
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-3">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i>Próximos Horarios
+                    </h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for horario in proximos_horarios %}
+                            <span class="badge bg-primary-subtle text-primary fs-6 p-2">{{ horario }}</span>
+                        {% empty %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-2">Lunes a Viernes</h6>
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <span class="badge bg-info-subtle text-info p-2">09:30</span>
+                                        <span class="badge bg-info-subtle text-info p-2">12:00</span>
+                                        <span class="badge bg-info-subtle text-info p-2">15:30</span>
+                                        <span class="badge bg-info-subtle text-info p-2">18:00</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-2">Sábados y Domingos</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge bg-warning-subtle text-warning p-2">10:00</span>
+                                        <span class="badge bg-warning-subtle text-warning p-2">13:00</span>
+                                        <span class="badge bg-warning-subtle text-warning p-2">16:00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paradas del recorrido -->
+            <div class="modern-card p-4">
+                <h4 class="fw-bold mb-4">
+                    <i class="fas fa-route text-primary me-2"></i>Itinerario del Recorrido
+                </h4>
+                
+                {% if paradas %}
+                    <div class="timeline">
+                        {% for parada_recorrido in paradas %}
+                            <div class="timeline-item d-flex mb-4">
+                                <div class="timeline-marker bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="min-width: 40px; height: 40px;">
+                                    {{ parada_recorrido.orden }}
+                                </div>
+                                <div class="timeline-content flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        <a href="{% url 'usuario-detalle-parada' parada_recorrido.parada.pk %}" class="text-decoration-none">
+                                            {{ parada_recorrido.parada.nombre_parada }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ parada_recorrido.parada.direccion_parada }}
+                                    </p>
+                                    <small class="text-muted">{{ parada_recorrido.parada.descripcion_parada|truncatewords:20 }}</small>
+                                    
+                                    <!-- Tiempo estimado en la parada -->
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {% if parada_recorrido.orden == 1 %}Punto de partida{% else %}30-45 min{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-map text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="text-muted mt-3">No hay paradas registradas para este recorrido.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="modern-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-ticket-alt text-primary me-2"></i>Reservar Ahora
+                </h5>
+                
+                <div class="mb-3 p-3 bg-light rounded">
+                    <h6 class="fw-bold mb-2 text-success">
+                        <i class="fas fa-gift me-1"></i>Incluye:
+                    </h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Guía turístico especializado</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Bus climatizado premium</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Auriculares individuales</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Agua mineral</li>
+                    </ul>
+                </div>
+                
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-phone me-2"></i>Reservar por Teléfono
+                    </a>
+                    <a href="{% url 'usuario-contacto' %}" class="btn btn-success">
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp: Consulta Rápida
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold">Información de Contacto</h6>
+                    <small class="text-muted d-block mb-1">
+                        <i class="fas fa-phone me-1"></i>+54 11 4000-0000
+                    </small>
+                    <small class="text-muted d-block mb-1">
+                        <i class="fas fa-envelope me-1"></i>info@busturisticoba.com.ar
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-map-marker-alt me-1"></i>Salida desde Plaza de Mayo
+                    </small>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="modern-card p-4 mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-info-circle text-primary me-2"></i>Información del Tour
+                </h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-language text-primary me-2"></i>
+                        <strong>Idiomas:</strong> Español, Inglés
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-wheelchair text-primary me-2"></i>
+                        <strong>Accesibilidad:</strong> Buses adaptados
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-camera text-primary me-2"></i>
+                        <strong>Fotografía:</strong> Paradas fotográficas
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-umbrella text-primary me-2"></i>
+                        <strong>Clima:</strong> Funciona con lluvia
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-child text-primary me-2"></i>
+                        <strong>Niños:</strong> Descuentos especiales
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Política de cancelación -->
+            <div class="modern-card p-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-calendar-times text-warning me-2"></i>Política de Cancelación
+                </h6>
+                <ul class="list-unstyled small text-muted">
+                    <li class="mb-1">
+                        <i class="fas fa-check text-success me-1"></i>
+                        Cancelación gratuita hasta 24h antes
+                    </li>
+                    <li class="mb-1">
+                        <i class="fas fa-clock text-warning me-1"></i>
+                        Reagendamiento sin costo adicional
+                    </li>
+                    <li class="mb-1">
+                        <i class="fas fa-shield-alt text-info me-1"></i>
+                        Reembolso completo por mal tiempo
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Barrios destacados del recorrido -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold text-primary mb-3">Barrios que Visitarás en Este Recorrido</h3>
+            <p class="text-muted">Cada barrio porteño tiene su propia historia y personalidad</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6 animate-on-scroll">
+                <div class="modern-card text-center p-4 h-100">
+                    <div style="height: 120px; background: linear-gradient(45deg, #0d6efd, #6610f2); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-landmark text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Centro Histórico</h5>
+                    <p class="text-muted small mb-0">Plaza de Mayo, Casa Rosada, Cabildo y Catedral</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.1s;">
+                <div class="modern-card text-center p-4 h-100">
+                    <div style="height: 120px; background: linear-gradient(45deg, #dc3545, #fd7e14); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-guitar text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">San Telmo</h5>
+                    <p class="text-muted small mb-0">Tango, antigüedades y arquitectura colonial</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card text-center p-4 h-100">
+                    <div style="height: 120px; background: linear-gradient(45deg, #fd7e14, #ffc107); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-palette text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">La Boca</h5>
+                    <p class="text-muted small mb-0">Caminito, colores y pasión futbolera</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.3s;">
+                <div class="modern-card text-center p-4 h-100">
+                    <div style="height: 120px; background: linear-gradient(45deg, #0dcaf0, #0d6efd); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-ship text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Puerto Madero</h5>
+                    <p class="text-muted small mb-0">Modernidad, gastronomía y río</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios específicos del recorrido -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold text-primary mb-3">Experiencias de Nuestros Pasajeros</h3>
+            <p class="text-muted">Lo que dicen quienes ya vivieron este recorrido</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-6 animate-on-scroll">
+                <div class="modern-card p-4">
+                    <div class="d-flex mb-3">
+                        <div class="text-warning me-3">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <small class="text-muted">Hace 2 días</small>
+                    </div>
+                    <p class="text-muted fst-italic mb-3">"Excelente recorrido desde Plaza de Mayo. El guía nos explicó toda la historia de cada barrio. La Boca y San Telmo fueron increíbles. ¡Lo recomiendo totalmente!"</p>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Laura Fernández</h6>
+                            <small class="text-muted">Mendoza</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 animate-on-scroll" style="animation-delay: 0.2s;">
+                <div class="modern-card p-4">
+                    <div class="d-flex mb-3">
+                        <div class="text-warning me-3">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <small class="text-muted">Hace 1 semana</small>
+                    </div>
+                    <p class="text-muted fst-italic mb-3">"Perfecto para conocer Buenos Aires en un día. Los buses son muy cómodos y las paradas en cada barrio están muy bien organizadas. Puerto Madero de noche es espectacular."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Roberto Silva</h6>
+                            <small class="text-muted">Córdoba</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.timeline-item:last-child::after {
+    display: none;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    width: 2px;
+    height: calc(100% + 20px);
+    background: #dee2e6;
+    z-index: 0;
+}
+
+.timeline {
+    position: relative;
+}
+
+.timeline-marker {
+    position: relative;
+    z-index: 1;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.timeline-content {
+    position: relative;
+    z-index: 1;
+}
+</style>
 {% endblock %}

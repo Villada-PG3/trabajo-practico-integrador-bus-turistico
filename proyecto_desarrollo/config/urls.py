@@ -1,10 +1,12 @@
-
+# urls.py
 from django.contrib import admin
 from django.urls import path, include 
 from busturistico.views import *
 from busturistico import views
 from busturistico.views_usuario import *
 from busturistico import views_usuario, urls_usuario
+from busturistico import views_chofer, urls_chofer
+
 urlpatterns = [
     
     # Dashboard
@@ -35,5 +37,10 @@ urlpatterns = [
 
     # Usuario público
     path('', include('busturistico.urls_usuario')),
-    path('admin/', admin.site.urls), 
+    
+    # Choferes - CORREGIDO: Incluir las URLs sin repetir el prefijo
+    path('chofer/', include('busturistico.urls_chofer')),
+    
+    # Admin de Django
+    path('admin/', admin.site.urls),
 ]

@@ -38,11 +38,11 @@ class UsuarioRecorridosView(ListView):
         search = self.request.GET.get('search', '')
         if search:
             queryset = queryset.filter(
-                Q(nombre_recorrido__icontains=search) |
+                Q(color_recorrido__icontains=search) |  # CORREGIDO: usar color_recorrido
                 Q(descripcion_recorrido__icontains=search)
             )
             
-        return queryset.order_by('nombre_recorrido')
+        return queryset.order_by('color_recorrido')  # CORREGIDO: usar color_recorrido
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -133,7 +133,7 @@ class UsuarioBusquedaView(TemplateView):
         
         if query:
             recorridos = Recorrido.objects.filter(
-                Q(nombre_recorrido__icontains=query) |
+                Q(color_recorrido__icontains=query) |  # CORREGIDO: usar color_recorrido
                 Q(descripcion_recorrido__icontains=query)
             )[:5]
             
