@@ -3,17 +3,21 @@
 {% block title %}Recorridos para Chofer - Bus Turístico Buenos Aires{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
         <div class="text-center">
             <h1 class="hero-title">Recorridos Disponibles</h1>
             <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
+            
+            <div class="mt-4">
+                <a href="{% url 'chofer-logout' %}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                </a>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Recorridos Grid -->
 <section class="py-5">
     <div class="container">
         {% if recorridos %}
@@ -21,7 +25,6 @@
                 {% for recorrido in recorridos %}
                 <div class="col-lg-4 col-md-6 animate-on-scroll">
                     <div class="modern-card h-100 overflow-hidden">
-                        <!-- Imagen del recorrido -->
                         <div style="height: 200px; background: linear-gradient(45deg, #0d6efd, #6610f2); position: relative; display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-route text-white" style="font-size: 3rem; opacity: 0.7;"></i>
                             <div style="position: absolute; top: 15px; right: 15px;">
@@ -35,7 +38,6 @@
                             <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
                             <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
                             
-                            <!-- Información adicional -->
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <small class="text-muted">
                                     <i class="fas fa-route me-1"></i>Recorrido #{{ recorrido.id }}
@@ -43,7 +45,6 @@
                                 <span class="badge bg-success-subtle text-success">Disponible</span>
                             </div>
                             
-                            <!-- Barrios del recorrido -->
                             <div class="mb-3">
                                 <small class="text-muted fw-semibold">Barrios principales:</small>
                                 <div class="d-flex gap-1 mt-1 flex-wrap">
@@ -53,7 +54,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Botón de acción -->
                             <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-primary w-100">
@@ -66,7 +66,6 @@
                 {% endfor %}
             </div>
             
-            <!-- Paginación -->
             {% if is_paginated %}
             <div class="d-flex justify-content-center mt-5">
                 <nav>
@@ -114,7 +113,6 @@
             {% endif %}
             
         {% else %}
-            <!-- Estado vacío -->
             <div class="text-center py-5">
                 <div class="mb-4">
                     <i class="fas fa-route" style="font-size: 4rem; color: #e2e8f0;"></i>
@@ -128,7 +126,6 @@
     </div>
 </section>
 
-<!-- Información para Choferes -->
 <section class="py-5 bg-light">
     <div class="container">
         <div class="row align-items-center">

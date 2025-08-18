@@ -40,6 +40,7 @@ urlpatterns = [
     
     # Choferes - CORREGIDO: Incluir las URLs sin repetir el prefijo
     path('chofer/', include('busturistico.urls_chofer')),
+    path('auth/', include('busturistico.urls_auth')),
     
     # Admin de Django
     path('admin/', admin.site.urls),
