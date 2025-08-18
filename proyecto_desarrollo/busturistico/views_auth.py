@@ -25,7 +25,6 @@ class ChoferLoginView(TemplateView):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, f'Bienvenido/a {user.first_name}!')
             return redirect('chofer-recorridos')
         
         return render(request, self.template_name, {'form': form})

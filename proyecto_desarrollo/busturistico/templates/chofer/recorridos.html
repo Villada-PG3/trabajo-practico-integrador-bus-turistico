@@ -8,12 +8,6 @@
         <div class="text-center">
             <h1 class="hero-title">Recorridos Disponibles</h1>
             <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
-            
-            <div class="mt-4">
-                <a href="{% url 'chofer-logout' %}" class="btn btn-danger btn-sm">
-                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                </a>
-            </div>
         </div>
     </div>
 </section>
@@ -228,4 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
     animatedElements.forEach(el => observer.observe(el));
 });
 </script>
+
+<a href="{% url 'chofer-logout' %}" 
+   class="btn btn-danger btn-sm" 
+   style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
+    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+</a>
+
 {% endblock %}
