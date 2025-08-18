@@ -1,6 +1,6 @@
 from django import forms
-from .models import Chofer, Bus
-
+from .models import Chofer, Bus,Parada
+#admin
 class ChoferForm(forms.ModelForm):
     class Meta:
         model = Chofer
@@ -30,3 +30,13 @@ class BusForm(forms.ModelForm):
             'numero_unidad': 'Número de Unidad',
             'fecha_compra': 'Fecha de Compra',
         }   
+        
+class ParadaForm(forms.ModelForm):
+    class Meta:
+        model = Parada
+        fields = ['nombre_parada', 'direccion_parada', 'descripcion_parada', 'foto_parada', 'latitud_parada', 'longitud_parada']
+        widgets = {
+            'descripcion_parada': forms.Textarea(attrs={'rows': 3}),
+            'latitud_parada': forms.NumberInput(attrs={'step': 'any'}),
+            'longitud_parada': forms.NumberInput(attrs={'step': 'any'}),
+        }

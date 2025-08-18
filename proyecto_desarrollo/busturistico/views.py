@@ -3,7 +3,7 @@ from django.views.generic import TemplateView, ListView, CreateView
 from django.shortcuts import redirect
 from django.utils import timezone
 from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
-from .forms import ChoferForm, BusForm
+from .forms import ChoferForm, BusForm , ParadaForm
 from django.db.models import Count, OuterRef, Subquery
 from django.urls import reverse_lazy
 
@@ -126,7 +126,7 @@ class CrearChoferView(SuperUserRequiredMixin, CreateView):
 class CrearBusView(SuperUserRequiredMixin, CreateView):
     model = Bus
     form_class = BusForm
-    template_name = 'admin/crear_bus.html'
+    template_name = 'admin/flota_form.html'
     success_url = reverse_lazy('admin-flota')
 
     def form_valid(self, form):
@@ -145,11 +145,28 @@ class CrearViajeView(SuperUserRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         return redirect('admin-viajes')
 
-class CrearParadaView(SuperUserRequiredMixin, TemplateView):
+class CrearParadaView(SuperUserRequiredMixin, CreateView):
+    model = Parada
+    form_class = ParadaForm
     template_name = 'admin/crear_parada.html'
+    success_url = reverse_lazy('admin-paradas')
 
-    def post(self, request, *args, **kwargs):
-        return redirect('admin-paradas')
+    def form_valid(self, form):
+        parada = form.save(commit=False)
+        if not parada.descripcion_parada:
+            parada.descripcion_parada = f"Parada creada el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {self.request.user.username}"
+        parada.save()
+
+        self.registrar_creacion_log(parada)
+        return super().form_valid(form)
+
+    def registrar_creacion_log(self, parada):
+        print(f"Parada '{parada.nombre_parada}' creada por {self.request.user.username} a las {timezone.now()}")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['fecha_actual'] = timezone.now().strftime('%d/%m/%Y %H:%M')
+        return context
 
 class CrearRecorridoView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/crear_recorrido.html'
