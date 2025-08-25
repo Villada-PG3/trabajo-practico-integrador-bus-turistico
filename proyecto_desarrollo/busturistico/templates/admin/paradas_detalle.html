@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Detalles de la Parada: {{ parada.nombre_parada }}</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <p><strong>Dirección:</strong> {{ parada.direccion_parada }}</p>
+            <p><strong>Descripción:</strong> {{ parada.descripcion_parada }}</p>
+            <p><strong>Latitud:</strong> {{ parada.latitud_parada }}</p>
+            <p><strong>Longitud:</strong> {{ parada.longitud_parada }}</p>
+            {% if parada.foto_parada %}
+                <p><strong>Foto:</strong> <img src="{{ parada.foto_parada.url }}" alt="Foto de la parada" class="img-fluid" style="max-width: 300px;"></p>
+            {% else %}
+                <p><strong>Foto:</strong> No disponible</p>
+            {% endif %}
+            <a href="{% url 'admin-paradas' %}" class="btn btn-primary mt-3">Volver a la lista</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

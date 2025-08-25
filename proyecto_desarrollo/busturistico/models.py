@@ -7,7 +7,7 @@ class Recorrido(models.Model):
     color_recorrido = models.CharField(max_length=50)
     duracion_aproximada_recorrido = models.TimeField()
     descripcion_recorrido = models.TextField()
-    foto_recorrido = models.ImageField(upload_to='fotos/recorridos/', null=True, blank=True)
+    foto_recorrido = models.ImageField(upload_to='recorridos/', null=True, blank=True)
 
     def __str__(self):
         return f"Recorrido {self.id} - {self.color_recorrido}"
@@ -17,7 +17,7 @@ class Parada(models.Model):
     nombre_parada = models.CharField(max_length=100)
     direccion_parada = models.CharField(max_length=255)
     descripcion_parada = models.TextField()
-    foto_parada = models.ImageField(upload_to='fotos/paradas/', null=True, blank=True)
+    foto_parada = models.ImageField(upload_to='paradas/', null=True, blank=True)
     latitud_parada = models.FloatField()
     longitud_parada = models.FloatField()
 
@@ -43,7 +43,7 @@ class Atractivo(models.Model):
     descripcion_atractivo = models.TextField()
     latitud_atractivo = models.FloatField()
     longitud_atractivo = models.FloatField()
-    foto_atractivo = models.ImageField(upload_to='fotos/atractivos/', null=True, blank=True)
+    foto_atractivo = models.ImageField(upload_to='atractivos/', null=True, blank=True)
 
     def __str__(self):
         return self.nombre_atractivo

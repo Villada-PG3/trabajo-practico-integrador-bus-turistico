@@ -1,13 +1,10 @@
 {% extends "admin/base_admin.html" %}
-
 {% block title %}Gestión de Viajes - Panel Admin{% endblock %}
-
 {% block content %}
 <div class="container-fluid py-3">
     <h1 class="mb-2">Gestión de Viajes</h1>
     <p class="mb-4">Monitorea y programa los viajes de la flota</p>
     <a href="{% url 'admin-nuevo-viaje' %}" class="new-btn">Programar Viaje</a>
-
     <div class="row mb-3">
         <div class="col-md-12">
             <ul class="nav nav-tabs">
@@ -23,23 +20,22 @@
             </ul>
         </div>
     </div>
-
     <div class="row">
-        {% for viaje in viajes %}
+        {% for viaje in viajes_en_curso|default:viajes_programados|default:viajes_completados %}
         <div class="col-md-6 mb-3">
             <div class="card p-3">
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>{{ viaje.id }}</h5>
-                        <p>Bus: {{ viaje.bus.patente_bus }}</p>
+                        <p>Bus: {{ viaje.patente_bus.patente_bus }}</p>
                         <p>Chofer: {{ viaje.chofer.nombre_chofer }} {{ viaje.chofer.apellido_chofer }}</p>
-                        <p>Programado: {{ viaje.fecha_hora_inicio_programada|date:"H:i" }}</p>
+                        <p>Programado: {{ viaje.fecha_programada|date:"H:i" }}</p>
                         <p>Inicio Real: {{ viaje.fecha_hora_inicio_real|date:"H:i"|default:"N/A" }}</p>
                         <p>Parada actual: {{ viaje.parada_actual|default:"N/A" }}</p>
                     </div>
                     <div>
-                        <span class="status-badge {% if viaje.estado == 'En Curso' %}status-en-curso{% elif viaje.estado == 'Programado' %}status-programado{% else %}status-completado{% endif %}">
-                            {{ viaje.estado }}
+                        <span class="status-badge {% if viaje.estado|lower == 'en curso' %}status-en-curso{% elif viaje.estado|lower == 'programado' %}status-programado{% else %}status-completado{% endif %}">
+                            {{ viaje.estado|default:"N/A" }}
                         </span>
                     </div>
                 </div>

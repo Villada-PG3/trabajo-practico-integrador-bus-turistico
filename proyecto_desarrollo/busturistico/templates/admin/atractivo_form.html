@@ -1,0 +1,85 @@
+{% extends "admin/base_admin.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Crear Nuevo Atractivo</h2>
+    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.nombre_atractivo.id_for_label }}" class="form-label">{{ form.nombre_atractivo.label }}</label>
+            <input type="text" name="{{ form.nombre_atractivo.name }}" id="{{ form.nombre_atractivo.id_for_label }}" class="form-control {% if form.nombre_atractivo.errors %}is-invalid{% endif %}" value="{{ form.nombre_atractivo.value|default_if_none:'' }}" required>
+            {% if form.nombre_atractivo.errors %}
+                <div class="invalid-feedback">
+                    {{ form.nombre_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.calificacion_estrellas.id_for_label }}" class="form-label">{{ form.calificacion_estrellas.label }} (1-5)</label>
+            <input type="number" name="{{ form.calificacion_estrellas.name }}" id="{{ form.calificacion_estrellas.id_for_label }}" class="form-control {% if form.calificacion_estrellas.errors %}is-invalid{% endif %}" value="{{ form.calificacion_estrellas.value|default_if_none:'' }}" min="1" max="5" required>
+            {% if form.calificacion_estrellas.errors %}
+                <div class="invalid-feedback">
+                    {{ form.calificacion_estrellas.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.descripcion_atractivo.id_for_label }}" class="form-label">{{ form.descripcion_atractivo.label }}</label>
+            <textarea name="{{ form.descripcion_atractivo.name }}" id="{{ form.descripcion_atractivo.id_for_label }}" class="form-control {% if form.descripcion_atractivo.errors %}is-invalid{% endif %}">{{ form.descripcion_atractivo.value|default_if_none:'' }}</textarea>
+            {% if form.descripcion_atractivo.errors %}
+                <div class="invalid-feedback">
+                    {{ form.descripcion_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.latitud_atractivo.id_for_label }}" class="form-label">{{ form.latitud_atractivo.label }}</label>
+            <input type="number" step="any" name="{{ form.latitud_atractivo.name }}" id="{{ form.latitud_atractivo.id_for_label }}" class="form-control {% if form.latitud_atractivo.errors %}is-invalid{% endif %}" value="{{ form.latitud_atractivo.value|default_if_none:'' }}" required>
+            {% if form.latitud_atractivo.errors %}
+                <div class="invalid-feedback">
+                    {{ form.latitud_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.longitud_atractivo.id_for_label }}" class="form-label">{{ form.longitud_atractivo.label }}</label>
+            <input type="number" step="any" name="{{ form.longitud_atractivo.name }}" id="{{ form.longitud_atractivo.id_for_label }}" class="form-control {% if form.longitud_atractivo.errors %}is-invalid{% endif %}" value="{{ form.longitud_atractivo.value|default_if_none:'' }}" required>
+            {% if form.longitud_atractivo.errors %}
+                <div class="invalid-feedback">
+                    {{ form.longitud_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.foto_atractivo.id_for_label }}" class="form-label">{{ form.foto_atractivo.label }} (Opcional)</label>
+            <input type="file" name="{{ form.foto_atractivo.name }}" id="{{ form.foto_atractivo.id_for_label }}" class="form-control {% if form.foto_atractivo.errors %}is-invalid{% endif %}" accept="image/*">
+            {% if form.foto_atractivo.errors %}
+                <div class="invalid-feedback">
+                    {{ form.foto_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a href="{% url 'admin-atractivos' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // Bootstrap form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })();
+</script>
+{% endblock %}

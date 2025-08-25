@@ -1,0 +1,43 @@
+{% extends "admin/base_admin.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-3">{{ recorrido.color_recorrido }}</h1>
+
+    <!-- Imagen del recorrido -->
+    {% if recorrido.foto_recorrido %}
+        <img src="{{ recorrido.foto_recorrido.url }}" alt="Foto del recorrido"
+             class="img-fluid rounded shadow mb-4" style="max-width: 400px;">
+    {% else %}
+        <p class="text-muted">Sin imagen disponible</p>
+    {% endif %}
+
+    <!-- Descripción del recorrido -->
+    <p><strong>Duración aproximada:</strong> {{ recorrido.duracion_aproximada_recorrido }}</p>
+    <p><strong>Descripción:</strong> {{ recorrido.descripcion_recorrido }}</p>
+
+    <!-- Lista de paradas -->
+    <h3 class="mt-4">Paradas del recorrido</h3>
+    {% if paradas %}
+        <ul class="list-group">
+            {% for rp in paradas %}
+                <li class="list-group-item d-flex align-items-center">
+                    {% if rp.parada.foto_parada %}
+                        <img src="{{ rp.parada.foto_parada.url }}" alt="Foto {{ rp.parada.nombre_parada }}"
+                             class="rounded" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
+                    {% endif %}
+                    <div>
+                        <strong>{{ rp.orden }}. {{ rp.parada.nombre_parada }}</strong><br>
+                        <small>{{ rp.parada.direccion_parada }}</small>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">Este recorrido no tiene paradas asignadas.</p>
+    {% endif %}
+
+    <!-- Botón para volver -->
+    <a href="{% url 'admin-recorridos' %}" class="btn btn-secondary mt-4">Volver</a>
+</div>
+{% endblock %}

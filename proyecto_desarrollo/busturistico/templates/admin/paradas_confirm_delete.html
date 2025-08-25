@@ -1,0 +1,12 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Eliminar Parada{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>¿Seguro que querés eliminar la parada "{{ object.nombre_parada }}"?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <a href="{% url 'admin-paradas' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+</div>
+{% endblock %}

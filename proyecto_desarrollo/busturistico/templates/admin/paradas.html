@@ -1,54 +1,56 @@
 {% extends "admin/base_admin.html" %}
+{% block title %}Gestión de Paradas - Panel Admin{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Gestión de Paradas</h2>
-    <p class="text-muted">Administra las paradas y sus asignaciones</p>
+    <h2 class="mb-4">Paradas Turísticas</h2>
+    <p class="text-muted">Administra las paradas disponibles en los recorridos</p>
+
     <div class="d-flex justify-content-end mb-3">
         <a href="{% url 'admin-nuevo-parada' %}" class="btn btn-dark">+ Nueva Parada</a>
     </div>
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <h5>Total Paradas</h5>
-                <h3>{{ total_paradas|default:0 }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3 bg-success text-white">
-                <h5>Activas</h5>
-                <h3>{{ paradas_activas|default:0 }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center p-3 bg-warning text-dark">
-                <h5>Inactivas</h5>
-                <h3>{{ paradas_inactivas|default:0 }}</h3>
-            </div>
-        </div>
-    </div>
+
     <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Buscar por nombre o dirección...">
+        <input type="text" class="form-control" placeholder="Buscar paradas por nombre o dirección...">
         <button class="btn btn-outline-secondary" type="button">Buscar</button>
     </div>
-    <div class="list-group">
-        {% for parada in paradas %}
-        <a href="#" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Parada {{ parada.nombre_parada }}</h5>
-                <small>{% if parada.descripcion_parada %}Activa{% else %}Inactiva{% endif %}</small>
+
+    <div class="card p-3 mb-3">
+        {% if paradas %}
+            {% for parada in paradas %}
+            <div class="d-flex w-100 justify-content-between align-items-start mb-3">
+                <div>
+                    <h5>{{ parada.nombre_parada }}</h5>
+
+                    {% if parada.foto_parada %}
+                        <img src="{{ parada.foto_parada.url }}" alt="{{ parada.nombre_parada }}" style="max-width:200px; margin-bottom:10px;">
+                    {% else %}
+                        <p class="text-muted">Sin foto disponible</p>
+                    {% endif %}
+
+                    <p>Dirección: {{ parada.direccion_parada }}</p>
+
+                    <p>
+                        Coordenadas: ({{ parada.latitud_parada }}, {{ parada.longitud_parada }})  
+                        <a class="btn btn-sm btn-outline-primary" 
+                           href="https://www.google.com/maps?q={{ parada.latitud_parada }},{{ parada.longitud_parada }}" 
+                           target="_blank">
+                           Ver en Google Maps
+                        </a>
+                    </p>
+                </div>
+
+                <div class="d-flex flex-column">
+                    <a href="{% url 'admin-editar-parada' parada.pk %}" class="btn btn-sm btn-warning mb-2">Editar</a>
+                    <a href="{% url 'admin-eliminar-parada' parada.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    <br>
+                    <a href="{% url 'admin-detalle-parada' parada.pk %}" class="btn btn-info btn-sm">Detalle</a>
+                </div>
             </div>
-            <p class="mb-1">Dirección: {{ parada.direccion_parada }}</p>
-            <small>Última actualización: {{ parada.descripcion_parada|default:'Sin datos' }}</small>
-            {% if parada.foto_parada %}
-            <p><img src="{{ parada.foto_parada.url }}" alt="Foto de {{ parada.nombre_parada }}" style="max-width: 100px;"></p>
-            {% else %}
-            <p class="text-muted">Sin foto disponible</p>
-            {% endif %}
-        </a>
-        {% empty %}
-        <p class="text-center">No hay paradas registradas.</p>
-        {% endfor %}
+            <hr>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">No hay paradas registradas.</p>
+        {% endif %}
     </div>
-    <p class="mt-3 text-muted">Selecciona una parada para ver los detalles</p>
 </div>
 {% endblock %}
