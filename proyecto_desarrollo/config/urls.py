@@ -6,6 +6,8 @@ from busturistico import views
 from busturistico.views_usuario import *
 from busturistico import views_usuario, urls_usuario
 from busturistico import views_chofer, urls_chofer
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     
@@ -19,6 +21,10 @@ urlpatterns = [
     # Flota (Buses)
     path('admin/flota/', views.FlotaView.as_view(), name='admin-flota'),
     path('admin/nuevo-bus/', views.CrearBusView.as_view(), name='admin-nuevo-bus'),
+    
+    # Atractivos
+    path('admin/atractivos/', views.AtractivoView.as_view(), name='admin-atractivos'),
+    path('admin/nuevo-atractivo/', views.CrearAtractivoView.as_view(), name='admin-nuevo-atractivo'),
 
     # Viajes
     path('admin/viajes/', views.ViajesView.as_view(), name='admin-viajes'),
@@ -27,13 +33,22 @@ urlpatterns = [
     # Paradas
     path('admin/paradas/', views.ParadasView.as_view(), name='admin-paradas'),
     path('admin/nuevo-parada/', views.CrearParadaView.as_view(), name='admin-nuevo-parada'),
+    path('admin/paradas/<int:pk>/editar/', views.EditarParadaView.as_view(), name='admin-editar-parada'),
+    path('admin/paradas/<int:pk>/eliminar/', views.EliminarParadaView.as_view(), name='admin-eliminar-parada'),
+    path('admin/paradas/<int:pk>/detalle', views.ParadaDetailView.as_view(), name='admin-detalle-parada'),
 
-    # Recorridos
+
+    # Recorridos 
     path('admin/recorridos/', views.RecorridosView.as_view(), name='admin-recorridos'),
     path('admin/nuevo-recorrido/', views.CrearRecorridoView.as_view(), name='admin-nuevo-recorrido'),
+    path('admin/recorridos/<int:pk>/', views.RecorridoDetailView.as_view(), name='admin-detalle-recorrido'),
+    path('admin/recorridos/<int:pk>/editar/', views.EditarRecorridoView.as_view(), name='admin-editar-recorrido'),
+    path('admin/recorridos/<int:pk>/eliminar/', views.EliminarRecorridoView.as_view(), name='admin-eliminar-recorrido'),
+
 
     # Reportes
     path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
+    path('admin/generar-reporte/', views.generar_reporte, name='generar-reporte'),
 
     # Usuario público
     path('', include('busturistico.urls_usuario')),
@@ -43,4 +58,4 @@ urlpatterns = [
     
     # Admin de Django
     path('admin/', admin.site.urls),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

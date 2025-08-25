@@ -1,11 +1,20 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import TemplateView, ListView, CreateView
-from django.shortcuts import redirect
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
-from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
-from .forms import ChoferForm, BusForm , ParadaForm
 from django.db.models import Count, OuterRef, Subquery
 from django.urls import reverse_lazy
+from django.http import HttpResponse
+from django.contrib import messages
+from django.db import transaction # Importar transaction para asegurar atomicidad
+
+# Importa tus modelos y formularios reales
+from .models import (
+    Bus, Chofer, Viaje, EstadoBusHistorial, Atractivo, EstadoBus, EstadoViaje,
+    Parada, Recorrido, ParadaAtractivo, RecorridoParada, HistorialEstadoViaje
+)
+from .forms import ChoferForm, BusForm, ParadaForm, ViajeForm, AtractivoForm, RecorridoForm
+
 
 class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
@@ -16,7 +25,7 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return redirect('admin:login')
 
 
-# Vistas principales del dashboarad (restringida a superusuarios)
+# Vistas principales del dashboard (restringida a superusuarios)
 class DashboardView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/dashboard.html'
 
@@ -64,6 +73,11 @@ class ChoferesView(SuperUserRequiredMixin, ListView):
         })
         return context
 
+class AtractivoView(SuperUserRequiredMixin, ListView):
+    model = Atractivo
+    template_name = 'admin/atractivos.html'
+    context_object_name = 'atractivos'
+
 class FlotaView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/flota.html'
 
@@ -96,10 +110,21 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Obtener el estado más reciente de cada viaje
+        latest_status = HistorialEstadoViaje.objects.filter(
+            viaje=OuterRef('id')
+        ).order_by('-fecha_cambio_estado').values('estado_viaje__nombre_estado')[:1]
+        
+        # Anotar los viajes con su estado más reciente
+        viajes_annotated = Viaje.objects.annotate(
+            estado=Subquery(latest_status)
+        )
+        
+        # Filtrar por estados
         context.update({
-            'viajes_en_curso': Viaje.objects.filter(estado_viaje__nombre_estado__iexact='en curso'),
-            'viajes_programados': Viaje.objects.filter(estado_viaje__nombre_estado__iexact='programado'),
-            'viajes_completados': Viaje.objects.filter(estado_viaje__nombre_estado__iexact='completado'),
+            'viajes_en_curso': viajes_annotated.filter(estado__iexact='en curso'),
+            'viajes_programados': viajes_annotated.filter(estado__iexact='programado'),
+            'viajes_completados': viajes_annotated.filter(estado__iexact='completado'),
         })
         return context
 
@@ -109,12 +134,80 @@ class ParadasView(SuperUserRequiredMixin, ListView):
     context_object_name = 'paradas'
 
 class RecorridosView(SuperUserRequiredMixin, ListView):
-    template_name = 'admin/recorridos.html'
     model = Recorrido
+    template_name = 'admin/recorridos.html'
     context_object_name = 'recorridos'
 
-class ReportesView(SuperUserRequiredMixin, TemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_recorridos'] = Recorrido.objects.count()
+        context['recorridos_activos'] = Recorrido.objects.exclude(descripcion_recorrido__exact='').count()
+        context['recorridos_inactivos'] = Recorrido.objects.filter(descripcion_recorrido__exact='').count()
+        return context
+
+class RecorridoDetailView(DetailView):
+    model = Recorrido
+    template_name = "admin/recorrido_detalle.html"
+    context_object_name = "recorrido"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Obtenemos las paradas del recorrido ordenadas por "orden"
+        context["paradas"] = RecorridoParada.objects.filter(
+            recorrido=self.object
+        ).select_related("parada").order_by("orden")
+        return context
+
+class EditarRecorridoView(SuperUserRequiredMixin, UpdateView):
+    model = Recorrido
+    form_class = RecorridoForm
+    template_name = 'admin/recorrido_form.html'
+    success_url = reverse_lazy('admin-recorridos')
+
+class EliminarRecorridoView(SuperUserRequiredMixin, DeleteView):
+    model = Recorrido
+    template_name = 'admin/recorrido_confirm_delete.html'
+    success_url = reverse_lazy('admin-recorridos')    
+
+class ReportesView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/reportes.html'
+    context_object_name = 'reportes'
+
+    def get_queryset(self):
+        viajes = Viaje.objects.all()
+        reportes = [
+            {
+                'id': viaje.id,
+                'fecha': viaje.fecha_programada if viaje.fecha_programada else timezone.now(),
+                'estado': 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente',
+                'descripcion': f'Reporte de viaje {viaje.id} - {viaje.recorrido}',
+                'foto': None
+            }
+            for viaje in viajes
+        ]
+        return reportes
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_reportes'] = Viaje.objects.count()
+        context['reportes_completados'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=False).count()
+        context['reportes_pendientes'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=True).count()
+        return context
+
+def generar_reporte(request):
+    # Simular datos del reporte basado en Viaje
+    viajes = Viaje.objects.all()
+    reporte_data = "Reporte de Viajes - Generado el {}\n\n".format(timezone.now().strftime('%d/%m/%Y %H:%M'))
+    reporte_data += "ID,Fecha,Estado,Descripción\n"
+    for viaje in viajes:
+        estado = 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente'
+        descripcion = f"Viaje {viaje.id} - {viaje.recorrido}"
+        reporte_data += f"{viaje.id},{viaje.fecha_programada.strftime('%d/%m/%Y') if viaje.fecha_programada else 'Sin fecha'},{estado},{descripcion}\n"
+
+    # Crear respuesta para descargar como archivo de texto
+    response = HttpResponse(reporte_data, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="reporte_viajes_{}.txt"'.format(timezone.now().strftime('%Y%m%d_%H%M'))
+    return response
 
 # Vistas para la creación de nuevos elementos (restringidas a superusuarios)
 class CrearChoferView(SuperUserRequiredMixin, CreateView):
@@ -139,40 +232,134 @@ class CrearBusView(SuperUserRequiredMixin, CreateView):
         )
         return response
 
-class CrearViajeView(SuperUserRequiredMixin, TemplateView):
-    template_name = 'admin/crear_viaje.html'
+class CrearViajeView(SuperUserRequiredMixin, CreateView):
+    model = Viaje
+    form_class = ViajeForm
+    template_name = 'admin/viajes_form.html'
+    success_url = reverse_lazy('admin-viajes')
 
-    def post(self, request, *args, **kwargs):
-        return redirect('admin-viajes')
+    def form_valid(self, form):
+        viaje = form.save(commit=False)
+        # Aquí podrías añadir lógica adicional, como asignar un estado inicial vía HistorialEstadoViaje
+        viaje.save()
+        return super().form_valid(form)
 
 class CrearParadaView(SuperUserRequiredMixin, CreateView):
     model = Parada
     form_class = ParadaForm
-    template_name = 'admin/crear_parada.html'
-    success_url = reverse_lazy('admin-paradas')
+    template_name = 'admin/parada_form.html' # Asegúrate de que esta plantilla exista
+    success_url = reverse_lazy('admin-paradas') # URL a la que redirigir después de crear
 
     def form_valid(self, form):
-        parada = form.save(commit=False)
-        if not parada.descripcion_parada:
-            parada.descripcion_parada = f"Parada creada el {timezone.now().strftime('%d/%m/%Y %H:%M')} por {self.request.user.username}"
-        parada.save()
+        with transaction.atomic():
+            parada = form.save() # Guarda la instancia de Parada
 
-        self.registrar_creacion_log(parada)
+            recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
+            orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
+
+            if recorrido_a_asignar and orden_en_recorrido:
+                # Si se selecciona un recorrido y un orden, creamos la relación
+                RecorridoParada.objects.create(
+                    recorrido=recorrido_a_asignar,
+                    parada=parada,
+                    orden=orden_en_recorrido
+                )
+            elif recorrido_a_asignar and not orden_en_recorrido:
+                # Esto no debería ocurrir si el clean del form funciona correctamente,
+                # pero es una capa de seguridad.
+                orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
+                RecorridoParada.objects.create(
+                    recorrido=recorrido_a_asignar,
+                    parada=parada,
+                    orden=orden_en_recorrido
+                )
+
+        messages.success(self.request, "Parada creada correctamente.")
         return super().form_valid(form)
-
-    def registrar_creacion_log(self, parada):
-        print(f"Parada '{parada.nombre_parada}' creada por {self.request.user.username} a las {timezone.now()}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['fecha_actual'] = timezone.now().strftime('%d/%m/%Y %H:%M')
+        context['title'] = "Crear Nueva Parada"
         return context
 
-class CrearRecorridoView(SuperUserRequiredMixin, TemplateView):
-    template_name = 'admin/crear_recorrido.html'
 
-    def post(self, request, *args, **kwargs):
-        return redirect('admin-recorridos')
+class EditarParadaView(SuperUserRequiredMixin, UpdateView):
+    model = Parada
+    form_class = ParadaForm
+    template_name = 'admin/parada_form.html' # Asegúrate de que esta plantilla exista
+    success_url = reverse_lazy('admin-paradas') # URL a la que redirigir después de editar
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            parada = form.save() # Guarda los cambios en la instancia de Parada
+
+            recorrido_seleccionado = form.cleaned_data.get('recorrido_a_asignar')
+            orden_seleccionado = form.cleaned_data.get('orden_en_recorrido')
+
+            # Intenta obtener la relación RecorridoParada existente para esta parada
+            recorrido_parada_existente = RecorridoParada.objects.filter(parada=parada).first()
+
+            if recorrido_seleccionado:
+                if recorrido_parada_existente:
+                    # Si ya existe una relación y los datos han cambiado, la actualizamos
+                    if (recorrido_parada_existente.recorrido != recorrido_seleccionado or
+                            recorrido_parada_existente.orden != orden_seleccionado):
+                        recorrido_parada_existente.recorrido = recorrido_seleccionado
+                        recorrido_parada_existente.orden = orden_seleccionado
+                        recorrido_parada_existente.save()
+                else:
+                    # Si no existía una relación, la creamos
+                    RecorridoParada.objects.create(
+                        recorrido=recorrido_seleccionado,
+                        parada=parada,
+                        orden=orden_seleccionado
+                    )
+            elif recorrido_parada_existente:
+                # Si no se seleccionó un recorrido en el formulario pero existía una relación, la eliminamos
+                recorrido_parada_existente.delete()
+
+        messages.success(self.request, "Parada actualizada correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Editar Parada: {self.object.nombre_parada}"
+        return context
+
+
+class EliminarParadaView(SuperUserRequiredMixin, DeleteView):
+    model = Parada
+    template_name = 'admin/parada_confirm_delete.html'
+    success_url = reverse_lazy('admin-paradas')
+
+class CrearRecorridoView(SuperUserRequiredMixin, CreateView):
+    model = Recorrido
+    form_class = RecorridoForm
+    template_name = 'admin/recorrido_form.html'
+    success_url = reverse_lazy('admin-recorridos')
+
+class CrearAtractivoView(SuperUserRequiredMixin, CreateView):
+    model = Atractivo
+    form_class = AtractivoForm
+    template_name = 'admin/atractivo_form.html'
+    success_url = reverse_lazy('admin-atractivos')  # Ajusta el nombre de la URL según tu configuración
+
+    def form_valid(self, form):
+        atractivo = form.save(commit=False)
+        # Opcional: añadir lógica adicional, como un timestamp o validación personalizada
+        atractivo.save()
+        return super().form_valid(form)
+
+class ParadaDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Parada
+    template_name = "admin/parada_detalle.html"
+    context_object_name = "parada"
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        return redirect('admin:login')
 
 # Vista pública (accesible por cualquiera)
 class BaseUsuarioView(TemplateView):
