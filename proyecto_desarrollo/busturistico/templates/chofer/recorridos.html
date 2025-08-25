@@ -6,37 +6,86 @@
 <section class="hero-section">
     <div class="container">
         <div class="text-center">
-            <h1 class="hero-title">Recorridos Disponibles</h1>
-            <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
+            {% if viaje_en_curso %}
+                <h1 class="hero-title">¡Estás en Viaje!</h1>
+                <p class="hero-subtitle">Recorrido asignado: {{ viaje_en_curso.recorrido.color_recorrido }}</p>
+            {% else %}
+                <h1 class="hero-title">Recorridos Disponibles</h1>
+                <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
+            {% endif %}
         </div>
     </div>
 </section>
 
 <section class="py-5">
     <div class="container">
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if viaje_en_curso %}
+            <div class="modern-card p-5 mt-4 text-center mb-5">
+                <i class="fas fa-bus text-success mb-4" style="font-size: 5rem;"></i>
+                <h3 class="fw-bold">Viaje en Curso</h3>
+                <p class="text-muted">
+                    Bus asignado: {{ viaje_en_curso.patente_bus.patente_bus }}<br>
+                    Recorrido: {{ viaje_en_curso.recorrido.color_recorrido }}<br>
+                    Hora de inicio: {{ viaje_en_curso.fecha_hora_inicio_real|date:"H:i" }}
+                </p>
+                <a href="{% url 'viaje-en-curso' %}" class="btn btn-primary btn-lg mt-3">
+                    <i class="fas fa-info-circle me-2"></i>Ver detalles del viaje
+                </a>
+            </div>
+        {% endif %}
+
         {% if recorridos %}
             <div class="row g-4">
                 {% for recorrido in recorridos %}
                 <div class="col-lg-4 col-md-6 animate-on-scroll">
-                    <div class="modern-card h-100 overflow-hidden">
-                        <div style="height: 200px; background: linear-gradient(45deg, #0d6efd, #6610f2); position: relative; display: flex; align-items: center; justify-content: center;">
+                    <div class="modern-card h-100 overflow-hidden {% if recorrido.id == recorrido_en_curso_id %}border-success{% endif %}">
+                        <div class="card-header {% if recorrido.id == recorrido_en_curso_id %}bg-success-gradient{% else %}bg-primary-gradient{% endif %}">
                             <i class="fas fa-route text-white" style="font-size: 3rem; opacity: 0.7;"></i>
+                            
+                            <!-- Horario arriba a la derecha -->
                             <div style="position: absolute; top: 15px; right: 15px;">
-                                <span class="badge bg-white text-primary">
+                                <span class="badge bg-white {% if recorrido.id == recorrido_en_curso_id %}text-success{% else %}text-primary{% endif %}">
                                     <i class="fas fa-clock me-1"></i>{{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
                                 </span>
                             </div>
+                            
+                            <!-- “En Curso” un poco más abajo a la izquierda -->
+                            {% if recorrido.id == recorrido_en_curso_id %}
+                            <div style="position: absolute; top: 55px; left: 15px;">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-play me-1"></i>En Curso
+                                </span>
+                            </div>
+                            {% endif %}
                         </div>
+
                         
                         <div class="p-4">
-                            <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
+                            <h5 class="fw-bold mb-2 {% if recorrido.id == recorrido_en_curso_id %}text-success{% else %}text-primary{% endif %}">
+                                {{ recorrido.color_recorrido }}
+                            </h5>
                             <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <small class="text-muted">
                                     <i class="fas fa-route me-1"></i>Recorrido #{{ recorrido.id }}
                                 </small>
-                                <span class="badge bg-success-subtle text-success">Disponible</span>
+                                {% if recorrido.id == recorrido_en_curso_id %}
+                                    <span class="badge bg-success-subtle text-success">En Curso</span>
+                                {% else %}
+                                    <span class="badge bg-primary-subtle text-primary">Disponible</span>
+                                {% endif %}
                             </div>
                             
                             <div class="mb-3">
@@ -48,12 +97,27 @@
                                 </div>
                             </div>
                             
-                            <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-play me-2"></i>Iniciar Recorrido
-                                </button>
-                            </form>
+                            {% if recorrido.id == recorrido_en_curso_id %}
+                                <!-- Si es el recorrido en curso, mostrar botón para ver detalles -->
+                                <a href="{% url 'viaje-en-curso' %}" class="btn btn-success w-100">
+                                    <i class="fas fa-eye me-2"></i>Ver Detalles del Viaje
+                                </a>
+                            {% else %}
+                                <!-- Si NO hay viaje en curso, mostrar botón para iniciar -->
+                                {% if not viaje_en_curso %}
+                                    <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-play me-2"></i>Iniciar Recorrido
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <!-- Si hay otro viaje en curso, deshabilitar botón -->
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        <i class="fas fa-lock me-2"></i>No Disponible
+                                    </button>
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -173,9 +237,19 @@
                         </div>
                     </div>
                     
+                    <div class="alert {% if viaje_en_curso %}alert-success{% else %}alert-info{% endif %}">
+                        <i class="fas fa-{% if viaje_en_curso %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                        <strong>Estado:</strong> 
+                        {% if viaje_en_curso %}
+                            En servicio - {{ viaje_en_curso.recorrido.color_recorrido }}
+                        {% else %}
+                            Disponible para asignación
+                        {% endif %}
+                    </div>
+                    
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Bus:</strong> {% if bus_asignado %}{{ bus_asignado }}{% else %}No asignado{% endif %}
+                        <i class="fas fa-bus me-2"></i>
+                        <strong>Bus:</strong> {% if bus_asignado %}{{ bus_asignado.patente_bus }}{% else %}No asignado{% endif %}
                     </div>
                     
                     <div class="d-grid">
@@ -189,7 +263,6 @@
     </div>
 </section>
 
-
 <style>
 .animate-on-scroll {
     opacity: 0;
@@ -200,6 +273,26 @@
 .animate-on-scroll.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+.border-success {
+    border: 2px solid #198754 !important;
+}
+
+.card-header {
+    height: 200px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-primary-gradient {
+    background: linear-gradient(45deg, #0d6efd, #6610f2);
+}
+
+.bg-success-gradient {
+    background: linear-gradient(45deg, #198754, #20c997);
 }
 </style>
 

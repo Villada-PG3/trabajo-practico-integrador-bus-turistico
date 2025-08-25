@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, View
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from .models import Recorrido, Viaje, Chofer, EstadoViaje, Bus
 from django.contrib import messages
@@ -36,39 +36,40 @@ class ChoferRecorridosView(ChoferRequiredMixin, ListView):
         chofer = self.request.chofer
         context['chofer'] = chofer
 
-        # --- LÓGICA MODIFICADA ---
-        # 1. Buscar el viaje en curso para este chofer.
+        # Buscar el viaje en curso para este chofer
         viaje_en_curso = Viaje.objects.filter(
             chofer=chofer,
             fecha_hora_inicio_real__isnull=False,
             fecha_hora_fin_real__isnull=True
-        ).select_related('patente_bus', 'recorrido').first() # Añadimos 'recorrido' para obtener su info
+        ).select_related('patente_bus', 'recorrido').first()
 
-        # 2. Asignar el viaje y el bus al contexto.
+        # Asignar el viaje y el bus al contexto
         if viaje_en_curso:
             context['viaje_en_curso'] = viaje_en_curso
             context['bus_asignado'] = viaje_en_curso.patente_bus
+            context['recorrido_en_curso_id'] = viaje_en_curso.recorrido.id
         else:
             context['viaje_en_curso'] = None
             context['bus_asignado'] = None
-        # --- FIN LÓGICA MODIFICADA ---
+            context['recorrido_en_curso_id'] = None
+            
         return context
 
 class IniciarRecorridoView(ChoferRequiredMixin, View):
     def post(self, request, pk):
         chofer = request.chofer
         recorrido = get_object_or_404(Recorrido, pk=pk)
-        
-        # Verificar que el chofer no tenga otro viaje en curso
+
         viaje_en_curso = Viaje.objects.filter(
             chofer=chofer,
             fecha_hora_inicio_real__isnull=False,
             fecha_hora_fin_real__isnull=True
         ).first()
-        
+
         if viaje_en_curso:
             messages.error(request, 'Ya tienes un viaje en curso. Debes finalizarlo antes de iniciar otro.')
-            return redirect('chofer-recorridos')
+            # Redirigir a la nueva página de detalles del viaje en curso
+            return redirect('viaje-en-curso')
         
         # Obtener o crear estado "En curso"
         estado_en_curso, created = EstadoViaje.objects.get_or_create(
@@ -100,4 +101,27 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
         )
         
         messages.success(request, f'Recorrido {recorrido.color_recorrido} iniciado correctamente.')
-        return redirect('chofer-recorridos')
+        # Redirigir a la nueva página de detalles del viaje en curso
+        return redirect('viaje-en-curso')
+    
+# Nueva vista para los detalles del viaje en curso
+class DetalleViajeView(ChoferRequiredMixin, View):
+    template_name = 'chofer/detalle_viaje.html'
+
+    def get(self, request, *args, **kwargs):
+        chofer = request.chofer
+        viaje_en_curso = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=False,
+            fecha_hora_fin_real__isnull=True
+        ).select_related('recorrido', 'patente_bus').first()
+
+        if not viaje_en_curso:
+            messages.info(request, 'No tienes un viaje en curso.')
+            return redirect('chofer-recorridos')
+
+        context = {
+            'viaje': viaje_en_curso,
+            'chofer': chofer
+        }
+        return render(request, self.template_name, context)

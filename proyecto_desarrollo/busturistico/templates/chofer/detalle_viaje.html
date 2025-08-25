@@ -1,0 +1,53 @@
+{% extends 'usuario/base_usuario.html' %}
+
+{% block title %}Detalles del Viaje - Bus Turístico Buenos Aires{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="modern-card p-5 text-center">
+            <h1 class="mb-4">Tu Viaje en Curso</h1>
+            <i class="fas fa-road text-primary mb-4" style="font-size: 5rem;"></i>
+            
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading">Recorrido: {{ viaje.recorrido.color_recorrido }}</h4>
+                        <p class="mb-0">{{ viaje.recorrido.descripcion_recorrido }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">Bus Asignado: {{ viaje.patente_bus.patente }}</h4>
+                        <p class="mb-0">Capacidad: {{ viaje.patente_bus.capacidad_bus }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <h3 class="mb-3">Información del Viaje</h3>
+                <ul class="list-group list-group-flush mb-4 text-start">
+                    <li class="list-group-item">
+                        <i class="fas fa-calendar-alt me-2 text-muted"></i>
+                        **Fecha de inicio:** {{ viaje.fecha_hora_inicio_real|date:"d M Y" }}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-clock me-2 text-muted"></i>
+                        **Hora de inicio:** {{ viaje.fecha_hora_inicio_real|date:"H:i" }}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-bus-alt me-2 text-muted"></i>
+                        **Estado:** En Curso
+                    </li>
+                </ul>
+                
+                <div class="d-grid gap-2 d-md-block">
+                    <button class="btn btn-danger btn-lg me-2">Finalizar Recorrido</button>
+                    <a href="#" class="btn btn-outline-primary btn-lg">Reportar Problema</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
