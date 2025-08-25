@@ -7,6 +7,8 @@ from .models import Recorrido, Viaje, Chofer, EstadoViaje, Bus
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 
+import logging
+
 class ChoferRequiredMixin:
     """Mixin que requiere que el usuario sea un chofer activo"""
     
@@ -14,7 +16,6 @@ class ChoferRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
         try:
             chofer = Chofer.objects.get(user=request.user, activo=True)
-            # Agregar el chofer al request para usarlo en las vistas
             request.chofer = chofer
         except Chofer.DoesNotExist:
             raise PermissionDenied("No tiene permisos de chofer.")
@@ -32,7 +33,25 @@ class ChoferRecorridosView(ChoferRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['chofer'] = self.request.chofer
+        chofer = self.request.chofer
+        context['chofer'] = chofer
+
+        # --- LÓGICA MODIFICADA ---
+        # 1. Buscar el viaje en curso para este chofer.
+        viaje_en_curso = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=False,
+            fecha_hora_fin_real__isnull=True
+        ).select_related('patente_bus', 'recorrido').first() # Añadimos 'recorrido' para obtener su info
+
+        # 2. Asignar el viaje y el bus al contexto.
+        if viaje_en_curso:
+            context['viaje_en_curso'] = viaje_en_curso
+            context['bus_asignado'] = viaje_en_curso.patente_bus
+        else:
+            context['viaje_en_curso'] = None
+            context['bus_asignado'] = None
+        # --- FIN LÓGICA MODIFICADA ---
         return context
 
 class IniciarRecorridoView(ChoferRequiredMixin, View):

@@ -175,7 +175,7 @@
                     
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Bus:</strong> {% if chofer.bus_asignado_actual %}{{ chofer.bus_asignado_actual }}{% else %}No asignado{% endif %}
+                        <strong>Bus:</strong> {% if bus_asignado %}{{ bus_asignado }}{% else %}No asignado{% endif %}
                     </div>
                     
                     <div class="d-grid">
@@ -188,6 +188,7 @@
         </div>
     </div>
 </section>
+
 
 <style>
 .animate-on-scroll {
