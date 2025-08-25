@@ -1,7 +1,7 @@
 {% extends "admin/base_admin.html" %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Crear Nueva Parada</h2>
+    <h2 class="mb-4">{% if object %}Editar Parada{% else %}Crear Nueva Parada{% endif %}</h2>
     <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
@@ -23,7 +23,7 @@
             {% endif %}
         </div>
         <div class="mb-3">
-            <label for="{{ form.descripcion_parada.id_for_label }}" class="form-label">{{ form.descripcion_parada.label }} (Opcional, se usará {{ fecha_actual }} si está vacía)</label>
+            <label for="{{ form.descripcion_parada.id_for_label }}" class="form-label">{{ form.descripcion_parada.label }}</label>
             <textarea name="{{ form.descripcion_parada.name }}" id="{{ form.descripcion_parada.id_for_label }}" class="form-control {% if form.descripcion_parada.errors %}is-invalid{% endif %}">{{ form.descripcion_parada.value|default_if_none:'' }}</textarea>
             {% if form.descripcion_parada.errors %}
                 <div class="invalid-feedback">
@@ -58,6 +58,28 @@
                 </div>
             {% endif %}
         </div>
+
+        {# Campos para Recorrido y Orden (CORREGIDOS) #}
+        <div class="mb-3">
+            <label for="{{ form.recorrido_a_asignar.id_for_label }}" class="form-label">{{ form.recorrido_a_asignar.label }}</label>
+            {{ form.recorrido_a_asignar }} {# Django renderizará el select field #}
+            {% if form.recorrido_a_asignar.errors %}
+                <div class="invalid-feedback d-block"> {# Usar d-block para mostrar siempre si hay error #}
+                    {{ form.recorrido_a_asignar.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.orden_en_recorrido.id_for_label }}" class="form-label">{{ form.orden_en_recorrido.label }}</label>
+            {{ form.orden_en_recorrido }} {# Django renderizará el input number #}
+            {% if form.orden_en_recorrido.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.orden_en_recorrido.errors }}
+                </div>
+            {% endif %}
+        </div>
+
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Guardar</button>
             <a href="{% url 'admin-paradas' %}" class="btn btn-secondary">Cancelar</a>
