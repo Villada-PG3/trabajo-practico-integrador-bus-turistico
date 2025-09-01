@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import Recorrido, Viaje, Chofer, EstadoViaje, Bus
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-
+import datetime
 import logging
 
 class ChoferRequiredMixin:
@@ -177,3 +177,23 @@ class FinalizarViajeView(ChoferRequiredMixin, View):
         )
         
         return redirect('chofer-recorridos')
+def iniciar_viaje_chofer(request, viaje_id):
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+    
+    # Prepara el objeto de fecha y hora programada para el cálculo
+    fecha_hora_programada_completa = datetime.datetime.combine(viaje.fecha_programada.date(), viaje.hora_inicio_programada)
+    
+    # Calcula la demora de inicio
+    ahora = timezone.now()
+    demora = ahora - fecha_hora_programada_completa
+    
+    # Actualiza los campos del modelo
+    viaje.fecha_hora_inicio_real = ahora
+    viaje.demora_inicio_minutos = int(demora.total_seconds() / 60)
+    viaje.save()
+    
+    # Aquí puedes cambiar el estado del viaje a "En Curso" en el HistorialEstadoViaje
+    # ...
+    
+    return redirect('chofer_panel') # Redirige al panel del chofer
+

@@ -6,6 +6,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
+from datetime import timedelta
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
 )
@@ -20,7 +21,7 @@ from .models import (
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
-    RecorridoForm, ViajeForm
+    RecorridoForm, ViajeCreateForm
 )
 
 
@@ -333,6 +334,7 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/viajes.html'
 
     def get_context_data(self, **kwargs):
+        actualizar_estados_viajes() 
         context = super().get_context_data(**kwargs)
         all_trips = Viaje.objects.all().prefetch_related(
             'patente_bus', 'chofer', 'recorrido'
@@ -392,16 +394,20 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
         })
         return context
 
-class CrearViajeView(SuperUserRequiredMixin, CreateView):
+class CrearViajeView(CreateView): # Asumo que SuperUserRequiredMixin está definido
     model = Viaje
-    form_class = ViajeForm
+    form_class = ViajeCreateForm
     template_name = 'admin/viajes_form.html'
     success_url = reverse_lazy('admin-viajes')
 
     def form_valid(self, form):
         with transaction.atomic():
-            viaje = form.save(commit=False)
-            viaje.save()
+            viaje = form.save()  # `form.save()` solo guarda los campos del modelo
+
+            # Si necesitas usar la duración calculada en la vista, la obtienes aquí
+            # duracion_estimada_minutos = form.cleaned_data.get('duracion_estimada_calculada')
+            # ... tu lógica aquí
+
             estado_inicial, _ = EstadoViaje.objects.get_or_create(
                 nombre_estado='Programado',
                 defaults={'descripcion_estado': 'Viaje programado'}
@@ -412,30 +418,45 @@ class CrearViajeView(SuperUserRequiredMixin, CreateView):
                 fecha_cambio_estado=timezone.now()
             )
         return super().form_valid(form)
+def actualizar_estados_viajes():
+    ahora = timezone.now()
+    viajes = Viaje.objects.all()
 
-def completar_viaje_y_limpiar(request, viaje_id):
-    try:
-        with transaction.atomic():
-            viaje = Viaje.objects.get(pk=viaje_id)
-            
-            viaje.fecha_hora_fin_real = timezone.now()
+    for viaje in viajes:
+        # Si la fecha programada ya llegó y no se inició, marcamos inicio
+        if viaje.fecha_programada <= ahora and viaje.fecha_hora_inicio_real is None:
+            viaje.fecha_hora_inicio_real = ahora
             viaje.save()
 
-            viajes_completados = Viaje.objects.filter(fecha_hora_fin_real__isnull=False).order_by('fecha_hora_fin_real')
+        # Si el viaje ya comenzó pero aún no terminó, calculamos el fin estimado
+        if viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real is None and viaje.recorrido:
+            # Convertimos la duración aproximada del recorrido a minutos
+            duracion_aprox = viaje.recorrido.duracion_aproximada_recorrido
+            duracion_total = timedelta(
+                hours=duracion_aprox.hour,
+                minutes=duracion_aprox.minute,
+                seconds=duracion_aprox.second
+            )
 
-            if viajes_completados.count() > 10:
-                viajes_a_eliminar = viajes_completados[:viajes_completados.count() - 10]
-                for viaje_viejo in viajes_a_eliminar:
-                    viaje_viejo.delete()
+            hora_fin_estimada = viaje.fecha_hora_inicio_real + duracion_total
 
-            messages.success(request, "Viaje completado y lista de viajes antiguos actualizada.")
-            return redirect('admin-viajes')
+            # Si ya pasó la hora estimada de fin → lo marcamos como completado
+            if ahora >= hora_fin_estimada:
+                viaje.fecha_hora_fin_real = ahora
+                viaje.save()
+def completar_viaje_y_limpiar(request, pk):
+    viaje = get_object_or_404(Viaje, pk=pk)
 
-    except Viaje.DoesNotExist:
-        messages.error(request, "El viaje no existe.")
-        return redirect('admin-viajes')
+    # Si no está iniciado, lo iniciamos primero
+    if viaje.fecha_hora_inicio_real is None:
+        viaje.fecha_hora_inicio_real = timezone.now()
 
+    # Marcamos el viaje como completado
+    viaje.fecha_hora_fin_real = timezone.now()
+    viaje.save()
 
+    messages.success(request, f"El viaje #{viaje.id} se marcó como completado correctamente.")
+    return redirect('admin-viajes')
 # --- Parada Management Views ---
 class ParadasView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/paradas.html'

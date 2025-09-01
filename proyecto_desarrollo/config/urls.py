@@ -7,8 +7,10 @@ from busturistico import views_usuario, urls_usuario
 from busturistico import views_chofer, urls_chofer
 from django.conf import settings
 from django.conf.urls.static import static
+from busturistico import views_chofer, urls_chofer
 
 urlpatterns = [
+    path('chofer/', include('busturistico.urls_chofer')),
     # Dashboard
     path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),
     # Choferes

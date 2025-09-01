@@ -8,7 +8,9 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje
-
+import datetime
+from django import forms
+from .models import Bus, EstadoBus
 User = get_user_model()
 
 class ChoferLoginForm(forms.Form):
@@ -167,9 +169,6 @@ class ChoferForm(forms.ModelForm):
         }
 
 
-from django import forms
-from .models import Bus, EstadoBus
-
 class BusForm(forms.ModelForm):
     estado_bus = forms.ModelChoiceField(
         queryset=EstadoBus.objects.all(),
@@ -211,51 +210,41 @@ class BusForm(forms.ModelForm):
         return instance
 
 
-class ViajeForm(forms.ModelForm):
+class ViajeCreateForm(forms.ModelForm):
+    # Campo que no está en el modelo, solo para el formulario
+    hora_fin_estimada = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
+
     class Meta:
         model = Viaje
-        fields = '__all__'
+        # Incluye los campos del modelo que el usuario debe llenar
+        fields = ['recorrido', 'patente_bus', 'chofer', 'fecha_programada', 'hora_inicio_programada']
         widgets = {
             'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'hora_inicio_programada': forms.TimeInput(attrs={'type': 'time'}),
-            'fecha_hora_inicio_real': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'fecha_hora_fin_real': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'demora_inicio_minutos': forms.NumberInput(),
-            'duracion_minutos_real': forms.NumberInput(),
-            'patente_bus': forms.Select(),
-            'chofer': forms.Select(),
-            'recorrido': forms.Select(),
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        fecha_programada = cleaned_data.get('fecha_programada')
-        hora_inicio_programada = cleaned_data.get('hora_inicio_programada')
-        fecha_hora_inicio_real = cleaned_data.get('fecha_hora_inicio_real')
-        fecha_hora_fin_real = cleaned_data.get('fecha_hora_fin_real')
-        patente_bus = cleaned_data.get('patente_bus')
-        chofer = cleaned_data.get('chofer')
-        recorrido = cleaned_data.get('recorrido')
+        hora_inicio = cleaned_data.get('hora_inicio_programada')
+        hora_fin = cleaned_data.get('hora_fin_estimada')
 
-        # Ensure required fields are provided
-        if not fecha_programada:
-            self.add_error('fecha_programada', 'La fecha programada es obligatoria.')
-        if not hora_inicio_programada:
-            self.add_error('hora_inicio_programada', 'La hora de inicio programada es obligatoria.')
-        if not patente_bus:
-            self.add_error('patente_bus', 'Debe seleccionar un bus.')
-        if not chofer:
-            self.add_error('chofer', 'Debe seleccionar un chofer.')
-        if not recorrido:
-            self.add_error('recorrido', 'Debe seleccionar un recorrido.')
+        if hora_inicio and hora_fin:
+            # Combina las horas con una fecha base para calcular la duración
+            hora_inicio_dt = datetime.combine(datetime.min, hora_inicio)
+            hora_fin_dt = datetime.combine(datetime.min, hora_fin)
 
-        # Validate that fecha_hora_fin_real is after fecha_hora_inicio_real if both are provided
-        if fecha_hora_inicio_real and fecha_hora_fin_real:
-            if fecha_hora_fin_real <= fecha_hora_inicio_real:
-                self.add_error('fecha_hora_fin_real', 'La fecha de fin debe ser posterior a la fecha de inicio.')
+            # Si la hora de fin es anterior a la de inicio, asume que es al día siguiente
+            if hora_fin_dt <= hora_inicio_dt:
+                raise forms.ValidationError("La hora de finalización estimada debe ser posterior a la de inicio.")
+            
+            duracion = hora_fin_dt - hora_inicio_dt
+            duracion_minutos = duracion.total_seconds() / 60
+            
+            # Puedes almacenar esta duración en la sesión o en la vista si la necesitas más adelante,
+            # o simplemente la usas para validación.
+            self.cleaned_data['duracion_estimada_calculada'] = int(duracion_minutos)
+            
         return cleaned_data
-
-
 
 class AtractivoForm(forms.ModelForm):
     parada_a_asignar = forms.ModelChoiceField(
