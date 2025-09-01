@@ -23,85 +23,97 @@ class ChoferRequiredMixin:
         return super().dispatch(request, *args, **kwargs)
 
 class ChoferRecorridosView(ChoferRequiredMixin, ListView):
-    model = Recorrido
+    """
+    Pantalla principal del chofer.
+    Muestra:
+      - Viaje en curso (si existe)
+      - Sino, el viaje asignado pendiente de iniciar (si existe)
+      - Sino, un mensaje indicando que no tiene viaje asignado
+    Ya no lista todos los recorridos disponibles.
+    """
+
+    model = Recorrido  # No se usa para listar, pero mantiene la firma del ListView
     template_name = 'chofer/recorridos.html'
     context_object_name = 'recorridos'
-    paginate_by = 6
 
     def get_queryset(self):
-        return Recorrido.objects.all().order_by('id')
+        # No listamos recorridos; devolvemos queryset vacío
+        return Recorrido.objects.none()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         chofer = self.request.chofer
         context['chofer'] = chofer
 
-        # Buscar el viaje en curso para este chofer
-        viaje_en_curso = Viaje.objects.filter(
-            chofer=chofer,
-            fecha_hora_inicio_real__isnull=False,
-            fecha_hora_fin_real__isnull=True
-        ).select_related('patente_bus', 'recorrido').first()
+        # 1) Viaje en curso
+        viaje_en_curso = (
+            Viaje.objects.filter(
+                chofer=chofer,
+                fecha_hora_inicio_real__isnull=False,
+                fecha_hora_fin_real__isnull=True
+            )
+            .select_related('patente_bus', 'recorrido')
+            .first()
+        )
+        context['viaje_en_curso'] = viaje_en_curso
 
-        # Asignar el viaje y el bus al contexto
-        if viaje_en_curso:
-            context['viaje_en_curso'] = viaje_en_curso
-            context['bus_asignado'] = viaje_en_curso.patente_bus
-            context['recorrido_en_curso_id'] = viaje_en_curso.recorrido.id
+        if not viaje_en_curso:
+            # 2) Viaje asignado aún no iniciado (tomamos el más próximo por fecha_programada)
+            viaje_asignado = (
+                Viaje.objects.filter(
+                    chofer=chofer,
+                    fecha_hora_inicio_real__isnull=True
+                )
+                .select_related('patente_bus', 'recorrido')
+                .order_by('fecha_programada', 'id')
+                .first()
+            )
+            context['viaje_asignado'] = viaje_asignado
         else:
-            context['viaje_en_curso'] = None
-            context['bus_asignado'] = None
-            context['recorrido_en_curso_id'] = None
-            
+            context['viaje_asignado'] = None
+
         return context
 
 class IniciarRecorridoView(ChoferRequiredMixin, View):
-    def post(self, request, pk):
+    """
+    Compatibilidad hacia atrás: si llegara a usarse con pk de recorrido,
+    intenta iniciar el viaje asignado. Ya no crea viajes "ad-hoc".
+    """
+    def post(self, request, pk=None):
         chofer = request.chofer
-        recorrido = get_object_or_404(Recorrido, pk=pk)
 
+        # Si ya hay un viaje en curso, redirigir a detalle
         viaje_en_curso = Viaje.objects.filter(
             chofer=chofer,
             fecha_hora_inicio_real__isnull=False,
             fecha_hora_fin_real__isnull=True
         ).first()
-
         if viaje_en_curso:
             messages.error(request, 'Ya tienes un viaje en curso. Debes finalizarlo antes de iniciar otro.')
-            # Redirigir a la nueva página de detalles del viaje en curso
             return redirect('viaje-en-curso')
-        
-        # Obtener o crear estado "En curso"
-        estado_en_curso, created = EstadoViaje.objects.get_or_create(
-            nombre_estado='En curso',
-            defaults={'descripcion_estado': 'Viaje en curso'}
+
+        # Buscar viaje asignado no iniciado
+        viaje_asignado = (
+            Viaje.objects.filter(chofer=chofer, fecha_hora_inicio_real__isnull=True)
+            .order_by('fecha_programada', 'id')
+            .first()
         )
-        
-        # Obtener un bus disponible
-        try:
-            bus_disponible = Bus.objects.filter(
-                estadobushistorial__estado_bus__nombre_estado='Operativo'
-            ).first()
-            
-            if not bus_disponible:
-                bus_disponible = Bus.objects.first()
-                
-        except Bus.DoesNotExist:
-            messages.error(request, 'No hay buses disponibles.')
+        if not viaje_asignado:
+            messages.error(request, 'No tienes un viaje asignado para iniciar.')
             return redirect('chofer-recorridos')
-        
-        # Crear viaje
-        viaje = Viaje.objects.create(
-            chofer=chofer,
-            recorrido=recorrido,
-            patente_bus=bus_disponible,
-            fecha_programada=timezone.now(),
-            hora_inicio_programada=timezone.now().time(),
-            fecha_hora_inicio_real=timezone.now(),
-        )
-        
-        messages.success(request, f'Recorrido {recorrido.color_recorrido} iniciado correctamente.')
-        # Redirigir a la nueva página de detalles del viaje en curso
+
+        # Marcar inicio real ahora
+        viaje_asignado.fecha_hora_inicio_real = timezone.now()
+        try:
+            estado_en_curso, _ = EstadoViaje.objects.get_or_create(
+                nombre_estado='En curso',
+                defaults={'descripcion_estado': 'Viaje en curso'}
+            )
+        except Exception:
+            estado_en_curso = None
+        viaje_asignado.save()
+
+        messages.success(request, f'Viaje al recorrido {viaje_asignado.recorrido.color_recorrido} iniciado correctamente.')
         return redirect('viaje-en-curso')
     
 # Nueva vista para los detalles del viaje en curso
