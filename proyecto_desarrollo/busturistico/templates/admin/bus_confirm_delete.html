@@ -1,0 +1,23 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Eliminar Bus: {{ object.patente_bus }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Eliminar Bus</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">¿Estás seguro de que deseas eliminar este bus?</h5>
+            <p><strong>Patente:</strong> {{ object.patente_bus }}</p>
+            <p><strong>Número de Unidad:</strong> {{ object.numero_unidad }}</p>
+            <p><strong>Fecha de Compra:</strong> {{ object.fecha_compra|date:"d/m/Y H:i" }}</p>
+            <p class="text-danger">Esta acción no se puede deshacer y eliminará historiales asociados.</p>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+        <a href="{% url 'admin-flota' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

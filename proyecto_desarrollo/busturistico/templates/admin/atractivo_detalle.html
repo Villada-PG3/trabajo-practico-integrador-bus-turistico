@@ -1,0 +1,55 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Detalle de Atractivo: {{ atractivo.nombre_atractivo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Detalle de Atractivo: {{ atractivo.nombre_atractivo }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Información General</h5>
+            <p><strong>Descripción:</strong> {{ atractivo.descripcion_atractivo }}</p>
+            <p><strong>Coordenadas:</strong> Latitud {{ atractivo.latitud_atractivo }}, Longitud {{ atractivo.longitud_atractivo }}</p>
+            <p><strong>Calificación:</strong> 
+                {% for star in "★★★★★"|slice:atractivo.calificacion_estrellas %}★{% endfor %}
+                ({{ atractivo.calificacion_estrellas }}/5)
+            </p>
+            {% if atractivo.foto_atractivo %}
+                <img src="{{ atractivo.foto_atractivo.url }}" alt="Foto de {{ atractivo.nombre_atractivo }}" class="img-fluid mb-3" style="max-width: 400px;">
+            {% else %}
+                <p>No hay foto disponible para este atractivo.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Paradas Relacionadas</h5>
+            {% if parada_atractivos %}
+                <ul class="list-group">
+                    {% for pa in parada_atractivos %}
+                        <li class="list-group-item">
+                            <strong>Parada:</strong> {{ pa.parada.nombre_parada }}<br>
+                            <strong>Dirección:</strong> {{ pa.parada.direccion_parada }}<br>
+                            {% if pa.parada.foto_parada %}
+                                <img src="{{ pa.parada.foto_parada.url }}" alt="Foto de la parada {{ pa.parada.nombre_parada }}" class="img-fluid mt-2" style="max-width: 200px;">
+                            {% else %}
+                                <p>No hay foto disponible para esta parada.</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Este atractivo no está relacionado con ninguna parada actualmente.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'admin-editar-atractivo' atractivo.pk %}" class="btn btn-primary">Editar Atractivo</a>
+        <a href="{% url 'admin-eliminar-atractivo' atractivo.pk %}" class="btn btn-danger">Eliminar Atractivo</a>
+        <a href="{% url 'admin-atractivos' %}" class="btn btn-secondary">Volver a la Lista de Atractivos</a>
+    </div>
+</div>
+{% endblock %}

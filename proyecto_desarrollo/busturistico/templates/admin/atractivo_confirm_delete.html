@@ -1,0 +1,33 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Eliminar Atractivo: {{ atractivo.nombre_atractivo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Eliminar Atractivo</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">¿Estás seguro de que deseas eliminar este atractivo?</h5>
+            <p><strong>Nombre:</strong> {{ atractivo.nombre_atractivo }}</p>
+            <p><strong>Descripción:</strong> {{ atractivo.descripcion_atractivo|truncatechars:100 }}</p>
+            <p><strong>Calificación:</strong> 
+                {% for star in "★★★★★"|slice:atractivo.calificacion_estrellas %}★{% endfor %}
+                ({{ atractivo.calificacion_estrellas }}/5)
+            </p>
+            {% if atractivo.foto_atractivo %}
+                <img src="{{ atractivo.foto_atractivo.url }}" alt="Foto de {{ atractivo.nombre_atractivo }}" class="img-fluid mb-3" style="max-width: 200px;">
+            {% else %}
+                <p>No hay foto disponible.</p>
+            {% endif %}
+            <p class="text-danger">Esta acción no se puede deshacer.</p>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+        <a href="{% url 'admin-atractivos' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
