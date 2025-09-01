@@ -1,7 +1,8 @@
 {% extends "admin/base_admin.html" %}
+{% block title %}Crear/Editar Atractivo - Panel Admin{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Crear Nuevo Atractivo</h2>
+    <h2 class="mb-4">{% if form.instance.pk %}Editar Atractivo{% else %}Crear Nuevo Atractivo{% endif %}</h2>
     <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
@@ -55,6 +56,22 @@
             {% if form.foto_atractivo.errors %}
                 <div class="invalid-feedback">
                     {{ form.foto_atractivo.errors }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.parada_a_asignar.id_for_label }}" class="form-label">{{ form.parada_a_asignar.label }}</label>
+            <select name="{{ form.parada_a_asignar.name }}" id="{{ form.parada_a_asignar.id_for_label }}" class="form-control {% if form.parada_a_asignar.errors %}is-invalid{% endif %}">
+                <option value="">No asignar a una parada</option>
+                {% for parada in form.parada_a_asignar.field.queryset %}
+                    <option value="{{ parada.id }}" {% if form.parada_a_asignar.value == parada.id %}selected{% endif %}>{{ parada.nombre_parada }}</option>
+                {% empty %}
+                    <option disabled>No hay paradas disponibles</option>
+                {% endfor %}
+            </select>
+            {% if form.parada_a_asignar.errors %}
+                <div class="invalid-feedback">
+                    {{ form.parada_a_asignar.errors }}
                 </div>
             {% endif %}
         </div>

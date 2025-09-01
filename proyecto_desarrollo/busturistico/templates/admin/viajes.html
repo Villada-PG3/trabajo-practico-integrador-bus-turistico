@@ -1,51 +1,85 @@
 {% extends "admin/base_admin.html" %}
+
 {% block title %}Gestión de Viajes - Panel Admin{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3">
+    <!-- Título principal -->
     <h1 class="mb-2">Gestión de Viajes</h1>
     <p class="mb-4">Monitorea y programa los viajes de la flota</p>
-    <a href="{% url 'admin-nuevo-viaje' %}" class="new-btn">Programar Viaje</a>
+
+    <!-- Botón para programar nuevo viaje -->
+    <a href="{% url 'admin-nuevo-viaje' %}" class="btn btn-primary mb-3">Programar Viaje</a>
+
+    <!-- Filtros por estado -->
     <div class="row mb-3">
         <div class="col-md-12">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">En Curso ({{ viajes_en_curso|length }})</a>
+                    <a class="nav-link {% if status_filter == 'en_curso' %}active{% endif %}" 
+                       href="?status=en_curso">
+                       En Curso ({{ viajes_en_curso_count }})
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Programados ({{ viajes_programados|length }})</a>
+                    <a class="nav-link {% if status_filter == 'programados' %}active{% endif %}" 
+                       href="?status=programados">
+                       Programados ({{ viajes_programados_count }})
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Completados ({{ viajes_completados|length }})</a>
+                    <a class="nav-link {% if status_filter == 'completados' %}active{% endif %}" 
+                       href="?status=completados">
+                       Completados ({{ viajes_completados_count }})
+                    </a>
                 </li>
             </ul>
         </div>
     </div>
+
+    <!-- Listado de viajes -->
     <div class="row">
-        {% for viaje in viajes_en_curso|default:viajes_programados|default:viajes_completados %}
-        <div class="col-md-6 mb-3">
-            <div class="card p-3">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5>{{ viaje.id }}</h5>
-                        <p>Bus: {{ viaje.patente_bus.patente_bus }}</p>
-                        <p>Chofer: {{ viaje.chofer.nombre_chofer }} {{ viaje.chofer.apellido_chofer }}</p>
-                        <p>Programado: {{ viaje.fecha_programada|date:"H:i" }}</p>
-                        <p>Inicio Real: {{ viaje.fecha_hora_inicio_real|date:"H:i"|default:"N/A" }}</p>
-                        <p>Parada actual: {{ viaje.parada_actual|default:"N/A" }}</p>
-                    </div>
-                    <div>
-                        <span class="status-badge {% if viaje.estado|lower == 'en curso' %}status-en-curso{% elif viaje.estado|lower == 'programado' %}status-programado{% else %}status-completado{% endif %}">
-                            {{ viaje.estado|default:"N/A" }}
+        {% if viajes %}
+            {% for viaje in viajes %}
+            <div class="col-md-6 mb-3">
+                <div class="card p-3 shadow-sm border-0 rounded-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="mb-1">Viaje #{{ viaje.id }}</h5>
+                            <p class="mb-1"><strong>Bus:</strong> {{ viaje.patente_bus.patente_bus }}</p>
+                            <p class="mb-1"><strong>Chofer:</strong> {{ viaje.chofer.nombre_chofer }} {{ viaje.chofer.apellido_chofer }}</p>
+                            <p class="mb-1"><strong>Programado:</strong> {{ viaje.fecha_programada|date:"H:i" }}</p>
+                            <p class="mb-1"><strong>Inicio Real:</strong> {{ viaje.fecha_hora_inicio_real|date:"H:i"|default:"N/A" }}</p>
+                            <p class="mb-1"><strong>Parada Actual:</strong> {{ viaje.closest_parada.nombre_parada|default:"N/A" }}</p>
+                        </div>
+                        
+                        <!-- Estado del viaje -->
+                        <span class="status-badge 
+                            {% if viaje.estado_actual|lower == 'en curso' %}status-en-curso
+                            {% elif viaje.estado_actual|lower == 'programado' %}status-programado
+                            {% else %}status-completado{% endif %}">
+                            {{ viaje.estado_actual|default:"N/A" }}
                         </span>
                     </div>
+
+                    <!-- Botón para completar viaje -->
+                    {% if viaje.estado_actual == 'En Curso' %}
+                    <div class="mt-3 text-end">
+                        <a href="{% url 'completar-viaje' pk=viaje.id %}" 
+                           class="btn btn-success btn-sm">
+                           Completar Viaje
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <p>No hay viajes registrados.</p>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <!-- Si no hay viajes -->
+            <div class="col-12 text-center mt-4">
+                <p class="text-muted">No hay viajes registrados para el estado seleccionado.</p>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

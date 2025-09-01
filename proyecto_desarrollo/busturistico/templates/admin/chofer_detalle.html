@@ -1,0 +1,34 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Detalles del Chofer - {{ chofer.nombre_chofer }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <h1 class="mb-2">Detalles del Chofer</h1>
+    <a href="{% url 'admin-choferes' %}" class="btn btn-secondary mb-3">Volver a Choferes</a>
+
+    <div class="card p-4">
+        <h2 class="mb-3">{{ chofer.nombre_chofer }} {{ chofer.apellido_chofer }}</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Legajo:</strong> {{ chofer.legajo_chofer }}</p>
+                <p><strong>Teléfono:</strong> {{ chofer.telefono|default:"N/A" }}</p>
+                <p><strong>Email:</strong> {{ chofer.email|default:"N/A" }}</p>
+            </div>
+            <div class="col-md-6">
+                {% if viaje_asignado %}
+                    <div class="alert alert-success">
+                        <p class="mb-1"><strong>Estado:</strong> Activo</p>
+                        <p class="mb-1"><strong>Asignado al Viaje:</strong> {{ viaje_asignado.recorrido.nombre_recorrido }}</p>
+                        <p class="mb-0"><strong>Bus Asignado:</strong> {{ viaje_asignado.patente_bus.patente_bus }}</p>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <strong>Estado:</strong> Inactivo
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

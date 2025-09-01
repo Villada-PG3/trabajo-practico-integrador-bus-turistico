@@ -10,9 +10,8 @@ erDiagram
     Viaje }|--|| Bus : realiza
     Recorrido ||--o{ Viaje : pertenece_a
 
-    Viaje }|--|| EstadoViaje : tiene_estado 
-    EstadoViaje }|--|| Ubicacion_Colectivo : tiene_ubicacion
-    Viaje ||--o{ Historial_Estado_Viaje : tiene_historial
+    Viaje ||--|{ Historial_Estado_Viaje : tiene_estado 
+    Viaje ||--|{  Ubicacion_Colectivo : tiene_ubicacion
     Historial_Estado_Viaje }|--|| EstadoViaje : describe
 
     Recorrido {
@@ -20,9 +19,6 @@ erDiagram
         str color_recorrido
         time duracion_aproximada_recorrido
         str descripcion_recorrido
-        time hora_inicio
-        time hora_fin 
-        int numero_paradas
         str foto_recorrido
     }
 
@@ -102,6 +98,7 @@ erDiagram
         int id_chofer FK
         int id_recorrido FK
         int id_estado_viaje FK
+        int id_ubicacion_colectivo FK
     }
     EstadoViaje {
         int id_estado_viaje PK
@@ -115,7 +112,6 @@ erDiagram
         float latitud
         float longitud
         datetime timestamp_ubicacion
-        int id_parada FK 
     }
 
     Historial_Estado_Viaje {
@@ -123,7 +119,4 @@ erDiagram
         int id_viaje FK
         int id_estado_viaje FK
         datetime fecha_cambio_estado
-        float latitud
-        float longitud
-        int id_parada FK 
     }

@@ -1,21 +1,53 @@
-{% extends "admin/base.html" %}
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Detalle de Parada: {{ parada.nombre_parada }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Detalles de la Parada: {{ parada.nombre_parada }}</h2>
-    <div class="card mb-3">
+    <h1 class="mb-4">Detalle de Parada: {{ parada.nombre_parada }}</h1>
+    
+    <div class="card mb-4">
         <div class="card-body">
+            <h5 class="card-title">Información General</h5>
             <p><strong>Dirección:</strong> {{ parada.direccion_parada }}</p>
             <p><strong>Descripción:</strong> {{ parada.descripcion_parada }}</p>
-            <p><strong>Latitud:</strong> {{ parada.latitud_parada }}</p>
-            <p><strong>Longitud:</strong> {{ parada.longitud_parada }}</p>
+            <p><strong>Coordenadas:</strong> Latitud {{ parada.latitud_parada }}, Longitud {{ parada.longitud_parada }}</p>
             {% if parada.foto_parada %}
-                <p><strong>Foto:</strong> <img src="{{ parada.foto_parada.url }}" alt="Foto de la parada" class="img-fluid" style="max-width: 300px;"></p>
+                <img src="{{ parada.foto_parada.url }}" alt="Foto de la parada" class="img-fluid mb-3" style="max-width: 400px;">
             {% else %}
-                <p><strong>Foto:</strong> No disponible</p>
+                <p>No hay foto disponible para esta parada.</p>
             {% endif %}
-            <a href="{% url 'admin-paradas' %}" class="btn btn-primary mt-3">Volver a la lista</a>
         </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Recorridos Relacionados</h5>
+            {% if recorrido_paradas %}
+                <ul class="list-group">
+                    {% for rp in recorrido_paradas %}
+                        <li class="list-group-item">
+                            <strong>Recorrido:</strong> {{ rp.recorrido.color_recorrido }} - {{ rp.recorrido.descripcion_recorrido }}<br>
+                            <strong>Orden en el Recorrido:</strong> {{ rp.orden }}<br>
+                            <strong>Duración Aproximada del Recorrido:</strong> {{ rp.recorrido.duracion_aproximada_recorrido }}<br>
+                            {% if rp.recorrido.foto_recorrido %}
+                                <img src="{{ rp.recorrido.foto_recorrido.url }}" alt="Foto del recorrido {{ rp.recorrido.color_recorrido }}" class="img-fluid mt-2" style="max-width: 200px;">
+                            {% else %}
+                                <p>No hay foto disponible para este recorrido.</p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Esta parada no está relacionada con ningún recorrido actualmente.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'admin-editar-parada' parada.pk %}" class="btn btn-primary">Editar Parada</a>
+        <a href="{% url 'admin-eliminar-parada' parada.pk %}" class="btn btn-danger">Eliminar Parada</a>
+        <a href="{% url 'admin-paradas' %}" class="btn btn-secondary">Volver a la Lista de Paradas</a>
     </div>
 </div>
 {% endblock %}

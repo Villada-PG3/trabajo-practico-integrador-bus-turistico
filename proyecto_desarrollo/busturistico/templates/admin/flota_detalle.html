@@ -1,0 +1,45 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Detalle de Bus: {{ bus.patente_bus }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Detalle de Bus: {{ bus.patente_bus }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Información General</h5>
+            <p><strong>Número de Unidad:</strong> {{ bus.numero_unidad }}</p>
+            <p><strong>Fecha de Compra:</strong> {{ bus.fecha_compra|date:"d/m/Y H:i" }}</p>
+            <p><strong>Estado Actual:</strong> {{ estado_actual }}</p>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Asignación Actual</h5>
+            {% if viaje_actual %}
+                <p><strong>Recorrido Actual:</strong> {{ recorrido_actual.color_recorrido }} - {{ recorrido_actual.descripcion_recorrido }}</p>
+                {% if ubicacion_actual %}
+                    <p><strong>Coordenadas Actuales:</strong> Latitud {{ ubicacion_actual.latitud }}, Longitud {{ ubicacion_actual.longitud }} (Actualizado: {{ ubicacion_actual.timestamp_ubicacion|date:"d/m/Y H:i" }})</p>
+                    {% if closest_parada %}
+                        <p><strong>Parada Más Cercana:</strong> {{ closest_parada.nombre_parada }} (Dirección: {{ closest_parada.direccion_parada }})</p>
+                    {% else %}
+                        <p>No se pudo determinar la parada más cercana.</p>
+                    {% endif %}
+                {% else %}
+                    <p>No hay ubicación actual disponible.</p>
+                {% endif %}
+            {% else %}
+                <p>Este bus no está asignado a ningún viaje activo actualmente.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'admin-editar-bus' bus.pk %}" class="btn btn-primary me-2">Editar Bus</a>
+        <a href="{% url 'admin-eliminar-bus' bus.pk %}" class="btn btn-danger me-2">Eliminar Bus</a>
+        <a href="{% url 'admin-flota' %}" class="btn btn-secondary">Volver a la Lista de Flota</a>
+    </div>
+</div>
+{% endblock %}

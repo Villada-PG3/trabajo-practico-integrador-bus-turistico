@@ -27,15 +27,15 @@
                 <button class="btn btn-outline-secondary" type="button">Buscar</button>
             </div>
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-dark">Todos</button>
-                <button type="button" class="btn btn-success">Activos</button>
-                <button type="button" class="btn btn-warning">Inactivos</button>
+                <a href="{% url 'admin-choferes' %}" class="btn btn-dark {% if not estado_filter %}active{% endif %}">Todos</a>
+                <a href="{% url 'admin-choferes' %}?estado=activos" class="btn btn-success {% if estado_filter == 'activos' %}active{% endif %}">Activos</a>
+                <a href="{% url 'admin-choferes' %}?estado=inactivos" class="btn btn-warning {% if estado_filter == 'inactivos' %}active{% endif %}">Inactivos</a>
             </div>
         </div>
     </div>
 
     <div class="row">
-        {% for chofer in choferes_total %}
+        {% for chofer in choferes_filtrados %}
         <div class="col-md-6 mb-3">
             <div class="card p-3">
                 <div class="d-flex justify-content-between">
@@ -48,10 +48,15 @@
                         <p>Viajes Realizados: {{ chofer.viajes_realizados|default:0 }}</p>
                     </div>
                     <div>
-                        <span class="status-badge {% if chofer.activo %}status-activo{% else %}status-inactivo{% endif %}">
-                            {% if chofer.activo %}Activo{% else %}Inactivo{% endif %}
+                        <span class="status-badge {% if chofer.estado_dinamico == 'Activo' %}status-activo{% else %}status-inactivo{% endif %}">
+                            {{ chofer.estado_dinamico }}
                         </span>
                     </div>
+                </div>
+                <div class="mt-2 text-end">
+                    <a href="{% url 'admin-editar-chofer' chofer.pk %}" class="btn btn-primary btn-sm me-1">Editar</a>
+                    <a href="{% url 'admin-eliminar-chofer' chofer.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    <a href="{% url 'admin-detalle-chofer' chofer.pk %}" class="btn btn-primary btn-sm me-1">Detalle</a>
                 </div>
             </div>
         </div>
