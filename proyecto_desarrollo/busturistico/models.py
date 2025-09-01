@@ -25,8 +25,16 @@ class Parada(models.Model):
 
 
 class RecorridoParada(models.Model):
-    recorrido = models.ForeignKey(Recorrido, on_delete=models.CASCADE)
-    parada = models.ForeignKey(Parada, on_delete=models.CASCADE)
+    recorrido = models.ForeignKey(
+        Recorrido,
+        on_delete=models.CASCADE,
+        related_name='recorridoparadas'
+    )
+    parada = models.ForeignKey(
+        Parada,
+        on_delete=models.CASCADE,
+        related_name='recorridoparadas'
+    )
     orden = models.IntegerField()
 
     class Meta:

@@ -17,7 +17,7 @@ class UsuarioInicioView(TemplateView):
                 estadobushistorial__estado_bus__nombre_estado='Operativo'
             ).distinct().count(),
             'recorridos_populares': Recorrido.objects.annotate(
-                total_paradas=Count('recorridoparada')
+                total_paradas=Count('recorridoparadas')  # CORREGIDO: usar recorridoparadas
             ).order_by('-total_paradas')[:3],
         })
         
@@ -30,19 +30,20 @@ class UsuarioRecorridosView(ListView):
     paginate_by = 6  # Paginación para mejor UX
     
     def get_queryset(self):
+        # CORREGIDO: Usar related_name correcto
         queryset = Recorrido.objects.annotate(
-            total_paradas=Count('recorridoparada')
-        ).prefetch_related('recorridoparada__parada')
+            total_paradas=Count('recorridoparadas')  # CORREGIDO: usar recorridoparadas
+        ).prefetch_related('recorridoparadas__parada')
         
         # Filtro por búsqueda si existe
         search = self.request.GET.get('search', '')
         if search:
             queryset = queryset.filter(
-                Q(color_recorrido__icontains=search) |  # CORREGIDO: usar color_recorrido
+                Q(color_recorrido__icontains=search) |
                 Q(descripcion_recorrido__icontains=search)
             )
             
-        return queryset.order_by('color_recorrido')  # CORREGIDO: usar color_recorrido
+        return queryset.order_by('color_recorrido')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -56,6 +57,7 @@ class UsuarioDetalleRecorridoView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # CORREGIDO: Usar RecorridoParada correctamente
         paradas_recorrido = RecorridoParada.objects.filter(
             recorrido=self.object
         ).select_related('parada').order_by('orden')
@@ -92,8 +94,9 @@ class UsuarioDetalleParadaView(DetailView):
         atractivos = ParadaAtractivo.objects.filter(parada=self.object)
         
         # Recorridos que incluyen esta parada
+        # CORREGIDO: Usar recorridoparadas en lugar de recorridoparada
         recorridos_relacionados = Recorrido.objects.filter(
-            recorridoparada__parada=self.object
+            recorridoparadas__parada=self.object
         ).distinct()
         
         context.update({
@@ -133,7 +136,7 @@ class UsuarioBusquedaView(TemplateView):
         
         if query:
             recorridos = Recorrido.objects.filter(
-                Q(color_recorrido__icontains=query) |  # CORREGIDO: usar color_recorrido
+                Q(color_recorrido__icontains=query) |
                 Q(descripcion_recorrido__icontains=query)
             )[:5]
             

@@ -32,91 +32,91 @@ class Command(BaseCommand):
         # Crear paradas del Recorrido Verde
         paradas_data = [
             {
-                'nombre': 'MALBA (Conexión)',
-                'direccion': 'Av. Figueroa Alcorta 3415, Buenos Aires',
-                'descripcion': 'Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión principal del recorrido verde.',
-                'latitud': -34.5761,
-                'longitud': -58.4019,
+                'nombre_parada': 'MALBA (Conexión)',
+                'direccion_parada': 'Av. Figueroa Alcorta 3415, Buenos Aires',
+                'descripcion_parada': 'Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión principal del recorrido verde.',
+                'latitud_parada': -34.5761,
+                'longitud_parada': -58.4019,
                 'orden': 1
             },
             {
-                'nombre': 'Planetario',
-                'direccion': 'Av. Sarmiento s/n, Buenos Aires',
-                'descripcion': 'Planetario Galileo Galilei, un ícono arquitectónico de la ciudad con espectáculos astronómicos.',
-                'latitud': -34.5691,
-                'longitud': -58.4115,
+                'nombre_parada': 'Planetario',
+                'direccion_parada': 'Av. Sarmiento s/n, Buenos Aires',
+                'descripcion_parada': 'Planetario Galileo Galilei, un ícono arquitectónico de la ciudad con espectáculos astronómicos.',
+                'latitud_parada': -34.5691,
+                'longitud_parada': -58.4115,
                 'orden': 2
             },
             {
-                'nombre': 'Club de Pescadores',
-                'direccion': 'Costanera Norte, Buenos Aires',
-                'descripcion': 'Histórico club ubicado en la Costanera Norte con vista al Río de la Plata.',
-                'latitud': -34.5649,
-                'longitud': -58.4231,
+                'nombre_parada': 'Club de Pescadores',
+                'direccion_parada': 'Costanera Norte, Buenos Aires',
+                'descripcion_parada': 'Histórico club ubicado en la Costanera Norte con vista al Río de la Plata.',
+                'latitud_parada': -34.5649,
+                'longitud_parada': -58.4231,
                 'orden': 3
             },
             {
-                'nombre': 'Parque de la Reserva',
-                'direccion': 'Reserva Ecológica Costanera Sur, Buenos Aires',
-                'descripcion': 'Área natural protegida con senderos y observación de fauna y flora autóctona.',
-                'latitud': -34.6158,
-                'longitud': -58.3515,
+                'nombre_parada': 'Parque de la Reserva',
+                'direccion_parada': 'Reserva Ecológica Costanera Sur, Buenos Aires',
+                'descripcion_parada': 'Área natural protegida con senderos y observación de fauna y flora autóctona.',
+                'latitud_parada': -34.6158,
+                'longitud_parada': -58.3515,
                 'orden': 4
             },
             {
-                'nombre': 'El Monumental',
-                'direccion': 'Av. Figueroa Alcorta 7597, Buenos Aires',
-                'descripcion': 'Estadio Monumental Antonio Vespucio Liberti, casa del Club Atlético River Plate.',
-                'latitud': -34.5453,
-                'longitud': -58.4498,
+                'nombre_parada': 'El Monumental',
+                'direccion_parada': 'Av. Figueroa Alcorta 7597, Buenos Aires',
+                'descripcion_parada': 'Estadio Monumental Antonio Vespucio Liberti, casa del Club Atlético River Plate.',
+                'latitud_parada': -34.5453,
+                'longitud_parada': -58.4498,
                 'orden': 5
             },
             {
-                'nombre': 'Barrio Chino',
-                'direccion': 'Arribeños y Mendoza, Belgrano, Buenos Aires',
-                'descripción': 'Sector comercial con características de la cultura china, restaurantes y comercios típicos.',
-                'latitud': -34.5632,
-                'longitud': -58.4526,
+                'nombre_parada': 'Barrio Chino',
+                'direccion_parada': 'Arribeños y Mendoza, Belgrano, Buenos Aires',
+                'descripcion_parada': 'Sector comercial con características de la cultura china, restaurantes y comercios típicos.',
+                'latitud_parada': -34.5632,
+                'longitud_parada': -58.4526,
                 'orden': 6
             },
             {
-                'nombre': 'Campo Argentino de Polo',
-                'direccion': 'Av. del Libertador y Dorrego, Buenos Aires',
-                'descripcion': 'Campo de polo más importante de Argentina, sede del Abierto de Palermo.',
-                'latitud': -34.5894,
-                'longitud': -58.4165,
+                'nombre_parada': 'Campo Argentino de Polo',
+                'direccion_parada': 'Av. del Libertador y Dorrego, Buenos Aires',
+                'descripcion_parada': 'Campo de polo más importante de Argentina, sede del Abierto de Palermo.',
+                'latitud_parada': -34.5894,
+                'longitud_parada': -58.4165,
                 'orden': 7
             },
             {
-                'nombre': 'Bosque Alegre (Conexión)',
-                'direccion': 'Av. Infanta Isabel 410, Buenos Aires',
-                'descripcion': 'Zona residencial de Núñez con espacios verdes y conexión a otros recorridos.',
-                'latitud': -34.5432,
-                'longitud': -58.4654,
+                'nombre_parada': 'Bosque Alegre (Conexión)',
+                'direccion_parada': 'Av. Infanta Isabel 410, Buenos Aires',
+                'descripcion_parada': 'Zona residencial de Núñez con espacios verdes y conexión a otros recorridos.',
+                'latitud_parada': -34.5432,
+                'longitud_parada': -58.4654,
                 'orden': 8
             },
             {
-                'nombre': 'Distrito Arcos',
-                'direccion': 'Av. del Libertador 6090, Buenos Aires',
-                'descripcion': 'Complejo arquitectónico y comercial moderno en el corazón de Palermo.',
-                'latitud': -34.5789,
-                'longitud': -58.4289,
+                'nombre_parada': 'Distrito Arcos',
+                'direccion_parada': 'Av. del Libertador 6090, Buenos Aires',
+                'descripcion_parada': 'Complejo arquitectónico y comercial moderno en el corazón de Palermo.',
+                'latitud_parada': -34.5789,
+                'longitud_parada': -58.4289,
                 'orden': 9
             },
             {
-                'nombre': 'Palermo Soho',
-                'direccion': 'Armenia 1894, Buenos Aires',
-                'descripcion': '¿Sabés que escritor y poeta vivió hasta los 14 años en esta zona? Jorge Luis Borges -popular poeta y escritor argentino- vivió hasta los 14 años en una casa de la calle Serrano al 2135. En la actualidad, esa casa ya no lleva su nombre. Conocé más sobre la vivienda de Borges y otros atractivos de la zona durante el recorrido del Bus.',
-                'latitud': -34.5885,
-                'longitud': -58.4224,
+                'nombre_parada': 'Palermo Soho',
+                'direccion_parada': 'Armenia 1894, Buenos Aires',
+                'descripcion_parada': '¿Sabés que escritor y poeta vivió hasta los 14 años en esta zona? Jorge Luis Borges -popular poeta y escritor argentino- vivió hasta los 14 años en una casa de la calle Serrano al 2135. En la actualidad, esa casa ya no lleva su nombre. Conocé más sobre la vivienda de Borges y otros atractivos de la zona durante el recorrido del Bus.',
+                'latitud_parada': -34.5885,
+                'longitud_parada': -58.4224,
                 'orden': 10
             },
             {
-                'nombre': 'Jardín Botánico Carlos Thays (Conexión)',
-                'direccion': 'Av. Santa Fe 3951, Buenos Aires',
-                'descripcion': 'Jardín botánico con más de 5000 especies de plantas. Punto de conexión del recorrido.',
-                'latitud': -34.5823,
-                'longitud': -58.4139,
+                'nombre_parada': 'Jardín Botánico Carlos Thays (Conexión)',
+                'direccion_parada': 'Av. Santa Fe 3951, Buenos Aires',
+                'descripcion_parada': 'Jardín botánico con más de 5000 especies de plantas. Punto de conexión del recorrido.',
+                'latitud_parada': -34.5823,
+                'longitud_parada': -58.4139,
                 'orden': 11
             }
         ]
@@ -126,7 +126,7 @@ class Command(BaseCommand):
             orden = parada_data.pop('orden')
             
             parada, created = Parada.objects.get_or_create(
-                nombre_parada=parada_data['nombre'],
+                nombre_parada=parada_data['nombre_parada'],
                 defaults=parada_data
             )
             
@@ -145,39 +145,39 @@ class Command(BaseCommand):
         # Crear atractivos para Palermo Soho
         atractivos_palermo_data = [
             {
-                'nombre': 'Plazoleta Julio Cortázar (Ex Plaza Serrano)',
+                'nombre_atractivo': 'Plazoleta Julio Cortázar (Ex Plaza Serrano)',
                 'calificacion': 4,
-                'descripcion': 'Tradicional plaza del barrio de Palermo, rodeada de bares, restaurantes y diseño.',
-                'latitud': -34.5889,
-                'longitud': -58.4221
+                'descripcion_atractivo': 'Tradicional plaza del barrio de Palermo, rodeada de bares, restaurantes y diseño.',
+                'latitud_atractivo': -34.5889,
+                'longitud_atractivo': -58.4221
             },
             {
-                'nombre': 'Jardín Botánico Carlos Thays',
+                'nombre_atractivo': 'Jardín Botánico Carlos Thays',
                 'calificacion': 5,
-                'descripcion': 'Hermoso jardín botánico con una gran variedad de especies vegetales.',
-                'latitud': -34.5823,
-                'longitud': -58.4139
+                'descripcion_atractivo': 'Hermoso jardín botánico con una gran variedad de especies vegetales.',
+                'latitud_atractivo': -34.5823,
+                'longitud_atractivo': -58.4139
             },
             {
-                'nombre': 'Plaza Italia',
+                'nombre_atractivo': 'Plaza Italia',
                 'calificacion': 4,
-                'descripcion': 'Plaza histórica con monumento a Giuseppe Garibaldi y feria de artesanos.',
-                'latitud': -34.5842,
-                'longitud': -58.4208
+                'descripcion_atractivo': 'Plaza histórica con monumento a Giuseppe Garibaldi y feria de artesanos.',
+                'latitud_atractivo': -34.5842,
+                'longitud_atractivo': -58.4208
             },
             {
-                'nombre': 'Ecoparque Interactivo',
+                'nombre_atractivo': 'Ecoparque Interactivo',
                 'calificacion': 4,
-                'descripcion': 'Ex zoológico convertido en ecoparque con fines educativos y de conservación.',
-                'latitud': -34.5743,
-                'longitud': -58.4026
+                'descripcion_atractivo': 'Ex zoológico convertido en ecoparque con fines educativos y de conservación.',
+                'latitud_atractivo': -34.5743,
+                'longitud_atractivo': -58.4026
             },
             {
-                'nombre': 'Pasajes porteños',
+                'nombre_atractivo': 'Pasajes porteños',
                 'calificacion': 3,
-                'descripcion': 'Pasajes característicos de Buenos Aires con arquitectura típica del barrio.',
-                'latitud': -34.5895,
-                'longitud': -58.4235
+                'descripcion_atractivo': 'Pasajes característicos de Buenos Aires con arquitectura típica del barrio.',
+                'latitud_atractivo': -34.5895,
+                'longitud_atractivo': -58.4235
             }
         ]
 
@@ -186,12 +186,12 @@ class Command(BaseCommand):
         
         for atractivo_data in atractivos_palermo_data:
             atractivo, created = Atractivo.objects.get_or_create(
-                nombre_atractivo=atractivo_data['nombre'],
+                nombre_atractivo=atractivo_data['nombre_atractivo'],
                 defaults={
                     'calificacion_estrellas': atractivo_data['calificacion'],
-                    'descripcion_atractivo': atractivo_data['descripcion'],
-                    'latitud_atractivo': atractivo_data['latitud'],
-                    'longitud_atractivo': atractivo_data['longitud']
+                    'descripcion_atractivo': atractivo_data['descripcion_atractivo'],
+                    'latitud_atractivo': atractivo_data['latitud_atractivo'],
+                    'longitud_atractivo': atractivo_data['longitud_atractivo']
                 }
             )
             
