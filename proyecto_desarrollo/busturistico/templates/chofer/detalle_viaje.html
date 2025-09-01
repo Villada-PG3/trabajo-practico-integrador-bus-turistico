@@ -18,8 +18,8 @@
                 </div>
                 <div class="col-md-6">
                     <div class="alert alert-info">
-                        <h4 class="alert-heading">Bus Asignado: {{ viaje.patente_bus.patente }}</h4>
-                        <p class="mb-0">Capacidad: {{ viaje.patente_bus.capacidad_bus }}</p>
+                        <h4 class="alert-heading">Bus Asignado: {{ viaje.patente_bus.patente_bus }}</h4>
+                        <p class="mb-0">Unidad #{{ viaje.patente_bus.numero_unidad }}</p>
                     </div>
                 </div>
             </div>
@@ -29,25 +29,148 @@
                 <ul class="list-group list-group-flush mb-4 text-start">
                     <li class="list-group-item">
                         <i class="fas fa-calendar-alt me-2 text-muted"></i>
-                        **Fecha de inicio:** {{ viaje.fecha_hora_inicio_real|date:"d M Y" }}
+                        <strong>Fecha de inicio:</strong> {{ viaje.fecha_hora_inicio_real|date:"d M Y" }}
                     </li>
                     <li class="list-group-item">
                         <i class="fas fa-clock me-2 text-muted"></i>
-                        **Hora de inicio:** {{ viaje.fecha_hora_inicio_real|date:"H:i" }}
+                        <strong>Hora de inicio:</strong> {{ viaje.fecha_hora_inicio_real|date:"H:i" }}
                     </li>
                     <li class="list-group-item">
                         <i class="fas fa-bus-alt me-2 text-muted"></i>
-                        **Estado:** En Curso
+                        <strong>Estado:</strong> <span class="badge bg-success">En Curso</span>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-user me-2 text-muted"></i>
+                        <strong>Chofer:</strong> {{ chofer.nombre_chofer }} {{ chofer.apellido_chofer }}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-id-badge me-2 text-muted"></i>
+                        <strong>Legajo:</strong> {{ chofer.legajo_chofer }}
                     </li>
                 </ul>
                 
                 <div class="d-grid gap-2 d-md-block">
-                    <button class="btn btn-danger btn-lg me-2">Finalizar Recorrido</button>
-                    <a href="#" class="btn btn-outline-primary btn-lg">Reportar Problema</a>
+                    <!-- Formulario para finalizar el recorrido -->
+                    <form method="post" action="{% url 'finalizar-viaje' %}" style="display: inline;" onsubmit="return confirmarFinalizacion()">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg me-2">
+                            <i class="fas fa-stop me-2"></i>Finalizar Recorrido
+                        </button>
+                    </form>
+                    
+                    <a href="#" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Reportar Problema
+                    </a>
                 </div>
+
+                <!-- Información adicional -->
+                <div class="mt-4">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Importante:</strong> Al finalizar el recorrido, el viaje se marcará como completado 
+                        y podrás seleccionar un nuevo recorrido para iniciar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón para volver a recorridos -->
+            <div class="mt-4">
+                <a href="{% url 'chofer-recorridos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Recorridos
+                </a>
             </div>
 
         </div>
     </div>
 </section>
+
+<!-- Modal de confirmación (opcional, para mejor UX) -->
+<div class="modal fade" id="confirmarModal" tabindex="-1" aria-labelledby="confirmarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmarModalLabel">Confirmar Finalización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro que deseas finalizar el recorrido <strong>{{ viaje.recorrido.color_recorrido }}</strong>?
+                <br><br>
+                Una vez finalizado, el viaje se marcará como completado y no podrás revertir esta acción.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'finalizar-viaje' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-stop me-2"></i>Finalizar Recorrido
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarFinalizacion() {
+    return confirm('¿Estás seguro que deseas finalizar el recorrido? Esta acción no se puede deshacer.');
+}
+
+// Opcional: Mostrar tiempo transcurrido en tiempo real
+function mostrarTiempoTranscurrido() {
+    const inicioViaje = new Date('{{ viaje.fecha_hora_inicio_real|date:"c" }}');
+    const ahora = new Date();
+    const diferencia = ahora - inicioViaje;
+    
+    const horas = Math.floor(diferencia / (1000 * 60 * 60));
+    const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+    
+    const tiempoElement = document.getElementById('tiempo-transcurrido');
+    if (tiempoElement) {
+        tiempoElement.textContent = `${horas}h ${minutos}m`;
+    }
+}
+
+// Actualizar cada minuto
+setInterval(mostrarTiempoTranscurrido, 60000);
+// Ejecutar inmediatamente
+mostrarTiempoTranscurrido();
+</script>
+
+<!-- Agregar elemento para mostrar tiempo transcurrido -->
+<style>
+.modern-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.list-group-item {
+    border: none;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+
+<!-- Botón de logout fijo -->
+<a href="{% url 'chofer-logout' %}" 
+   class="btn btn-danger btn-sm" 
+   style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
+    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+</a>
+
 {% endblock %}

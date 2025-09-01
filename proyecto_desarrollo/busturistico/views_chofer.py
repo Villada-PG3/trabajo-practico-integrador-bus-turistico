@@ -125,3 +125,55 @@ class DetalleViajeView(ChoferRequiredMixin, View):
             'chofer': chofer
         }
         return render(request, self.template_name, context)
+
+# Nueva vista para finalizar el viaje
+class FinalizarViajeView(ChoferRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        chofer = request.chofer
+        
+        # Buscar el viaje en curso
+        viaje_en_curso = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=False,
+            fecha_hora_fin_real__isnull=True
+        ).first()
+        
+        if not viaje_en_curso:
+            messages.error(request, 'No tienes un viaje en curso para finalizar.')
+            return redirect('chofer-recorridos')
+        
+        # Finalizar el viaje
+        viaje_en_curso.fecha_hora_fin_real = timezone.now()
+        
+        # Calcular duración real en minutos
+        if viaje_en_curso.fecha_hora_inicio_real:
+            duracion = timezone.now() - viaje_en_curso.fecha_hora_inicio_real
+            viaje_en_curso.duracion_minutos_real = int(duracion.total_seconds() / 60)
+        
+        viaje_en_curso.save()
+        
+        # Opcional: Crear historial de estado del viaje
+        try:
+            estado_completado, created = EstadoViaje.objects.get_or_create(
+                nombre_estado='Completado',
+                defaults={'descripcion_estado': 'Viaje completado exitosamente'}
+            )
+            
+            # Importar el modelo si no está importado
+            from .models import HistorialEstadoViaje
+            HistorialEstadoViaje.objects.create(
+                viaje=viaje_en_curso,
+                estado_viaje=estado_completado,
+                fecha_cambio_estado=timezone.now()
+            )
+        except Exception as e:
+            # Log del error pero no interrumpir el proceso
+            logging.error(f"Error al crear historial de estado: {e}")
+        
+        messages.success(
+            request, 
+            f'Recorrido {viaje_en_curso.recorrido.color_recorrido} finalizado correctamente. '
+            f'Duración: {viaje_en_curso.duracion_minutos_real} minutos.'
+        )
+        
+        return redirect('chofer-recorridos')
