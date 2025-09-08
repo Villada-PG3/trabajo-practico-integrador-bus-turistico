@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'busturistico',  # Your custom app
+    "widget_tweaks",
 ]
 TEMPLATES = [
     {

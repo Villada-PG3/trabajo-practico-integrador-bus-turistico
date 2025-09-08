@@ -342,36 +342,54 @@ class CambiarEstadoBusView(SuperUserRequiredMixin, CreateView):
 # --- Viaje Management Views ---
 class ViajesView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/viajes.html'
-
+    
     def get_context_data(self, **kwargs):
-        actualizar_estados_viajes() 
         context = super().get_context_data(**kwargs)
-        all_trips = Viaje.objects.all().prefetch_related(
-            'patente_bus', 'chofer', 'recorrido'
+        status_filter = self.request.GET.get('status', 'en_curso').lower()
+        
+        # Base queryset con prefetch para eficiencia
+        all_trips = Viaje.objects.select_related('patente_bus', 'chofer', 'recorrido').prefetch_related(
+            'ubicacioncolectivo_set', 
+            'recorrido__recorridoparadas__parada'  # Corrige a 'recorridoparadas'
         ).order_by('-fecha_programada')
-
+        
         trips_with_status = []
         counts = {'en_curso': 0, 'programados': 0, 'completados': 0}
         
         for viaje in all_trips:
+            # Determinar estado_actual (dinámico para template)
             if viaje.fecha_hora_fin_real:
                 viaje.estado_actual = 'Completado'
+                counts['completados'] += 1
             elif viaje.fecha_hora_inicio_real:
                 viaje.estado_actual = 'En Curso'
+                counts['en_curso'] += 1
             else:
                 viaje.estado_actual = 'Programado'
-            
-            if viaje.estado_actual == 'En Curso':
-                counts['en_curso'] += 1
-            elif viaje.estado_actual == 'Programado':
                 counts['programados'] += 1
-            elif viaje.estado_actual == 'Completado':
-                counts['completados'] += 1
-                
+            
+            # Calcular closest_parada solo para viajes en curso
+            viaje.closest_parada = None
+            if viaje.recorrido and viaje.estado_actual == 'En Curso':
+                ubicacion_actual = viaje.ubicacioncolectivo_set.order_by('-timestamp_ubicacion').first()
+                if ubicacion_actual and viaje.recorrido.recorridoparadas.exists():
+                    try:
+                        closest = min(
+                            viaje.recorrido.recorridoparadas.all(),  # Usa 'recorridoparadas'
+                            key=lambda rp: haversine(
+                                ubicacion_actual.latitud, 
+                                ubicacion_actual.longitud,
+                                rp.parada.latitud_parada, 
+                                rp.parada.longitud_parada
+                            )
+                        )
+                        viaje.closest_parada = closest.parada
+                    except (ValueError, TypeError, AttributeError):
+                        pass  # closest_parada queda None
+            
             trips_with_status.append(viaje)
         
-        status_filter = self.request.GET.get('status', 'en_curso').lower()
-        
+        # Filtrar trips para display
         if status_filter == 'programados':
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Programado']
         elif status_filter == 'completados':
@@ -379,22 +397,6 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
         else:
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'En Curso']
         
-        for viaje in trips_to_display:
-            ubicacion_actual = UbicacionColectivo.objects.filter(viaje=viaje).order_by('-timestamp_ubicacion').first()
-            if ubicacion_actual and viaje.recorrido:
-                paradas = RecorridoParada.objects.filter(recorrido=viaje.recorrido).select_related('parada')
-                if paradas.exists():
-                    try:
-                        closest_parada = min(paradas, key=lambda rp: haversine(
-                            ubicacion_actual.latitud, ubicacion_actual.longitud,
-                            rp.parada.latitud_parada, rp.parada.longitud_parada
-                        )).parada
-                        viaje.closest_parada = closest_parada
-                    except Exception:
-                        viaje.closest_parada = None
-            else:
-                viaje.closest_parada = None
-
         context.update({
             'status_filter': status_filter,
             'viajes_en_curso_count': counts['en_curso'],
@@ -404,7 +406,7 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
         })
         return context
 
-class CrearViajeView(CreateView): # Asumo que SuperUserRequiredMixin está definido
+class CrearViajeView(CreateView):
     model = Viaje
     form_class = ViajeCreateForm
     template_name = 'admin/viajes_form.html'
@@ -412,60 +414,48 @@ class CrearViajeView(CreateView): # Asumo que SuperUserRequiredMixin está defin
 
     def form_valid(self, form):
         with transaction.atomic():
-            viaje = form.save()  # `form.save()` solo guarda los campos del modelo
-
-            # Si necesitas usar la duración calculada en la vista, la obtienes aquí
-            # duracion_estimada_minutos = form.cleaned_data.get('duracion_estimada_calculada')
-            # ... tu lógica aquí
+            self.object = form.save(commit=False)
+        # 🚫 aseguramos que siempre arranque como "programado"
+            self.object.fecha_hora_inicio_real = None
+            self.object.fecha_hora_fin_real = None
+            self.object.save()
 
             estado_inicial, _ = EstadoViaje.objects.get_or_create(
                 nombre_estado='Programado',
                 defaults={'descripcion_estado': 'Viaje programado'}
             )
             HistorialEstadoViaje.objects.create(
-                viaje=viaje,
+                viaje=self.object,
                 estado_viaje=estado_inicial,
                 fecha_cambio_estado=timezone.now()
             )
-        return super().form_valid(form)
-def actualizar_estados_viajes():
-    ahora = timezone.now()
-    viajes = Viaje.objects.all()
+        messages.success(self.request, f'Viaje #{self.object.id} programado correctamente.')
+        return redirect(self.get_success_url())
 
-    for viaje in viajes:
-        # Si la fecha programada ya llegó y no se inició, marcamos inicio
-        if viaje.fecha_programada <= ahora and viaje.fecha_hora_inicio_real is None:
-            viaje.fecha_hora_inicio_real = ahora
-            viaje.save()
 
-        # Si el viaje ya comenzó pero aún no terminó, calculamos el fin estimado
-        if viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real is None and viaje.recorrido:
-            # Convertimos la duración aproximada del recorrido a minutos
-            duracion_aprox = viaje.recorrido.duracion_aproximada_recorrido
-            duracion_total = timedelta(
-                hours=duracion_aprox.hour,
-                minutes=duracion_aprox.minute,
-                seconds=duracion_aprox.second
-            )
-
-            hora_fin_estimada = viaje.fecha_hora_inicio_real + duracion_total
-
-            # Si ya pasó la hora estimada de fin → lo marcamos como completado
-            if ahora >= hora_fin_estimada:
-                viaje.fecha_hora_fin_real = ahora
-                viaje.save()
 def completar_viaje_y_limpiar(request, pk):
+    if not request.user.is_superuser:
+        messages.error(request, 'Acceso no autorizado.')
+        return redirect('admin-viajes')
+    
     viaje = get_object_or_404(Viaje, pk=pk)
-
-    # Si no está iniciado, lo iniciamos primero
     if viaje.fecha_hora_inicio_real is None:
         viaje.fecha_hora_inicio_real = timezone.now()
-
-    # Marcamos el viaje como completado
+    
     viaje.fecha_hora_fin_real = timezone.now()
-    viaje.save()
-
-    messages.success(request, f"El viaje #{viaje.id} se marcó como completado correctamente.")
+    viaje.save(update_fields=['fecha_hora_inicio_real', 'fecha_hora_fin_real'])
+    
+    estado_completado, _ = EstadoViaje.objects.get_or_create(
+        nombre_estado='Completado',
+        defaults={'descripcion_estado': 'Viaje completado'}
+    )
+    HistorialEstadoViaje.objects.create(
+        viaje=viaje,
+        estado_viaje=estado_completado,
+        fecha_cambio_estado=timezone.now()
+    )
+    
+    messages.success(request, f'El viaje #{viaje.id} se marcó como completado correctamente.')
     return redirect('admin-viajes')
 # --- Parada Management Views ---
 class ParadasView(SuperUserRequiredMixin, ListView):

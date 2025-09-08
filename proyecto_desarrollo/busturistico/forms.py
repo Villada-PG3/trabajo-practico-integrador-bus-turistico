@@ -211,41 +211,108 @@ class BusForm(forms.ModelForm):
 
 
 class ViajeCreateForm(forms.ModelForm):
-    # Campo que no está en el modelo, solo para el formulario
-    hora_fin_estimada = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
+    # Mantengo hora_inicio_programada como requerida (coincide con el modelo)
+    fecha_programada = forms.DateTimeField(
+        widget=forms.DateTimeInput(
+            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
+        ),
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
+    )
+    hora_inicio_programada = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+        input_formats=['%H:%M', '%H:%M:%S']
+    )
+    fecha_hora_inicio_real = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(
+            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
+        ),
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
+    )
+    fecha_hora_fin_real = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(
+            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
+        ),
+        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
+    )
 
     class Meta:
         model = Viaje
-        # Incluye los campos del modelo que el usuario debe llenar
-        fields = ['recorrido', 'patente_bus', 'chofer', 'fecha_programada', 'hora_inicio_programada']
+        exclude = ['fecha_hora_inicio_real', 'fecha_hora_fin_real', 'duracion_minutos_real']
         widgets = {
-            'fecha_programada': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'hora_inicio_programada': forms.TimeInput(attrs={'type': 'time'}),
+            'demora_inicio_minutos': forms.NumberInput(attrs={'min': 0, 'step': 1, 'class': 'form-control'}),
+            'duracion_minutos_real': forms.NumberInput(attrs={'min': 0, 'step': 1, 'class': 'form-control'}),
+            'patente_bus': forms.Select(attrs={'class': 'form-select'}),
+            'chofer': forms.Select(attrs={'class': 'form-select'}),
+            'recorrido': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 👇 OJO: en tus modelos el related inverso es 'viaje', no 'viajes'
+        self.fields['patente_bus'].queryset = Bus.objects.exclude(
+            viaje__fecha_hora_inicio_real__isnull=False,
+            viaje__fecha_hora_fin_real__isnull=True
+        ).distinct()
+
+        self.fields['chofer'].queryset = Chofer.objects.exclude(
+            viaje__fecha_hora_inicio_real__isnull=False,
+            viaje__fecha_hora_fin_real__isnull=True
+        ).distinct()
+
+        self.fields['recorrido'].queryset = Recorrido.objects.all()
 
     def clean(self):
         cleaned_data = super().clean()
-        hora_inicio = cleaned_data.get('hora_inicio_programada')
-        hora_fin = cleaned_data.get('hora_fin_estimada')
+        fecha_programada = cleaned_data.get('fecha_programada')
+        hora_inicio_programada = cleaned_data.get('hora_inicio_programada')
+        fecha_hora_inicio_real = cleaned_data.get('fecha_hora_inicio_real')
+        fecha_hora_fin_real = cleaned_data.get('fecha_hora_fin_real')
+        patente_bus = cleaned_data.get('patente_bus')
+        chofer = cleaned_data.get('chofer')
 
-        if hora_inicio and hora_fin:
-            # Combina las horas con una fecha base para calcular la duración
-            hora_inicio_dt = datetime.combine(datetime.min, hora_inicio)
-            hora_fin_dt = datetime.combine(datetime.min, hora_fin)
+        # fecha_programada debe ser futura
+        if fecha_programada and fecha_programada < timezone.now():
+            raise ValidationError({'fecha_programada': 'La fecha y hora programada debe ser futura.'})
 
-            # Si la hora de fin es anterior a la de inicio, asume que es al día siguiente
-            if hora_fin_dt <= hora_inicio_dt:
-                raise forms.ValidationError("La hora de finalización estimada debe ser posterior a la de inicio.")
-            
-            duracion = hora_fin_dt - hora_inicio_dt
-            duracion_minutos = duracion.total_seconds() / 60
-            
-            # Puedes almacenar esta duración en la sesión o en la vista si la necesitas más adelante,
-            # o simplemente la usas para validación.
-            self.cleaned_data['duracion_estimada_calculada'] = int(duracion_minutos)
-            
+        # Combinar fecha + hora y validar futura
+        if fecha_programada and hora_inicio_programada:
+            fecha_hora_completa = fecha_programada.replace(
+                hour=hora_inicio_programada.hour,
+                minute=hora_inicio_programada.minute,
+                second=0, microsecond=0
+            )
+            if fecha_hora_completa < timezone.now():
+                raise ValidationError({'hora_inicio_programada': 'La hora de inicio programada debe ser futura.'})
+
+        # inicio real >= programada
+        if fecha_hora_inicio_real and fecha_programada:
+            if fecha_hora_inicio_real < fecha_programada:
+                raise ValidationError({'fecha_hora_inicio_real': 'El inicio real no puede ser anterior a la programada.'})
+
+        # fin > inicio real
+        if fecha_hora_fin_real and fecha_hora_inicio_real:
+            if fecha_hora_fin_real <= fecha_hora_inicio_real:
+                raise ValidationError({'fecha_hora_fin_real': 'El fin debe ser posterior al inicio.'})
+
+        # disponibilidad bus/chofer
+        if patente_bus and Viaje.objects.filter(
+            patente_bus=patente_bus,
+            fecha_hora_inicio_real__isnull=False,
+            fecha_hora_fin_real__isnull=True
+        ).exists():
+            raise ValidationError({'patente_bus': 'Este bus está asignado a un viaje activo.'})
+
+        if chofer and Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=False,
+            fecha_hora_fin_real__isnull=True
+        ).exists():
+            raise ValidationError({'chofer': 'Este chofer está asignado a un viaje activo.'})
+
         return cleaned_data
-
 class AtractivoForm(forms.ModelForm):
     parada_a_asignar = forms.ModelChoiceField(
         queryset=Parada.objects.all(),

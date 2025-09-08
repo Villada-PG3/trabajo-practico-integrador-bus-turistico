@@ -1,124 +1,160 @@
 {% extends "admin/base_admin.html" %}
+{% block title %}Programar Nuevo Viaje - Panel Admin{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Programar Nuevo Viaje</h2>
-    <form method="post" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="{{ form.fecha_programada.id_for_label }}" class="form-label">{{ form.fecha_programada.label }}</label>
-            <input type="datetime-local" name="{{ form.fecha_programada.name }}" id="{{ form.fecha_programada.id_for_label }}" class="form-control {% if form.fecha_programada.errors %}is-invalid{% endif %}" value="{{ form.fecha_programada.value|date:'Y-m-d\TH:i' }}" required>
-            {% if form.fecha_programada.errors %}
-                <div class="invalid-feedback">
-                    {{ form.fecha_programada.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.hora_inicio_programada.id_for_label }}" class="form-label">{{ form.hora_inicio_programada.label }}</label>
-            <input type="time" name="{{ form.hora_inicio_programada.name }}" id="{{ form.hora_inicio_programada.id_for_label }}" class="form-control {% if form.hora_inicio_programada.errors %}is-invalid{% endif %}" value="{{ form.hora_inicio_programada.value|time:'H:i' }}" required>
-            {% if form.hora_inicio_programada.errors %}
-                <div class="invalid-feedback">
-                    {{ form.hora_inicio_programada.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.fecha_hora_inicio_real.id_for_label }}" class="form-label">{{ form.fecha_hora_inicio_real.label }} (Opcional)</label>
-            <input type="datetime-local" name="{{ form.fecha_hora_inicio_real.name }}" id="{{ form.fecha_hora_inicio_real.id_for_label }}" class="form-control {% if form.fecha_hora_inicio_real.errors %}is-invalid{% endif %}" value="{{ form.fecha_hora_inicio_real.value|date:'Y-m-d\TH:i'|default:'' }}">
-            {% if form.fecha_hora_inicio_real.errors %}
-                <div class="invalid-feedback">
-                    {{ form.fecha_hora_inicio_real.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.fecha_hora_fin_real.id_for_label }}" class="form-label">{{ form.fecha_hora_fin_real.label }} (Opcional)</label>
-            <input type="datetime-local" name="{{ form.fecha_hora_fin_real.name }}" id="{{ form.fecha_hora_fin_real.id_for_label }}" class="form-control {% if form.fecha_hora_fin_real.errors %}is-invalid{% endif %}" value="{{ form.fecha_hora_fin_real.value|date:'Y-m-d\TH:i'|default:'' }}">
-            {% if form.fecha_hora_fin_real.errors %}
-                <div class="invalid-feedback">
-                    {{ form.fecha_hora_fin_real.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.demora_inicio_minutos.id_for_label }}" class="form-label">{{ form.demora_inicio_minutos.label }} (Opcional)</label>
-            <input type="number" name="{{ form.demora_inicio_minutos.name }}" id="{{ form.demora_inicio_minutos.id_for_label }}" class="form-control {% if form.demora_inicio_minutos.errors %}is-invalid{% endif %}" value="{{ form.demora_inicio_minutos.value|default_if_none:'' }}" step="1">
-            {% if form.demora_inicio_minutos.errors %}
-                <div class="invalid-feedback">
-                    {{ form.demora_inicio_minutos.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.duracion_minutos_real.id_for_label }}" class="form-label">{{ form.duracion_minutos_real.label }} (Opcional)</label>
-            <input type="number" name="{{ form.duracion_minutos_real.name }}" id="{{ form.duracion_minutos_real.id_for_label }}" class="form-control {% if form.duracion_minutos_real.errors %}is-invalid{% endif %}" value="{{ form.duracion_minutos_real.value|default_if_none:'' }}" step="1">
-            {% if form.duracion_minutos_real.errors %}
-                <div class="invalid-feedback">
-                    {{ form.duracion_minutos_real.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.patente_bus.id_for_label }}" class="form-label">{{ form.patente_bus.label }}</label>
-            <select name="{{ form.patente_bus.name }}" id="{{ form.patente_bus.id_for_label }}" class="form-control {% if form.patente_bus.errors %}is-invalid{% endif %}" required>
-                {% for value, label in form.patente_bus.field.choices %}
-                    <option value="{{ value }}" {% if value == form.patente_bus.value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            {% if form.patente_bus.errors %}
-                <div class="invalid-feedback">
-                    {{ form.patente_bus.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.chofer.id_for_label }}" class="form-label">{{ form.chofer.label }}</label>
-            <select name="{{ form.chofer.name }}" id="{{ form.chofer.id_for_label }}" class="form-control {% if form.chofer.errors %}is-invalid{% endif %}" required>
-                {% for value, label in form.chofer.field.choices %}
-                    <option value="{{ value }}" {% if value == form.chofer.value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            {% if form.chofer.errors %}
-                <div class="invalid-feedback">
-                    {{ form.chofer.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.recorrido.id_for_label }}" class="form-label">{{ form.recorrido.label }}</label>
-            <select name="{{ form.recorrido.name }}" id="{{ form.recorrido.id_for_label }}" class="form-control {% if form.recorrido.errors %}is-invalid{% endif %}" required>
-                {% for value, label in form.recorrido.field.choices %}
-                    <option value="{{ value }}" {% if value == form.recorrido.value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            {% if form.recorrido.errors %}
-                <div class="invalid-feedback">
-                    {{ form.recorrido.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="{% url 'admin-viajes' %}" class="btn btn-secondary">Cancelar</a>
-        </div>
-    </form>
+  <h2 class="mb-4">Programar Nuevo Viaje</h2>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      <ul class="mb-0">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    <div class="row g-3">
+      <!-- Fecha y hora programadas -->
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.fecha_programada.id_for_label }}">
+          {{ form.fecha_programada.label }}
+        </label>
+        {{ form.fecha_programada }}
+        {% if form.fecha_programada.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.fecha_programada.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.hora_inicio_programada.id_for_label }}">
+          {{ form.hora_inicio_programada.label }}
+        </label>
+        {{ form.hora_inicio_programada }}
+        {% if form.hora_inicio_programada.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.hora_inicio_programada.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Fechas/horas reales (opcionales) -->
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.fecha_hora_inicio_real.id_for_label }}">
+          {{ form.fecha_hora_inicio_real.label }} (Opcional)
+        </label>
+        {{ form.fecha_hora_inicio_real }}
+        {% if form.fecha_hora_inicio_real.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.fecha_hora_inicio_real.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.fecha_hora_fin_real.id_for_label }}">
+          {{ form.fecha_hora_fin_real.label }} (Opcional)
+        </label>
+        {{ form.fecha_hora_fin_real }}
+        {% if form.fecha_hora_fin_real.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.fecha_hora_fin_real.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Números (opcionales) -->
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.demora_inicio_minutos.id_for_label }}">
+          {{ form.demora_inicio_minutos.label }} (Opcional)
+        </label>
+        {{ form.demora_inicio_minutos }}
+        {% if form.demora_inicio_minutos.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.demora_inicio_minutos.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.duracion_minutos_real.id_for_label }}">
+          {{ form.duracion_minutos_real.label }} (Opcional)
+        </label>
+        {{ form.duracion_minutos_real }}
+        {% if form.duracion_minutos_real.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.duracion_minutos_real.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Selects -->
+      <div class="col-md-4">
+        <label class="form-label" for="{{ form.patente_bus.id_for_label }}">
+          {{ form.patente_bus.label }}
+        </label>
+        {{ form.patente_bus }}
+        {% if form.patente_bus.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.patente_bus.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="{{ form.chofer.id_for_label }}">
+          {{ form.chofer.label }}
+        </label>
+        {{ form.chofer }}
+        {% if form.chofer.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.chofer.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="{{ form.recorrido.id_for_label }}">
+          {{ form.recorrido.label }}
+        </label>
+        {{ form.recorrido }}
+        {% if form.recorrido.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.recorrido.errors|striptags }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <a href="{% url 'admin-viajes' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-    // Bootstrap form validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })();
+  // Bootstrap validation
+  (function () {
+    'use strict';
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
 </script>
 {% endblock %}

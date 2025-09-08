@@ -1,102 +1,151 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Crear/Editar Atractivo - Panel Admin{% endblock %}
+{% block title %}{% if form.instance.pk %}Editar Atractivo{% else %}Crear Nuevo Atractivo{% endif %}{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">{% if form.instance.pk %}Editar Atractivo{% else %}Crear Nuevo Atractivo{% endif %}</h2>
-    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="{{ form.nombre_atractivo.id_for_label }}" class="form-label">{{ form.nombre_atractivo.label }}</label>
-            <input type="text" name="{{ form.nombre_atractivo.name }}" id="{{ form.nombre_atractivo.id_for_label }}" class="form-control {% if form.nombre_atractivo.errors %}is-invalid{% endif %}" value="{{ form.nombre_atractivo.value|default_if_none:'' }}" required>
-            {% if form.nombre_atractivo.errors %}
-                <div class="invalid-feedback">
-                    {{ form.nombre_atractivo.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.calificacion_estrellas.id_for_label }}" class="form-label">{{ form.calificacion_estrellas.label }} (1-5)</label>
-            <input type="number" name="{{ form.calificacion_estrellas.name }}" id="{{ form.calificacion_estrellas.id_for_label }}" class="form-control {% if form.calificacion_estrellas.errors %}is-invalid{% endif %}" value="{{ form.calificacion_estrellas.value|default_if_none:'' }}" min="1" max="5" required>
-            {% if form.calificacion_estrellas.errors %}
-                <div class="invalid-feedback">
-                    {{ form.calificacion_estrellas.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.descripcion_atractivo.id_for_label }}" class="form-label">{{ form.descripcion_atractivo.label }}</label>
-            <textarea name="{{ form.descripcion_atractivo.name }}" id="{{ form.descripcion_atractivo.id_for_label }}" class="form-control {% if form.descripcion_atractivo.errors %}is-invalid{% endif %}">{{ form.descripcion_atractivo.value|default_if_none:'' }}</textarea>
-            {% if form.descripcion_atractivo.errors %}
-                <div class="invalid-feedback">
-                    {{ form.descripcion_atractivo.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.latitud_atractivo.id_for_label }}" class="form-label">{{ form.latitud_atractivo.label }}</label>
-            <input type="number" step="any" name="{{ form.latitud_atractivo.name }}" id="{{ form.latitud_atractivo.id_for_label }}" class="form-control {% if form.latitud_atractivo.errors %}is-invalid{% endif %}" value="{{ form.latitud_atractivo.value|default_if_none:'' }}" required>
-            {% if form.latitud_atractivo.errors %}
-                <div class="invalid-feedback">
-                    {{ form.latitud_atractivo.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.longitud_atractivo.id_for_label }}" class="form-label">{{ form.longitud_atractivo.label }}</label>
-            <input type="number" step="any" name="{{ form.longitud_atractivo.name }}" id="{{ form.longitud_atractivo.id_for_label }}" class="form-control {% if form.longitud_atractivo.errors %}is-invalid{% endif %}" value="{{ form.longitud_atractivo.value|default_if_none:'' }}" required>
-            {% if form.longitud_atractivo.errors %}
-                <div class="invalid-feedback">
-                    {{ form.longitud_atractivo.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.foto_atractivo.id_for_label }}" class="form-label">{{ form.foto_atractivo.label }} (Opcional)</label>
-            <input type="file" name="{{ form.foto_atractivo.name }}" id="{{ form.foto_atractivo.id_for_label }}" class="form-control {% if form.foto_atractivo.errors %}is-invalid{% endif %}" accept="image/*">
-            {% if form.foto_atractivo.errors %}
-                <div class="invalid-feedback">
-                    {{ form.foto_atractivo.errors }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.parada_a_asignar.id_for_label }}" class="form-label">{{ form.parada_a_asignar.label }}</label>
-            <select name="{{ form.parada_a_asignar.name }}" id="{{ form.parada_a_asignar.id_for_label }}" class="form-control {% if form.parada_a_asignar.errors %}is-invalid{% endif %}">
-                <option value="">No asignar a una parada</option>
-                {% for parada in form.parada_a_asignar.field.queryset %}
-                    <option value="{{ parada.id }}" {% if form.parada_a_asignar.value == parada.id %}selected{% endif %}>{{ parada.nombre_parada }}</option>
-                {% empty %}
-                    <option disabled>No hay paradas disponibles</option>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h4 m-0">{% if form.instance.pk %}Editar Atractivo{% else %}Crear Nuevo Atractivo{% endif %}</h2>
+
+          </div>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
                 {% endfor %}
-            </select>
-            {% if form.parada_a_asignar.errors %}
-                <div class="invalid-feedback">
-                    {{ form.parada_a_asignar.errors }}
-                </div>
-            {% endif %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-3">
+              <!-- Nombre -->
+              <div class="col-md-6">
+                <label for="{{ form.nombre_atractivo.id_for_label }}" class="form-label">Nombre</label>
+                <input type="text" name="{{ form.nombre_atractivo.name }}" id="{{ form.nombre_atractivo.id_for_label }}"
+                       class="form-control {% if form.nombre_atractivo.errors %}is-invalid{% endif %}"
+                       value="{{ form.nombre_atractivo.value|default_if_none:'' }}" placeholder="Ej: Obelisco" required>
+                {% if form.nombre_atractivo.errors %}
+                  <div class="invalid-feedback d-block">{{ form.nombre_atractivo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Calificación -->
+              <div class="col-md-6">
+                <label for="{{ form.calificacion_estrellas.id_for_label }}" class="form-label">Calificación (1-5)</label>
+                <input type="number" min="1" max="5" name="{{ form.calificacion_estrellas.name }}" id="{{ form.calificacion_estrellas.id_for_label }}"
+                       class="form-control {% if form.calificacion_estrellas.errors %}is-invalid{% endif %}"
+                       value="{{ form.calificacion_estrellas.value|default_if_none:'' }}" required>
+                {% if form.calificacion_estrellas.errors %}
+                  <div class="invalid-feedback d-block">{{ form.calificacion_estrellas.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Descripción -->
+              <div class="col-12">
+                <label for="{{ form.descripcion_atractivo.id_for_label }}" class="form-label">Descripción</label>
+                <textarea name="{{ form.descripcion_atractivo.name }}" id="{{ form.descripcion_atractivo.id_for_label }}"
+                          class="form-control {% if form.descripcion_atractivo.errors %}is-invalid{% endif %}"
+                          rows="3" placeholder="Breve descripción">{{ form.descripcion_atractivo.value|default_if_none:'' }}</textarea>
+                {% if form.descripcion_atractivo.errors %}
+                  <div class="invalid-feedback d-block">{{ form.descripcion_atractivo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Coordenadas -->
+              <div class="col-md-6">
+                <label for="{{ form.latitud_atractivo.id_for_label }}" class="form-label">Latitud</label>
+                <input type="number" step="any" name="{{ form.latitud_atractivo.name }}" id="{{ form.latitud_atractivo.id_for_label }}"
+                       class="form-control {% if form.latitud_atractivo.errors %}is-invalid{% endif %}"
+                       value="{{ form.latitud_atractivo.value|default_if_none:'' }}" placeholder="-34.6037" required>
+                {% if form.latitud_atractivo.errors %}
+                  <div class="invalid-feedback d-block">{{ form.latitud_atractivo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.longitud_atractivo.id_for_label }}" class="form-label">Longitud</label>
+                <input type="number" step="any" name="{{ form.longitud_atractivo.name }}" id="{{ form.longitud_atractivo.id_for_label }}"
+                       class="form-control {% if form.longitud_atractivo.errors %}is-invalid{% endif %}"
+                       value="{{ form.longitud_atractivo.value|default_if_none:'' }}" placeholder="-58.3816" required>
+                {% if form.longitud_atractivo.errors %}
+                  <div class="invalid-feedback d-block">{{ form.longitud_atractivo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Foto -->
+              <div class="col-md-6">
+                <label for="{{ form.foto_atractivo.id_for_label }}" class="form-label">Foto (opcional)</label>
+                <input type="file" name="{{ form.foto_atractivo.name }}" id="{{ form.foto_atractivo.id_for_label }}"
+                       class="form-control {% if form.foto_atractivo.errors %}is-invalid{% endif %}" accept="image/*">
+                {% if form.foto_atractivo.errors %}
+                  <div class="invalid-feedback d-block">{{ form.foto_atractivo.errors|striptags }}</div>
+                {% endif %}
+                {% if object and object.foto_atractivo %}
+                  <div class="mt-2">
+                    <img src="{{ object.foto_atractivo.url }}" alt="Foto actual" class="img-thumbnail" style="max-height:140px;">
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Parada asignada -->
+              <div class="col-md-6">
+                <label for="{{ form.parada_a_asignar.id_for_label }}" class="form-label">Asignar a Parada</label>
+                <select name="{{ form.parada_a_asignar.name }}" id="{{ form.parada_a_asignar.id_for_label }}"
+                        class="form-select {% if form.parada_a_asignar.errors %}is-invalid{% endif %}">
+                  <option value="">No asignar</option>
+                  {% with current=form.parada_a_asignar.value %}
+                    {% for parada in form.parada_a_asignar.field.queryset %}
+                      <option value="{{ parada.id }}" {% if current|stringformat:"s" == parada.id|stringformat:"s" %}selected{% endif %}>
+                        {{ parada.nombre_parada }}
+                      </option>
+                    {% empty %}
+                      <option disabled>No hay paradas disponibles</option>
+                    {% endfor %}
+                  {% endwith %}
+                </select>
+                {% if form.parada_a_asignar.errors %}
+                  <div class="invalid-feedback d-block">{{ form.parada_a_asignar.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+              <a href="{% url 'admin-atractivos' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+          </form>
+
         </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="{% url 'admin-atractivos' %}" class="btn btn-secondary">Cancelar</a>
-        </div>
-    </form>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-    // Bootstrap form validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })();
+  // Bootstrap validation
+  (function () {
+    'use strict';
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
 </script>
 {% endblock %}
