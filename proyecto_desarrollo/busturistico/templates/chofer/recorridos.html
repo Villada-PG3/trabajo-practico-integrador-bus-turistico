@@ -1,344 +1,100 @@
 {% extends 'usuario/base_usuario.html' %}
 
-{% block title %}Recorridos para Chofer - Bus Turístico Buenos Aires{% endblock %}
+{% block title %}Panel del Chofer - Bus Turístico Buenos Aires{% endblock %}
 
 {% block content %}
 <section class="hero-section">
-    <div class="container">
-        <div class="text-center">
-            {% if viaje_en_curso %}
-                <h1 class="hero-title">¡Estás en Viaje!</h1>
-                <p class="hero-subtitle">Recorrido asignado: {{ viaje_en_curso.recorrido.color_recorrido }}</p>
-            {% else %}
-                <h1 class="hero-title">Recorridos Disponibles</h1>
-                <p class="hero-subtitle">Selecciona un recorrido para iniciar tu viaje turístico</p>
-            {% endif %}
-        </div>
+  <div class="container">
+    <div class="text-center">
+      {% if viaje_en_curso %}
+        <h1 class="hero-title">¡Viaje en curso!</h1>
+        <p class="hero-subtitle">Conduce el recorrido {{ viaje_en_curso.recorrido.color_recorrido }}</p>
+      {% elif viaje_asignado %}
+        <h1 class="hero-title">Tienes un viaje asignado</h1>
+        <p class="hero-subtitle">Recorrido {{ viaje_asignado.recorrido.color_recorrido }} — listo para iniciar</p>
+      {% else %}
+        <h1 class="hero-title">Sin viaje asignado</h1>
+        <p class="hero-subtitle">Aguarda indicaciones del administrador</p>
+      {% endif %}
     </div>
-</section>
+  </div>
+ </section>
 
 <section class="py-5">
-    <div class="container">
-        {% if messages %}
-        <div class="messages mb-4">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
+  <div class="container">
+    {% if messages %}
+      <div class="messages mb-4">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if viaje_en_curso %}
+      <div class="modern-card p-5 mt-4 text-center mb-4">
+        <i class="fas fa-bus text-success mb-4" style="font-size: 5rem;"></i>
+        <h3 class="fw-bold mb-2">Conduciendo</h3>
+        <p class="text-muted mb-3">
+          Bus: {{ viaje_en_curso.patente_bus.patente_bus }} · Recorrido: {{ viaje_en_curso.recorrido.color_recorrido }}<br>
+          Inicio: {{ viaje_en_curso.fecha_hora_inicio_real|date:"d/m H:i" }}
+        </p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          <a href="{% url 'viaje-en-curso' %}" class="btn btn-primary">
+            <i class="fas fa-info-circle me-2"></i>Ver detalles
+          </a>
+          <form method="post" action="{% url 'finalizar-viaje' %}" onsubmit="return confirm('¿Finalizar el viaje actual?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="fas fa-stop me-2"></i>Finalizar viaje
+            </button>
+          </form>
         </div>
-        {% endif %}
-
-        {% if viaje_en_curso %}
-            <div class="modern-card p-5 mt-4 text-center mb-5">
-                <i class="fas fa-bus text-success mb-4" style="font-size: 5rem;"></i>
-                <h3 class="fw-bold">Viaje en Curso</h3>
-                <p class="text-muted">
-                    Bus asignado: {{ viaje_en_curso.patente_bus.patente_bus }}<br>
-                    Recorrido: {{ viaje_en_curso.recorrido.color_recorrido }}<br>
-                    Hora de inicio: {{ viaje_en_curso.fecha_hora_inicio_real|date:"H:i" }}
-                </p>
-                <a href="{% url 'viaje-en-curso' %}" class="btn btn-primary btn-lg mt-3">
-                    <i class="fas fa-info-circle me-2"></i>Ver detalles del viaje
-                </a>
+      </div>
+    {% elif viaje_asignado %}
+      <div class="modern-card p-5 mt-4 text-center mb-4">
+        <i class="fas fa-route text-primary mb-4" style="font-size: 5rem;"></i>
+        <h3 class="fw-bold mb-2">Viaje asignado</h3>
+        <div class="row justify-content-center mt-3">
+          <div class="col-md-8">
+            <div class="alert alert-info text-start">
+              <div class="mb-2"><strong>Recorrido:</strong> {{ viaje_asignado.recorrido.color_recorrido }}</div>
+              <div class="mb-2"><strong>Descripción:</strong> {{ viaje_asignado.recorrido.descripcion_recorrido|default:'—' }}</div>
+              <div class="mb-2"><strong>Bus:</strong> {{ viaje_asignado.patente_bus.patente_bus }} (Unidad #{{ viaje_asignado.patente_bus.numero_unidad }})</div>
+              <div class="mb-0"><strong>Programado:</strong> {{ viaje_asignado.fecha_programada|date:"d/m/Y" }} — {{ viaje_asignado.hora_inicio_programada|time:"H:i" }}</div>
             </div>
-        {% endif %}
-
-        {% if recorridos %}
-            <div class="row g-4">
-                {% for recorrido in recorridos %}
-                <div class="col-lg-4 col-md-6 animate-on-scroll">
-                    <div class="modern-card h-100 overflow-hidden {% if recorrido.id == recorrido_en_curso_id %}border-success{% endif %} d-flex flex-column">
-                        <div class="card-header {% if recorrido.id == recorrido_en_curso_id %}bg-success-gradient{% else %}bg-primary-gradient{% endif %}">
-                            <i class="fas fa-route text-white" style="font-size: 3rem; opacity: 0.7;"></i>
-                            
-                            <!-- Horario arriba a la derecha -->
-                            <div style="position: absolute; top: 15px; right: 15px;">
-                                <span class="badge bg-white {% if recorrido.id == recorrido_en_curso_id %}text-success{% else %}text-primary{% endif %}">
-                                    <i class="fas fa-clock me-1"></i>{{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
-                                </span>
-                            </div>
-                            
-                            <!-- "En Curso" un poco más abajo a la izquierda -->
-                            {% if recorrido.id == recorrido_en_curso_id %}
-                            <div style="position: absolute; top: 55px; left: 15px;">
-                                <span class="badge bg-success">
-                                    <i class="fas fa-play me-1"></i>En Curso
-                                </span>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="p-4 flex-grow-1 d-flex flex-column">
-                            <h5 class="fw-bold mb-2 {% if recorrido.id == recorrido_en_curso_id %}text-success{% else %}text-primary{% endif %}">
-                                {{ recorrido.color_recorrido }}
-                            </h5>
-                            <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <small class="text-muted">
-                                    <i class="fas fa-route me-1"></i>Recorrido #{{ recorrido.id }}
-                                </small>
-                                {% if recorrido.id == recorrido_en_curso_id %}
-                                    <span class="badge bg-success-subtle text-success">En Curso</span>
-                                {% else %}
-                                    <span class="badge bg-primary-subtle text-primary">Disponible</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <small class="text-muted fw-semibold">Barrios principales:</small>
-                                <div class="d-flex gap-1 mt-1 flex-wrap">
-                                    <span class="badge bg-primary-subtle text-primary small">Centro</span>
-                                    <span class="badge bg-success-subtle text-success small">San Telmo</span>
-                                    <span class="badge bg-warning-subtle text-warning small">La Boca</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Espaciador para empujar el botón hacia abajo -->
-                            <div class="flex-grow-1"></div>
-                            
-                            {% if recorrido.id == recorrido_en_curso_id %}
-                                <!-- Si es el recorrido en curso, mostrar botón para ver detalles -->
-                                <a href="{% url 'viaje-en-curso' %}" class="btn btn-success w-100 mt-auto">
-                                    <i class="fas fa-eye me-2"></i>Ver Detalles del Viaje
-                                </a>
-                            {% else %}
-                                <!-- Si NO hay viaje en curso, mostrar botón para iniciar -->
-                                {% if not viaje_en_curso %}
-                                    <form method="post" action="{% url 'iniciar-recorrido' recorrido.id %}" class="mt-auto">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary w-100">
-                                            <i class="fas fa-play me-2"></i>Iniciar Recorrido
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <!-- Si hay otro viaje en curso, deshabilitar botón -->
-                                    <button class="btn btn-secondary w-100 mt-auto" disabled>
-                                        <i class="fas fa-lock me-2"></i>No Disponible
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            {% if is_paginated %}
-            <div class="d-flex justify-content-center mt-5">
-                <nav>
-                    <ul class="pagination pagination-lg">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1">
-                                    <i class="fas fa-angle-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-                        
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ paginator.num_pages }}">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
-            
-        {% else %}
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-route" style="font-size: 4rem; color: #e2e8f0;"></i>
-                </div>
-                <h3 class="text-muted mb-3">No hay recorridos disponibles</h3>
-                <p class="text-muted mb-4">
-                    Actualmente no hay recorridos programados para iniciar.
-                </p>
-            </div>
-        {% endif %}
-    </div>
+          </div>
+        </div>
+        <form method="post" action="{% url 'iniciar-viaje' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success btn-lg">
+            <i class="fas fa-play me-2"></i>Iniciar viaje
+          </button>
+        </form>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-calendar-times" style="font-size: 4rem; color: #e2e8f0;"></i>
+        </div>
+        <h3 class="text-muted mb-2">No tienes viaje asignado</h3>
+        <p class="text-muted">Cuando te asignen uno, aparecerá aquí para iniciar.</p>
+      </div>
+    {% endif %}
+  </div>
 </section>
 
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h3 class="fw-bold mb-3">Instrucciones para Choferes</h3>
-                <ul class="list-unstyled">
-                    <li class="mb-3">
-                        <div class="d-flex">
-                            <div class="me-3 text-primary">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Verifica tu bus asignado</h6>
-                                <p class="text-muted small">Antes de iniciar, confirma que el bus esté en condiciones óptimas</p>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="mb-3">
-                        <div class="d-flex">
-                            <div class="me-3 text-primary">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Revisa el itinerario</h6>
-                                <p class="text-muted small">Conoce las paradas y tiempos estimados del recorrido</p>
-                            </div>
-                        </div>
-                    </li>
-                    <li class="mb-3">
-                        <div class="d-flex">
-                            <div class="me-3 text-primary">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Reporta incidencias</h6>
-                                <p class="text-muted small">Notifica cualquier problema al iniciar o durante el recorrido</p>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-lg-6">
-                <div class="modern-card p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="card-icon me-3" style="background: var(--ba-blue);">
-                            <i class="fas fa-bus"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Estado Actual</h5>
-                            <small class="text-muted">Información de tu unidad asignada</small>
-                        </div>
-                    </div>
-                    
-                    <div class="alert {% if viaje_en_curso %}alert-success{% else %}alert-info{% endif %}">
-                        <i class="fas fa-{% if viaje_en_curso %}check-circle{% else %}info-circle{% endif %} me-2"></i>
-                        <strong>Estado:</strong> 
-                        {% if viaje_en_curso %}
-                            En servicio - {{ viaje_en_curso.recorrido.color_recorrido }}
-                        {% else %}
-                            Disponible para asignación
-                        {% endif %}
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-bus me-2"></i>
-                        <strong>Bus:</strong> {% if bus_asignado %}{{ bus_asignado.patente_bus }}{% else %}No asignado{% endif %}
-                    </div>
-                    
-                    <div class="d-grid">
-                        <a href="#" class="btn btn-outline-primary">
-                            <i class="fas fa-tools me-2"></i>Reportar Problema
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<!-- Botón de logout fijo -->
+<a href="{% url 'chofer-logout' %}"
+   class="btn btn-danger btn-sm"
+   style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
+  <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+</a>
 
 <style>
-.animate-on-scroll {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.8s ease;
-}
-
-.animate-on-scroll.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.border-success {
-    border: 2px solid #198754 !important;
-}
-
-.card-header {
-    height: 200px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bg-primary-gradient {
-    background: linear-gradient(45deg, #0d6efd, #6610f2);
-}
-
-.bg-success-gradient {
-    background: linear-gradient(45deg, #198754, #20c997);
-}
-
-/* Asegurar que las tarjetas tengan la misma altura */
-.modern-card {
-    min-height: 400px;
-}
-
-/* Hacer que el contenido del cuerpo de la tarjeta sea flexible */
-.modern-card .p-4 {
-    display: flex;
-    flex-direction: column;
-}
-
-/* El espaciador empujará el botón hacia abajo */
-.flex-grow-1 {
-    flex-grow: 1;
-}
+.modern-card { background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
 </style>
-
-<script>
-// Animaciones al scroll
-document.addEventListener('DOMContentLoaded', function() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, observerOptions);
-
-    const animatedElements = document.querySelectorAll('.animate-on-scroll');
-    animatedElements.forEach(el => observer.observe(el));
-});
-</script>
-
-<a href="{% url 'chofer-logout' %}" 
-   class="btn btn-danger btn-sm" 
-   style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
-    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-</a>
 
 {% endblock %}
