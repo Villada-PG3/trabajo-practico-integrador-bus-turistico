@@ -1,58 +1,85 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}Gestión de Recorridos - Panel Admin{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Recorridos Turísticos</h2>
-    <p class="text-muted">Administra los recorridos y sus detalles</p>
-
-    <div class="d-flex justify-content-end mb-3">
-        <a href="{% url 'admin-nuevo-recorrido' %}" class="btn btn-dark">+ Nuevo Recorrido</a>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Recorridos Turísticos</h2>
+            <p class="text-muted">Administra los recorridos y sus detalles de Bus Turístico BA.</p>
+        </div>
+        <a href="{% url 'admin-nuevo-recorrido' %}" class="btn btn-primary d-flex align-items-center">
+            <i class="bi bi-plus-circle-fill me-2"></i> Nuevo Recorrido
+        </a>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center p-3">
-                <h5>Total Recorridos</h5>
-                <h3>{{ total_recorridos|default:0 }}</h3>
+    <!-- Estadísticas -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <h5 class="text-muted mb-2">Total Recorridos</h5>
+                    <h3 class="fw-bold text-primary">{{ total_recorridos|default:0 }}</h3>
+                </div>
             </div>
         </div>
-        </div>
     </div>
 
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Buscar recorridos por color o descripción...">
-        <button class="btn btn-outline-secondary" type="button">Buscar</button>
+    <!-- Barra de búsqueda -->
+    <div class="input-group mb-4" style="max-width: 500px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+        </span>
+        <input type="text" class="form-control border-start-0" placeholder="Buscar recorridos por color o descripción...">
+        <button class="btn btn-primary" type="button">Buscar</button>
     </div>
 
-    <!-- LISTA DE RECORRIDOS -->
-    <div class="list-group">
+    <!-- Lista de recorridos -->
+    <div class="row g-4">
         {% for recorrido in recorridos %}
-        <div class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{{ recorrido.color_recorrido }}</h5>
-                <small>Duración: {{ recorrido.duracion_aproximada_recorrido|time:"H:i" }}</small>
-            </div>
-
-            <p class="mb-1">{{ recorrido.descripcion_recorrido|truncatechars:100 }}</p>
-
-            {% if recorrido.foto_recorrido %}
-                <img src="{{ recorrido.foto_recorrido.url }}" alt="Foto de {{ recorrido.color_recorrido }}" style="max-width: 120px;">
-            {% else %}
-                <p class="text-muted">Sin foto disponible</p>
-            {% endif %}
-
-            <!-- BOTONES DE ACCIONES -->
-            <div class="mt-3 d-flex gap-2">
-                <a href="{% url 'admin-detalle-recorrido' recorrido.pk %}" class="btn btn-info btn-sm">Detalle</a>
-                <a href="{% url 'admin-editar-recorrido' recorrido.pk %}" class="btn btn-warning btn-sm">Editar</a>
-                <a href="{% url 'admin-eliminar-recorrido' recorrido.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center p-4">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <h5 class="fw-bold mb-0 me-3">{{ recorrido.color_recorrido }}</h5>
+                            <small class="text-muted">Duración: {{ recorrido.duracion_aproximada_recorrido|time:"H:i" }}</small>
+                        </div>
+                        <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatechars:100 }}</p>
+                        {% if recorrido.foto_recorrido %}
+                            <img src="{{ recorrido.foto_recorrido.url }}" alt="Foto de {{ recorrido.color_recorrido }}" class="rounded" style="max-width: 150px; max-height: 100px; object-fit: cover;">
+                        {% else %}
+                            <p class="text-muted mb-0">Sin foto disponible</p>
+                        {% endif %}
+                    </div>
+                    <!-- Botones de acciones -->
+                    <div class="d-flex gap-2 mt-3 mt-md-0">
+                        <a href="{% url 'admin-detalle-recorrido' recorrido.pk %}" class="btn btn-info btn-sm d-flex align-items-center">
+                            <i class="bi bi-eye-fill me-2"></i> Detalle
+                        </a>
+                        <a href="{% url 'admin-editar-recorrido' recorrido.pk %}" class="btn btn-warning btn-sm d-flex align-items-center">
+                            <i class="bi bi-pencil-fill me-2"></i> Editar
+                        </a>
+                        <a href="{% url 'admin-eliminar-recorrido' recorrido.pk %}" class="btn btn-danger btn-sm d-flex align-items-center">
+                            <i class="bi bi-trash-fill me-2"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         {% empty %}
-            <p class="text-center">No hay recorridos registrados.</p>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <div class="card-body">
+                    <p class="text-muted">No hay recorridos registrados.</p>
+                </div>
+            </div>
+        </div>
         {% endfor %}
     </div>
 
-    <p class="mt-3 text-muted">Selecciona un recorrido para ver los detalles</p>
+    <p class="mt-4 text-muted">Selecciona un recorrido para ver los detalles o crea uno nuevo.</p>
 </div>
+
+<!-- Include Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}

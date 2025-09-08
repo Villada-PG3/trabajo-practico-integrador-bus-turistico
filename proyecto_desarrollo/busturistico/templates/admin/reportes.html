@@ -1,128 +1,41 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Reportes - Panel Admin{% endblock %}
+{% block title %}Reporte Diario de Viajes{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Reportes de Viajes</h2>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <label for="fecha" class="form-label fw-bold">Fecha del Reporte</label>
-            <input type="date" id="fecha" class="form-control d-inline-block" style="width: auto;" value="{{ fecha|date:'Y-m-d' }}">
-        </div>
-        <span class="badge bg-light text-dark p-2">
-            Última actualización: {{ hora_actualizacion|default:"--:--" }}
-        </span>
-    </div>
+<div class="container mt-4">
+    <h2>Reporte Diario de Viajes:</h2>
 
-    <!-- Métricas principales -->
-    <div class="row text-center mb-4">
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h6>Total Viajes</h6>
-                <h3>{{ total_viajes|default:0 }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3 text-success">
-                <h6>Completados</h6>
-                <h3>{{ completados|default:0 }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3 text-primary">
-                <h6>Duración Promedio</h6>
-                <h3>{{ duracion_promedio|default:"0h 0min" }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3 text-danger">
-                <h6>Demora Promedio</h6>
-                <h3>{{ demora_promedio|default:"0 min" }}</h3>
-            </div>
-        </div>
-    </div>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>ID Viaje</th>
+                <th>Recorrido</th>
+                <th>Duración (minutos)</th>
+                <th>Demora Inicio (minutos)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for viaje in viajes_data %}
+            <tr>
+                <td>{{ viaje.id }}</td>
+                <td>{{ viaje.recorrido }}</td>
+                <td>{{ viaje.duracion_minutos|default:"-" }}</td>
+                <td>{{ viaje.demora_minutos|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No hay viajes programados para hoy.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-3" id="reportTabs">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#graficos">Gráficos</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#detalle">Detalle de Viajes</button>
-        </li>
-    </ul>
-
-    <!-- Contenido de Tabs -->
-    <div class="tab-content">
-        <!-- Gráficos -->
-        <div class="tab-pane fade show active" id="graficos">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Duración de Viajes por Hora</h5>
-                    <canvas id="duracionChart"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <h5>Demoras por Hora</h5>
-                    <canvas id="demorasChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detalle de Viajes -->
-        <div class="tab-pane fade" id="detalle">
-            <div class="list-group mt-3">
-                {% for viaje in viajes %}
-                <div class="list-group-item d-flex justify-content-between">
-                    <div>
-                        <h6>Viaje {{ viaje.id }}</h6>
-                        <p class="mb-0">Duración: {{ viaje.duracion }} min</p>
-                        <p class="mb-0">Demora: {{ viaje.demora }} min</p>
-                    </div>
-                    <span class="badge {% if viaje.completado %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                        {% if viaje.completado %} Completado {% else %} Pendiente {% endif %}
-                    </span>
-                </div>
-                {% empty %}
-                <p class="text-center">No hay viajes registrados.</p>
-                {% endfor %}
-            </div>
-        </div>
+    <div class="mt-4">
+        <h5>Promedios diarios:</h5>
+        <ul>
+            <li>Duración promedio: {{ promedio_duracion }} minutos</li>
+            <li>Demora promedio: {{ promedio_demora }} minutos</li>
+        </ul>
     </div>
 </div>
-
-{% block extra_js %}
-  {{ duracion_por_hora|json_script:"duracion-data" }}
-  {{ demoras_por_hora|json_script:"demoras-data" }}
-  {{ horas_labels|json_script:"horas-labels" }}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Datos desde el backend usando JSON.parse
-    const duracionData = JSON.parse(document.getElementById('duracion-data').textContent);
-    const demorasData = JSON.parse(document.getElementById('demoras-data').textContent);
-    const horasLabels = JSON.parse(document.getElementById('horas-labels').textContent);
-
-    // Chart Duración
-    new Chart(document.getElementById('duracionChart'), {
-      type: 'bar',
-      data: {
-        labels: horasLabels,
-        datasets: [{
-          label: 'Duración promedio (min)',
-          data: duracionData
-        }]
-      }
-    });
-
-    // Chart Demoras
-    new Chart(document.getElementById('demorasChart'), {
-      type: 'bar',
-      data: {
-        labels: horasLabels,
-        datasets: [{
-          label: 'Cantidad de demoras',
-          data: demorasData
-        }]
-      }
-    });
-  </script>
-{% endblock %}
 {% endblock %}

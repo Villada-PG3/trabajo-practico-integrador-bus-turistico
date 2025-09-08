@@ -51,7 +51,7 @@ urlpatterns = [
     path('admin/recorridos/<int:pk>/eliminar/', views.EliminarRecorridoView.as_view(), name='admin-eliminar-recorrido'),
     # Reportes
     path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
-    path('admin/generar-reporte/', views.generar_reporte, name='generar-reporte'),
+    path('admin/reportes-diarios/', ReportesDiariosView.as_view(), name='admin-reportes-diarios'),
     # Usuario público
     path('', include('busturistico.urls_usuario')),
     

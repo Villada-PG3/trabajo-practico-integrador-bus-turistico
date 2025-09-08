@@ -1,53 +1,125 @@
-{% extends 'admin/base_admin.html' %}
-
+{% extends "admin/base_admin.html" %}
 {% block title %}Detalle de Parada: {{ parada.nombre_parada }}{% endblock %}
-
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Detalle de Parada: {{ parada.nombre_parada }}</h1>
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Información General</h5>
-            <p><strong>Dirección:</strong> {{ parada.direccion_parada }}</p>
-            <p><strong>Descripción:</strong> {{ parada.descripcion_parada }}</p>
-            <p><strong>Coordenadas:</strong> Latitud {{ parada.latitud_parada }}, Longitud {{ parada.longitud_parada }}</p>
-            {% if parada.foto_parada %}
-                <img src="{{ parada.foto_parada.url }}" alt="Foto de la parada" class="img-fluid mb-3" style="max-width: 400px;">
-            {% else %}
-                <p>No hay foto disponible para esta parada.</p>
-            {% endif %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold text-dark mb-1">Detalle de Parada</h1>
+            <p class="text-muted">{{ parada.nombre_parada }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin-editar-parada' parada.pk %}" class="btn btn-primary d-flex align-items-center">
+                <i class="bi bi-pencil-fill me-2"></i> Editar Parada
+            </a>
+            <a href="{% url 'admin-eliminar-parada' parada.pk %}" class="btn btn-danger d-flex align-items-center">
+                <i class="bi bi-trash-fill me-2"></i> Eliminar Parada
+            </a>
         </div>
     </div>
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Recorridos Relacionados</h5>
-            {% if recorrido_paradas %}
-                <ul class="list-group">
-                    {% for rp in recorrido_paradas %}
-                        <li class="list-group-item">
-                            <strong>Recorrido:</strong> {{ rp.recorrido.color_recorrido }} - {{ rp.recorrido.descripcion_recorrido }}<br>
-                            <strong>Orden en el Recorrido:</strong> {{ rp.orden }}<br>
-                            <strong>Duración Aproximada del Recorrido:</strong> {{ rp.recorrido.duracion_aproximada_recorrido }}<br>
-                            {% if rp.recorrido.foto_recorrido %}
-                                <img src="{{ rp.recorrido.foto_recorrido.url }}" alt="Foto del recorrido {{ rp.recorrido.color_recorrido }}" class="img-fluid mt-2" style="max-width: 200px;">
-                            {% else %}
-                                <p>No hay foto disponible para este recorrido.</p>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>Esta parada no está relacionada con ningún recorrido actualmente.</p>
-            {% endif %}
+
+    <div class="row g-4">
+        <!-- Información General Card -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Información General
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong class="text-dark">Dirección:</strong></p>
+                            <p class="text-muted">{{ parada.direccion_parada }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong class="text-dark">Coordenadas:</strong></p>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="badge bg-info">Lat: {{ parada.latitud_parada }}</span>
+                                <span class="badge bg-info">Lng: {{ parada.longitud_parada }}</span>
+                                <a href="https://www.google.com/maps?q={{ parada.latitud_parada }},{{ parada.longitud_parada }}" 
+                                   target="_blank" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> Ver en Google Maps
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <p class="mb-2"><strong class="text-dark">Descripción:</strong></p>
+                            <p class="text-muted">{{ parada.descripcion_parada|linebreaks }}</p>
+                        </div>
+                        {% if parada.foto_parada %}
+                            <div class="col-12">
+                                <img src="{{ parada.foto_parada.url }}" alt="Foto de la parada" 
+                                     class="rounded shadow-sm" style="max-width: 100%; height: auto;">
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-image me-2"></i>
+                                    No hay foto disponible para esta parada.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recorridos Relacionados Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-bus-front-fill me-2"></i>
+                        Recorridos Relacionados
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if recorrido_paradas %}
+                        <div class="list-group list-group-flush">
+                            {% for rp in recorrido_paradas %}
+                                <div class="list-group-item px-0 border-0 py-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="fw-bold text-primary mb-0">{{ rp.recorrido.color_recorrido }}</h6>
+                                        <small class="text-muted">Orden: {{ rp.orden }}</small>
+                                    </div>
+                                    <p class="text-muted mb-2">{{ rp.recorrido.descripcion_recorrido|truncatechars:80 }}</p>
+                                    <p class="text-muted mb-2">
+                                        <i class="bi bi-clock-fill me-1"></i>
+                                        Duración: {{ rp.recorrido.duracion_aproximada_recorrido|time:"H:i" }}
+                                    </p>
+                                    {% if rp.recorrido.foto_recorrido %}
+                                        <img src="{{ rp.recorrido.foto_recorrido.url }}" 
+                                             alt="Foto del recorrido {{ rp.recorrido.color_recorrido }}" 
+                                             class="rounded" style="max-width: 100%; height: 80px; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                                {% if not forloop.last %}
+                                    <hr class="my-0">
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle text-muted mb-2" style="font-size: 2rem;"></i>
+                            <p class="text-muted">Esta parada no está relacionada con ningún recorrido actualmente.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div class="mt-4">
-        <a href="{% url 'admin-editar-parada' parada.pk %}" class="btn btn-primary">Editar Parada</a>
-        <a href="{% url 'admin-eliminar-parada' parada.pk %}" class="btn btn-danger">Eliminar Parada</a>
-        <a href="{% url 'admin-paradas' %}" class="btn btn-secondary">Volver a la Lista de Paradas</a>
+
+    <!-- Action Buttons -->
+    <div class="mt-5 d-flex gap-2 justify-content-start">
+        <a href="{% url 'admin-paradas' %}" class="btn btn-secondary d-flex align-items-center">
+            <i class="bi bi-arrow-left me-2"></i> Volver a la Lista de Paradas
+        </a>
     </div>
 </div>
+
+<!-- Include Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}

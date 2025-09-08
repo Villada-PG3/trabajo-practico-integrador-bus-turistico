@@ -57,23 +57,33 @@ class DashboardView(SuperUserRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Fetch bus statuses with optimized query
         estado_buses = []
         for bus in Bus.objects.all():
             historial = EstadoBusHistorial.objects.filter(patente_bus=bus).order_by('-fecha_inicio_estado').first()
             estado = historial.estado_bus.nombre_estado if historial else 'Sin estado'
             estado_buses.append((bus, estado))
-        
-        choferes_activos = Chofer.objects.filter(activo=True)
+
+        # Count active buses (where the latest status is "Activo")
+        buses_activos = sum(1 for bus, estado in estado_buses if estado.lower() == 'activo')
+
+        # Fetch active drivers
+        choferes_activos = Chofer.objects.filter(activo=True).count()
+
+        # Fetch ongoing trips
         ahora = timezone.now()
         viajes_en_curso = Viaje.objects.filter(
             fecha_hora_inicio_real__lte=ahora,
             fecha_hora_fin_real__isnull=True
-        )
-        
+        ).count()
+
+        # Update context with dynamic data for the template
         context.update({
             'estado_buses': estado_buses,
+            'buses_activos': buses_activos,
             'choferes_activos': choferes_activos,
-            'viajes_en_curso': viajes_en_curso
+            'viajes_en_curso': viajes_en_curso,
         })
         return context
 
@@ -668,7 +678,71 @@ def generar_reporte(request):
     response['Content-Disposition'] = 'attachment; filename="reporte_viajes_{}.txt"'.format(timezone.now().strftime('%Y%m%d_%H%M'))
     return response
 
+from django.db.models import Avg, F, ExpressionWrapper, DurationField
+from django.utils.timezone import localtime, now
+from django.views.generic import TemplateView
+from datetime import timedelta
+from .models import Viaje
+
+class ReportesDiariosView(SuperUserRequiredMixin, TemplateView):
+    template_name = 'admin/reportes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        hoy = localtime(now()).date()
+        viajes_hoy = Viaje.objects.filter(fecha_programada__date=hoy)
+
+        # Lista de viajes con duración y demora
+        viajes_data = []
+        duraciones = []
+        demoras = []
+
+        for viaje in viajes_hoy:
+            # Calculamos duración real en minutos si existe
+            duracion = viaje.duracion_minutos_real
+            if duracion is None and viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
+                delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
+                duracion = int(delta.total_seconds() / 60)
+
+            # Calculamos demora en minutos si existe
+            demora = viaje.demora_inicio_minutos
+            if demora is None and viaje.fecha_hora_inicio_real:
+                programado = viaje.fecha_programada
+                delta = viaje.fecha_hora_inicio_real - programado
+                demora = int(delta.total_seconds() / 60)
+
+            if duracion is not None:
+                duraciones.append(duracion)
+            if demora is not None:
+                demoras.append(demora)
+
+            viajes_data.append({
+                'id': viaje.id,
+                'recorrido': str(viaje.recorrido),
+                'duracion_minutos': duracion,
+                'demora_minutos': demora,
+            })
+
+        # Promedios
+        promedio_duracion = round(sum(duraciones)/len(duraciones), 2) if duraciones else 0
+        promedio_demora = round(sum(demoras)/len(demoras), 2) if demoras else 0
+
+        context.update({
+            'viajes_data': viajes_data,
+            'promedio_duracion': promedio_duracion,
+            'promedio_demora': promedio_demora,
+            'fecha_reporte': hoy,
+        })
+
+        return context
+
+
+
+
 
 # --- Other Views ---
+
+
 class BaseUsuarioView(TemplateView):
     template_name = 'usuario/base_usuario.html'
