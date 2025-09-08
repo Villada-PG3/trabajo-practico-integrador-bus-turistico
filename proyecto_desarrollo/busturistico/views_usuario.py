@@ -48,6 +48,27 @@ class UsuarioRecorridosView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
+
+        # Adjuntar próximos horarios de viajes programados a cada recorrido de la página actual
+        now = timezone.localtime()
+        page_obj = context.get('page_obj')
+        if page_obj:
+            for recorrido in page_obj.object_list:
+                viajes_qs = (
+                    Viaje.objects
+                    .filter(
+                        recorrido=recorrido,
+                        fecha_hora_inicio_real__isnull=True,
+                        fecha_programada__date=now.date(),
+                        hora_inicio_programada__gte=now.time(),
+                    )
+                    .order_by('hora_inicio_programada')
+                )
+
+                # Guardar una lista de strings HH:MM (máximo 3) para usar en la plantilla
+                recorrido.proximos_horarios = [
+                    v.hora_inicio_programada.strftime('%H:%M') for v in viajes_qs[:3]
+                ]
         return context
 
 class UsuarioDetalleRecorridoView(DetailView):
@@ -71,18 +92,21 @@ class UsuarioDetalleRecorridoView(DetailView):
         return context
     
     def get_proximos_horarios(self):
-        """Simular próximos horarios (deberías ajustar según tu lógica de negocio)"""
-        from datetime import datetime, timedelta
-        
-        base_time = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
-        horarios = []
-        
-        for i in range(6):  # 6 horarios del día
-            horario = base_time + timedelta(hours=i*2)
-            if horario > datetime.now():
-                horarios.append(horario.strftime('%H:%M'))
-                
-        return horarios
+        """Obtener próximos horarios de viajes programados (no iniciados) para el recorrido."""
+        now = timezone.localtime()
+        viajes_qs = (
+            Viaje.objects
+            .filter(
+                recorrido=self.object,
+                fecha_hora_inicio_real__isnull=True,
+                fecha_programada__date=now.date(),
+                hora_inicio_programada__gte=now.time(),
+            )
+            .order_by('hora_inicio_programada')
+        )
+
+        # Devolver hasta 6 próximos horarios como strings HH:MM
+        return [v.hora_inicio_programada.strftime('%H:%M') for v in viajes_qs[:6]]
 
 class UsuarioDetalleParadaView(DetailView):
     model = Parada

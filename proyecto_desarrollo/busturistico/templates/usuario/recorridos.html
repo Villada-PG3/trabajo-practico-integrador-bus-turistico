@@ -95,14 +95,17 @@
                                 </div>
                             </div>
                             
-                            <!-- Próximos horarios -->
+                            <!-- Próximos horarios (viajes programados) -->
                             <div class="mb-3">
                                 <small class="text-muted fw-semibold">Próximos horarios:</small>
                                 <div class="d-flex gap-2 mt-1">
-                                    <span class="badge bg-info-subtle text-info">09:30</span>
-                                    <span class="badge bg-info-subtle text-info">12:00</span>
-                                    <span class="badge bg-info-subtle text-info">15:30</span>
-                                    <small class="text-muted ms-1">+más</small>
+                                    {% if recorrido.proximos_horarios %}
+                                        {% for h in recorrido.proximos_horarios %}
+                                            <span class="badge bg-info-subtle text-info">{{ h }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <small class="text-muted">Sin viajes programados</small>
+                                    {% endif %}
                                 </div>
                             </div>
                             
