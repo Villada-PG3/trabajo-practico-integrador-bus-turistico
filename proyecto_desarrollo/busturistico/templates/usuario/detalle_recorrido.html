@@ -332,36 +332,4 @@
     </div>
 </section>
 
-<style>
-.timeline-item:last-child::after {
-    display: none;
-}
-
-.timeline-item::after {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 50px;
-    width: 2px;
-    height: calc(100% + 20px);
-    background: #dee2e6;
-    z-index: 0;
-}
-
-.timeline {
-    position: relative;
-}
-
-.timeline-marker {
-    position: relative;
-    z-index: 1;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
-.timeline-content {
-    position: relative;
-    z-index: 1;
-}
-</style>
 {% endblock %}
