@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, View
 from django.shortcuts import render, redirect, get_object_or_404
@@ -18,7 +19,10 @@ class ChoferRequiredMixin:
             chofer = Chofer.objects.get(user=request.user, activo=True)
             request.chofer = chofer
         except Chofer.DoesNotExist:
-            raise PermissionDenied("No tiene permisos de chofer.")
+            # Si el usuario no es un chofer activo, cerramos sesión y redirigimos a login
+            logout(request)
+            messages.info(request, 'Inicia sesión como chofer para continuar.')
+            return redirect('chofer-login')
         
         return super().dispatch(request, *args, **kwargs)
 
@@ -208,4 +212,3 @@ def iniciar_viaje_chofer(request, viaje_id):
     # ...
     
     return redirect('chofer_panel') # Redirige al panel del chofer
-

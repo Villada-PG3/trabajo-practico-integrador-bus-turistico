@@ -4,7 +4,6 @@ from busturistico.views import *
 from busturistico import views
 from busturistico.views_usuario import *
 from busturistico import views_usuario, urls_usuario
-from busturistico import views_chofer, urls_chofer
 from django.conf import settings
 from django.conf.urls.static import static
 from busturistico import views_chofer, urls_chofer
@@ -51,12 +50,11 @@ urlpatterns = [
     path('admin/recorridos/<int:pk>/eliminar/', views.EliminarRecorridoView.as_view(), name='admin-eliminar-recorrido'),
     # Reportes
     path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
-    path('admin/reportes-diarios/', ReportesDiariosView.as_view(), name='admin-reportes-diarios'),
+    path('admin/generar-reporte/', views.generar_reporte, name='generar-reporte'),
     # Usuario público
     path('', include('busturistico.urls_usuario')),
     
-    # Choferes - CORREGIDO: Incluir las URLs sin repetir el prefijo
-    path('chofer/', include('busturistico.urls_chofer')),
+    # Choferes
     path('auth/', include('busturistico.urls_auth')),
     
     # Admin de Django
