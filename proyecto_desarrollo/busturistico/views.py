@@ -57,25 +57,26 @@ class DashboardView(SuperUserRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         # Fetch bus statuses with optimized query
         estado_buses = []
         for bus in Bus.objects.all():
             historial = EstadoBusHistorial.objects.filter(patente_bus=bus).order_by('-fecha_inicio_estado').first()
             estado = historial.estado_bus.nombre_estado if historial else 'Sin estado'
             estado_buses.append((bus, estado))
-
         # Count active buses (where the latest status is "Activo")
         buses_activos = sum(1 for bus, estado in estado_buses if estado.lower() == 'activo')
-
         # Fetch active drivers
         choferes_activos = Chofer.objects.filter(activo=True).count()
-
-        # Fetch ongoing trips
+        # Fetch ongoing trips (for "En Curso")
         ahora = timezone.now()
         viajes_en_curso = Viaje.objects.filter(
             fecha_hora_inicio_real__lte=ahora,
             fecha_hora_fin_real__isnull=True
+        ).count()
+        # Fetch programmed trips (for "Programados")
+        viajes_programados = Viaje.objects.filter(
+            fecha_hora_inicio_real__isnull=True,  # No han comenzado
+            fecha_programada__gte=ahora.date()     # Programados para hoy o futuro
         ).count()
 
         # Update context with dynamic data for the template
@@ -83,7 +84,8 @@ class DashboardView(SuperUserRequiredMixin, TemplateView):
             'estado_buses': estado_buses,
             'buses_activos': buses_activos,
             'choferes_activos': choferes_activos,
-            'viajes_en_curso': viajes_en_curso,
+            'viajes_en_curso': viajes_en_curso,    # Mantener para "En Curso" si lo necesitas
+            'viajes_programados': viajes_programados,  # Nuevo conteo para "Programados"
         })
         return context
 
@@ -415,7 +417,6 @@ class CrearViajeView(CreateView):
     def form_valid(self, form):
         with transaction.atomic():
             self.object = form.save(commit=False)
-        # 🚫 aseguramos que siempre arranque como "programado"
             self.object.fecha_hora_inicio_real = None
             self.object.fecha_hora_fin_real = None
             self.object.save()

@@ -95,6 +95,13 @@ body {
     align-items: center;
     gap: 0.25rem;
 }
+.status-en-mantenimiento {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.9em;
+}
 .status-activo {
     background-color: #22c55e;
     color: #ffffff;
