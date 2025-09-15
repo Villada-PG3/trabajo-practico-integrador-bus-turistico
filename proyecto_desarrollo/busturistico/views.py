@@ -472,29 +472,37 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
 
     def form_valid(self, form):
         with transaction.atomic():
-            parada = form.save()
-            recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
-            orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
-            if recorrido_a_asignar and orden_en_recorrido:
-                RecorridoParada.objects.create(
-                    recorrido=recorrido_a_asignar,
-                    parada=parada,
-                    orden=orden_en_recorrido
-                )
-            elif recorrido_a_asignar and not orden_en_recorrido:
-                orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
-                RecorridoParada.objects.create(
-                    recorrido=recorrido_a_asignar,
-                    parada=parada,
-                    orden=orden_en_recorrido
-                )
-        messages.success(self.request, "Parada creada correctamente.")
-        return redirect(self.get_success_url())
+            try:
+                # Guarda el formulario y asigna el objeto a self.object
+                self.object = form.save()
+                recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
+                orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
+
+                if recorrido_a_asignar:
+                    if not orden_en_recorrido:
+                        # Calcula el siguiente orden disponible si no se especifica
+                        orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
+                    RecorridoParada.objects.create(
+                        recorrido=recorrido_a_asignar,
+                        parada=self.object,
+                        orden=orden_en_recorrido
+                    )
+                messages.success(self.request, "Parada creada correctamente.")
+                return super().form_valid(form)
+            except Exception as e:
+                messages.error(self.request, f"Error al crear la parada: {str(e)}")
+                return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = "Crear Nueva Parada"
         return context
+
+    def get_success_url(self):
+        # Asegura que devuelva una URL válida incluso si self.object es None
+        if self.object and hasattr(self.object, 'pk'):
+            return reverse_lazy('admin-paradas')
+        return super().get_success_url()  # Fallback a success_url definidot
 
 class EditarParadaView(SuperUserRequiredMixin, UpdateView):
     model = Parada
