@@ -1,0 +1,36 @@
+{% extends 'usuario/base_usuario.html' %}
+
+{% block content %}
+<h2>Mapa de Palermo</h2>
+<div id="map" style="height: 500px; width: 100%;"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  // Coordenadas aproximadas de Palermo
+  var boundsPalermo = [
+    [-34.5715, -58.4205],
+    [-34.5728, -58.4370],
+    [-34.5862, -58.4485],
+    [-34.6015, -58.4450],
+    [-34.6030, -58.4235],
+    [-34.5900, -58.4100]
+  ];
+
+  // Crear mapa centrado en Palermo
+  var map = L.map('map', {
+    minZoom: 14, // no se puede hacer zoom out demasiado
+    maxZoom: 18, // opcional, no acercar demasiado
+    maxBounds: L.latLngBounds(boundsPalermo), // bloquea mover fuera de Palermo
+    maxBoundsViscosity: 1.0 // evita rebote al arrastrar
+  }).fitBounds(L.latLngBounds(boundsPalermo));
+
+  // Cargar mapa base
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+
+</script>
+{% endblock %}
