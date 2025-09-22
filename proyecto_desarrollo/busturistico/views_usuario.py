@@ -176,3 +176,7 @@ class UsuarioBusquedaView(TemplateView):
             })
             
         return context
+
+# Mapa en vivo (Leaflet + polling)
+class UsuarioMapaView(TemplateView):
+    template_name = 'usuario/mapa.html'

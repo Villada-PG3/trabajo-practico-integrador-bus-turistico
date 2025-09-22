@@ -119,6 +119,75 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
 
         messages.success(request, f'Viaje al recorrido {viaje_asignado.recorrido.color_recorrido} iniciado correctamente.')
         return redirect('viaje-en-curso')
+
+    def _simular_recorrido_ideal(self, viaje: Viaje):
+        """
+        Genera ubicaciones futuras a intervalos regulares recorriendo las paradas del recorrido.
+        La API pública ignora timestamps futuros, por lo que el mapa mostrará el avance con el tiempo.
+        """
+        recorrido = viaje.recorrido
+        now = timezone.now()
+
+        # 1) Intentar usar las paradas del recorrido cargadas en DB
+        rps = list(RecorridoParada.objects.filter(recorrido=recorrido).select_related('parada').order_by('orden'))
+
+        coords = []
+        if len(rps) >= 2:
+            coords = [(rp.parada.latitud_parada, rp.parada.longitud_parada) for rp in rps]
+        else:
+            # 2) Fallback: si es el Recorrido Verde, usar coordenadas aproximadas conocidas
+            color = (recorrido.color_recorrido or '').strip().lower()
+            if 'verde' in color:
+                # Orden provisto por el usuario
+                coords = [
+                    (-34.5569, -58.4016),  # 03 Club de Pescadores
+                    (-34.5686, -58.4100),  # 02 Planetario
+                    (-34.5834, -58.4037),  # 01 MALBA (conexion)
+                    (-34.5705, -58.4116),  # 11 Monumento a los Españoles (conexion)
+                    (-34.5855, -58.4307),  # 10 Palermo Soho II (aprox)
+                    (-34.5746, -58.4260),  # 09 Distrito Arcos II (aprox)
+                    (-34.5413, -58.4313),  # 04 Parque de la Memoria
+                    (-34.5453, -58.4493),  # 05 El Monumental
+                    (-34.5610, -58.4491),  # 06 Belgrano Barrio Chino
+                    (-34.5697, -58.4255),  # 07 Campo Argentino de Polo
+                    (-34.5655, -58.4155),  # 08 Bosques de Palermo (conexion)
+                ]
+
+        if len(coords) < 2:
+            # Nada que simular
+            return
+
+        # Crear un punto inicial en la primera parada (visible de inmediato)
+        UbicacionColectivo.objects.create(
+            latitud=coords[0][0],
+            longitud=coords[0][1],
+            timestamp_ubicacion=now,
+            viaje=viaje,
+        )
+
+        # Parámetros de simulación: 6 pasos por tramo, cada 10 segundos
+        steps_per_segment = 6
+        interval_seconds = 10
+
+        def interp(a, b, t):
+            return a + (b - a) * t
+
+        step_index = 1
+        for i in range(len(coords) - 1):
+            (lat1, lng1) = coords[i]
+            (lat2, lng2) = coords[i + 1]
+            for s in range(1, steps_per_segment + 1):
+                f = s / steps_per_segment
+                lat = interp(lat1, lat2, f)
+                lng = interp(lng1, lng2, f)
+                ts = now + datetime.timedelta(seconds=step_index * interval_seconds)
+                UbicacionColectivo.objects.create(
+                    latitud=lat,
+                    longitud=lng,
+                    timestamp_ubicacion=ts,
+                    viaje=viaje,
+                )
+                step_index += 1
     
 # Nueva vista para los detalles del viaje en curso
 class DetalleViajeView(ChoferRequiredMixin, View):
