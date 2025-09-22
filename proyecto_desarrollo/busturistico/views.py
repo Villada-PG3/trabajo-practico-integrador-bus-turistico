@@ -24,6 +24,8 @@ from .forms import (
     RecorridoForm, ViajeCreateForm
 )
 
+from django.core.mail import send_mail
+from django.conf import settings
 
 # --- Mixins and Helper Functions ---
 class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -753,7 +755,6 @@ class ConsultasView(SuperUserRequiredMixin, ListView):
     ordering = ["-fecha_envio"]
 
 
-
 class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
     model = Consulta
     fields = ["respuesta", "respondida"]
@@ -762,9 +763,22 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         consulta = form.save(commit=False)
-        # Si tiene respuesta, marcamos respondida
+
+        # Si hay respuesta, enviamos el mail (aunque respondida ya sea True)
         if consulta.respuesta:
+            try:
+                send_mail(
+                    subject=f"Respuesta a tu consulta - Bus Turístico",
+                    message=consulta.respuesta,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[consulta.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print("Error al enviar correo:", e)
+
+            # Marcamos como respondida siempre que haya respuesta
             consulta.respondida = True
+
         consulta.save()
-        # 👇 acá podrías enviar mail automático con consulta.respuesta
         return super().form_valid(form)
