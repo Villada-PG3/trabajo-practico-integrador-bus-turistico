@@ -5,6 +5,7 @@ from django.db.models import Count, OuterRef, Subquery, Q, F
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.http import HttpResponseNotAllowed
 from django.utils import timezone
 from datetime import timedelta
 from django.views.generic import (
@@ -155,23 +156,17 @@ class EditarChoferView(SuperUserRequiredMixin, UpdateView):
 class EliminarChoferView(SuperUserRequiredMixin, DeleteView):
     model = Chofer
     success_url = reverse_lazy('admin-choferes')
-    
+
+    def get(self, request, *args, **kwargs):
+        # Evita que intente renderizar chofer_confirm_delete.html
+        return HttpResponseNotAllowed(['POST'])
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        nombre = f"{self.object.nombre_chofer} {self.object.apellido_chofer}"
         self.object.delete()
-        messages.success(request, f'Chofer {self.object.nombre_chofer} eliminado correctamente.')
+        messages.success(request, f'Chofer {nombre} eliminado correctamente.')
         return redirect(self.get_success_url())
-
-def eliminar_chofer_directo(request, pk):
-    if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Acceso no autorizado'}, status=403)
-        
-    try:
-        chofer = get_object_or_404(Chofer, pk=pk)
-        chofer.delete()
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     model = Chofer
     template_name = 'admin/chofer_detalle.html'
