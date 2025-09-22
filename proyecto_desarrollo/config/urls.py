@@ -18,7 +18,7 @@ urlpatterns = [
     path('admin/nuevo-chofer/', views.CrearChoferView.as_view(), name='admin-nuevo-chofer'),
     path('admin/choferes/editar/<int:pk>/', views.EditarChoferView.as_view(), name='admin-editar-chofer'),
     path('admin/choferes/eliminar/<int:pk>/', views.EliminarChoferView.as_view(), name='admin-eliminar-chofer'),
-    path('admin/choferes/eliminar/directo/<int:pk>/', views.eliminar_chofer_directo, name='admin-eliminar-chofer-directo'),
+
     # Flota (Buses)
     path('admin/flota/', views.FlotaView.as_view(), name='admin-flota'),
     path('admin/nuevo-bus/', views.CrearBusView.as_view(), name='admin-nuevo-bus'),

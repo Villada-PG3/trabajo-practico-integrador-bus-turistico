@@ -5,6 +5,7 @@ from django.db.models import Count, OuterRef, Subquery, Q, F
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.http import HttpResponseNotAllowed
 from django.utils import timezone
 from datetime import timedelta
 from django.views.generic import (
@@ -157,23 +158,17 @@ class EditarChoferView(SuperUserRequiredMixin, UpdateView):
 class EliminarChoferView(SuperUserRequiredMixin, DeleteView):
     model = Chofer
     success_url = reverse_lazy('admin-choferes')
-    
+
+    def get(self, request, *args, **kwargs):
+        # Evita que intente renderizar chofer_confirm_delete.html
+        return HttpResponseNotAllowed(['POST'])
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        nombre = f"{self.object.nombre_chofer} {self.object.apellido_chofer}"
         self.object.delete()
-        messages.success(request, f'Chofer {self.object.nombre_chofer} eliminado correctamente.')
+        messages.success(request, f'Chofer {nombre} eliminado correctamente.')
         return redirect(self.get_success_url())
-
-def eliminar_chofer_directo(request, pk):
-    if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Acceso no autorizado'}, status=403)
-        
-    try:
-        chofer = get_object_or_404(Chofer, pk=pk)
-        chofer.delete()
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     model = Chofer
     template_name = 'admin/chofer_detalle.html'
@@ -640,103 +635,6 @@ class EliminarAtractivoView(SuperUserRequiredMixin, DeleteView):
     success_url = reverse_lazy('admin-atractivos')
 
 
-# --- Reporting Views ---
-class ReportesView(SuperUserRequiredMixin, ListView):
-    template_name = 'admin/reportes.html'
-    context_object_name = 'reportes'
-
-    def get_queryset(self):
-        viajes = Viaje.objects.all()
-        reportes = [
-            {
-                'id': viaje.id,
-                'fecha': viaje.fecha_programada if viaje.fecha_programada else timezone.now(),
-                'estado': 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente',
-                'descripcion': f'Reporte de viaje {viaje.id} - {viaje.recorrido}',
-                'foto': None
-            }
-            for viaje in viajes
-        ]
-        return reportes
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['total_reportes'] = Viaje.objects.count()
-        context['reportes_completados'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=False).count()
-        context['reportes_pendientes'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=True).count()
-        return context
-
-def generar_reporte(request):
-    viajes = Viaje.objects.all()
-    reporte_data = "Reporte de Viajes - Generado el {}\n\n".format(timezone.now().strftime('%d/%m/%Y %H:%M'))
-    reporte_data += "ID,Fecha,Estado,Descripción\n"
-    for viaje in viajes:
-        estado = 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente'
-        descripcion = f"Viaje {viaje.id} - {viaje.recorrido}"
-        reporte_data += f"{viaje.id},{viaje.fecha_programada.strftime('%d/%m/%Y') if viaje.fecha_programada else 'Sin fecha'},{estado},{descripcion}\n"
-
-    response = HttpResponse(reporte_data, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="reporte_viajes_{}.txt"'.format(timezone.now().strftime('%Y%m%d_%H%M'))
-    return response
-
-from django.db.models import Avg, F, ExpressionWrapper, DurationField
-from django.utils.timezone import localtime, now
-from django.views.generic import TemplateView
-from datetime import timedelta
-from .models import Viaje
-
-class ReportesDiariosView(SuperUserRequiredMixin, TemplateView):
-    template_name = 'admin/reportes.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        hoy = localtime(now()).date()
-        viajes_hoy = Viaje.objects.filter(fecha_programada__date=hoy)
-
-        # Lista de viajes con duración y demora
-        viajes_data = []
-        duraciones = []
-        demoras = []
-
-        for viaje in viajes_hoy:
-            # Calculamos duración real en minutos si existe
-            duracion = viaje.duracion_minutos_real
-            if duracion is None and viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
-                delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
-                duracion = int(delta.total_seconds() / 60)
-
-            # Calculamos demora en minutos si existe
-            demora = viaje.demora_inicio_minutos
-            if demora is None and viaje.fecha_hora_inicio_real:
-                programado = viaje.fecha_programada
-                delta = viaje.fecha_hora_inicio_real - programado
-                demora = int(delta.total_seconds() / 60)
-
-            if duracion is not None:
-                duraciones.append(duracion)
-            if demora is not None:
-                demoras.append(demora)
-
-            viajes_data.append({
-                'id': viaje.id,
-                'recorrido': str(viaje.recorrido),
-                'duracion_minutos': duracion,
-                'demora_minutos': demora,
-            })
-
-        # Promedios
-        promedio_duracion = round(sum(duraciones)/len(duraciones), 2) if duraciones else 0
-        promedio_demora = round(sum(demoras)/len(demoras), 2) if demoras else 0
-
-        context.update({
-            'viajes_data': viajes_data,
-            'promedio_duracion': promedio_duracion,
-            'promedio_demora': promedio_demora,
-            'fecha_reporte': hoy,
-        })
-
-        return context
 
 
 

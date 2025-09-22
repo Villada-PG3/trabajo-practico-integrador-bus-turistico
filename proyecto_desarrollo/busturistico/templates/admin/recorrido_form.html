@@ -37,16 +37,23 @@
               </div>
 
               <!-- Duración -->
-              <div class="col-md-6">
-                <label for="{{ form.duracion_aproximada_recorrido.id_for_label }}" class="form-label">Duración Aproximada</label>
-                <input type="time" name="{{ form.duracion_aproximada_recorrido.name }}" id="{{ form.duracion_aproximada_recorrido.id_for_label }}"
-                       class="form-control {% if form.duracion_aproximada_recorrido.errors %}is-invalid{% endif %}"
-                       value="{{ form.duracion_aproximada_recorrido.value|time:'H:i'|default_if_none:'' }}" required>
-                {% if form.duracion_aproximada_recorrido.errors %}
-                  <div class="invalid-feedback d-block">{{ form.duracion_aproximada_recorrido.errors|striptags }}</div>
-                {% endif %}
-              </div>
-
+              <div class="col-md-4">
+  <label for="{{ form.duracion_aproximada_recorrido.id_for_label }}" class="form-label">
+    Duración (minutos)
+  </label>
+  <div class="input-group">
+    <input type="number"
+           name="{{ form.duracion_aproximada_recorrido.name }}"
+           id="{{ form.duracion_aproximada_recorrido.id_for_label }}"
+           class="form-control {% if form.duracion_aproximada_recorrido.errors %}is-invalid{% endif %}"
+           value="{{ form.duracion_aproximada_recorrido.value|default_if_none:'' }}"
+           min="1" step="1" placeholder="Duración en minutos" required>
+    <span class="input-group-text">min</span>
+    {% if form.duracion_aproximada_recorrido.errors %}
+      <div class="invalid-feedback d-block">{{ form.duracion_aproximada_recorrido.errors|striptags }}</div>
+    {% endif %}
+  </div>
+</div>
               <!-- Descripción -->
               <div class="col-12">
                 <label for="{{ form.descripcion_recorrido.id_for_label }}" class="form-label">Descripción</label>
