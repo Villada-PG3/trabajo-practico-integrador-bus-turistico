@@ -177,3 +177,19 @@ class HistorialEstadoViaje(models.Model):
 
     def __str__(self):
         return f"Historial Estado Viaje {self.id} - Viaje {self.viaje.id} - Estado {self.estado_viaje.nombre_estado}"
+
+
+class Consulta(models.Model):
+    nombre = models.CharField(max_length=100)
+    email = models.EmailField()
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    personas = models.CharField(max_length=20, blank=True, null=True)
+    fecha_interes = models.DateField(blank=True, null=True)
+    recorrido_interes = models.CharField(max_length=50, blank=True, null=True)
+    mensaje = models.TextField()
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    respondida = models.BooleanField(default=False)
+    respuesta = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Consulta de {self.nombre} ({self.email})"
