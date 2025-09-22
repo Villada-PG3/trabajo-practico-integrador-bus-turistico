@@ -1,0 +1,41 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Consultas{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Consultas de Usuarios</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consulta in consultas %}
+            <tr>
+                <td>{{ consulta.nombre }}</td>
+                <td>{{ consulta.email }}</td>
+                <td>{{ consulta.mensaje|truncatechars:50 }}</td>
+                <td>{{ consulta.fecha_envio|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if consulta.respondida %}
+                        <span class="badge bg-success">Respondida</span>
+                    {% else %}
+                        <span class="badge bg-warning">Pendiente</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'admin-consulta-detalle' consulta.pk %}" class="btn btn-sm btn-primary">Ver</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No hay consultas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

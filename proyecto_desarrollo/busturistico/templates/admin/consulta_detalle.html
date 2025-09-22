@@ -1,0 +1,22 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Detalle de Consulta{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>Consulta de {{ object.nombre }}</h2>
+    <p><strong>Email:</strong> {{ object.email }}</p>
+    <p><strong>Mensaje:</strong> {{ object.mensaje }}</p>
+    <p><strong>Fecha:</strong> {{ object.fecha_envio|date:"d/m/Y H:i" }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_respuesta" class="form-label">Respuesta</label>
+            {{ form.respuesta }}
+        </div>
+        <div class="form-check mb-3">
+            {{ form.respondida }} <label class="form-check-label">Marcar como respondida</label>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar Respuesta</button>
+    </form>
+</div>
+{% endblock %}

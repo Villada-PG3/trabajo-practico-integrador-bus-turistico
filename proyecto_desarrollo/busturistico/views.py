@@ -17,7 +17,7 @@ import json
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje
+    UbicacionColectivo, Viaje, Consulta
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
@@ -745,3 +745,26 @@ class ReportesDiariosView(SuperUserRequiredMixin, TemplateView):
 
 class BaseUsuarioView(TemplateView):
     template_name = 'usuario/base_usuario.html'
+
+class ConsultasView(SuperUserRequiredMixin, ListView):
+    model = Consulta
+    template_name = "admin/consultas.html"
+    context_object_name = "consultas"
+    ordering = ["-fecha_envio"]
+
+
+
+class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
+    model = Consulta
+    fields = ["respuesta", "respondida"]
+    template_name = "admin/consulta_detalle.html"
+    success_url = reverse_lazy("admin-consultas")
+
+    def form_valid(self, form):
+        consulta = form.save(commit=False)
+        # Si tiene respuesta, marcamos respondida
+        if consulta.respuesta:
+            consulta.respondida = True
+        consulta.save()
+        # 👇 acá podrías enviar mail automático con consulta.respuesta
+        return super().form_valid(form)
