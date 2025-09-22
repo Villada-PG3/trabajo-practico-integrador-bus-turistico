@@ -1,5 +1,6 @@
 from django import forms
 from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje,EstadoBusHistorial,ParadaAtractivo
+import datetime 
 from django.utils import timezone
 from django.db.models import Q
 from .models import Chofer, Bus,Parada
@@ -159,13 +160,44 @@ class ChoferForm(forms.ModelForm):
         model = Chofer
         fields = '__all__'
         widgets = {
-            'nombre_chofer': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'apellido_chofer': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'legajo_chofer': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'dni_chofer': forms.NumberInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'telefono': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'fecha_ingreso': forms.DateInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline', 'type': 'date'}),
-            'activo': forms.CheckboxInput(attrs={'class': 'form-checkbox h-5 w-5 text-blue-600'}),
+            'nombre_chofer': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre'
+            }),
+            'apellido_chofer': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Apellido'
+            }),
+            'legajo_chofer': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'N.º de legajo',
+                'inputmode': 'numeric'
+            }),
+            'dni_chofer': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'DNI (sin puntos)'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+54 9 351 123 4567',
+                'inputmode': 'tel'
+            }),
+            'fecha_ingreso': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'nombre_chofer': 'Nombre',
+            'apellido_chofer': 'Apellido',
+            'legajo_chofer': 'Legajo',
+            'dni_chofer': 'DNI',
+            'telefono': 'Teléfono',
+            'fecha_ingreso': 'Fecha de Ingreso',
+            'activo': 'Activo',
         }
 
 
@@ -353,15 +385,8 @@ class AtractivoForm(forms.ModelForm):
                 ParadaAtractivo.objects.get_or_create(parada=parada, atractivo=instance)
         return instance
 
-class RecorridoForm(forms.ModelForm):
-    class Meta:
-        model = Recorrido
-        fields = '__all__'
-        widgets = {
-            'color_recorrido': forms.TextInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
-            'duracion_aproximada_recorrido': forms.TimeInput(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline', 'type': 'time'}),
-            'descripcion_recorrido': forms.Textarea(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline min-h-[100px]'}),
-        }
+
+
 
 class EstadoBusHistorialForm(forms.ModelForm):
     class Meta:
@@ -370,3 +395,34 @@ class EstadoBusHistorialForm(forms.ModelForm):
         widgets = {
             'estado_bus': forms.Select(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
         }
+        
+class RecorridoForm(forms.ModelForm):
+    # Número en minutos (se ve y valida como <input type="number">)
+    duracion_aproximada_recorrido = forms.IntegerField(
+        min_value=1,
+        label='Duración (minutos)',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',           # Bootstrap limpio
+            'placeholder': 'Duración en minutos',
+            'step': '1',
+            'min': '1',
+            'inputmode': 'numeric'
+        })
+    )
+
+    class Meta:
+        model = Recorrido
+        fields = '__all__'
+        widgets = {
+            'color_recorrido': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Azul'
+            }),
+            'descripcion_recorrido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Breve descripción del recorrido'
+            }),
+        }
+
+ 
