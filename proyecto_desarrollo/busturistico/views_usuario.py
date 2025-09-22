@@ -3,6 +3,11 @@ from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
 
+
+class MapaView(TemplateView):
+    template_name = "usuario/mapa.html"
+
+
 class UsuarioInicioView(TemplateView):
     template_name = 'usuario/inicio.html'
     
