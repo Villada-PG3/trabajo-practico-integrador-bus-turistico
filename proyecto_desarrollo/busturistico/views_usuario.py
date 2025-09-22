@@ -2,7 +2,8 @@ from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
-
+from django.views import View
+from django.shortcuts import render, redirect
 
 class MapaView(TemplateView):
     template_name = "usuario/mapa.html"
@@ -135,25 +136,34 @@ class UsuarioDetalleParadaView(DetailView):
         })
         return context
 
-class UsuarioContactoView(TemplateView):
+class UsuarioContactoView(View):
     template_name = 'usuario/contacto.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'horarios_atencion': {
-                'lunes_viernes': '08:00 - 18:00',
-                'sabados': '09:00 - 17:00',
-                'domingos': '10:00 - 16:00',
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, {
+            "horarios_atencion": {
+                "lunes_viernes": "08:00 - 18:00",
+                "sabados": "09:00 - 17:00",
+                "domingos": "10:00 - 16:00",
             },
-            'contacto_info': {
-                'telefono': '+54 9 11 1234-5678',
-                'email': 'info@busturistico.com',
-                'direccion': 'La Calera, Córdoba, Argentina',
-                'whatsapp': '+54 9 11 1234-5678',
+            "contacto_info": {
+                "telefono": "+54 9 11 1234-5678",
+                "email": "info@busturistico.com",
+                "direccion": "La Calera, Córdoba, Argentina",
+                "whatsapp": "+54 9 11 1234-5678",
             }
         })
-        return context
+
+    def post(self, request, *args, **kwargs):
+        nombre = request.POST.get("nombre")
+        email = request.POST.get("email")
+        mensaje = request.POST.get("mensaje")
+
+        # 👇 acá podés guardar en BD, enviar un email, etc.
+        print("Consulta recibida:", nombre, email, mensaje)
+
+        # Redirigir con query param para mostrar alerta de éxito
+        return redirect("/contacto/?success=1")
 
 # Vista adicional para búsqueda AJAX (opcional)
 class UsuarioBusquedaView(TemplateView):
