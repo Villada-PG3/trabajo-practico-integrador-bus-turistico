@@ -1,15 +1,14 @@
 {% extends "admin/base_admin.html" %}
-{% load widget_tweaks %}
-{% block title %}Crear Chofer - Panel Admin{% endblock %}
-
+{% block title %}{% if form.instance.pk %}Editar Recorrido{% else %}Crear Nuevo Recorrido{% endif %}{% endblock %}
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-12 col-lg-10 col-xl-8">
-      <div class="card shadow-sm border-0">
-          <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i> Crear Nuevo Chofer</h5>
+    <div class="col-12 col-xl-10">
+      <div class="card shadow-sm">
         <div class="card-body p-4 p-md-5">
-
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h4 m-0">{% if form.instance.pk %}Editar Recorrido{% else %}Crear Nuevo Recorrido{% endif %}</h2>
+          </div>
           {% if form.non_field_errors %}
             <div class="alert alert-danger">
               <ul class="mb-0">
@@ -19,88 +18,71 @@
               </ul>
             </div>
           {% endif %}
-
-          <form method="post" class="needs-validation" novalidate>
+          <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
             {% csrf_token %}
-
             <div class="row g-3">
+              <!-- Color -->
               <div class="col-md-6">
-                <label for="{{ form.nombre_chofer.id_for_label }}" class="form-label">{{ form.nombre_chofer.label }}</label>
-                {{ form.nombre_chofer|add_class:"form-control" }}
-                {% if form.nombre_chofer.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.nombre_chofer.errors %}{{ error }}{% endfor %}
+                <label for="{{ form.color_recorrido.id_for_label }}" class="form-label">Color del Recorrido</label>
+                <input type="text" name="{{ form.color_recorrido.name }}" id="{{ form.color_recorrido.id_for_label }}"
+                       class="form-control {% if form.color_recorrido.errors %}is-invalid{% endif %}"
+                       value="{{ form.color_recorrido.value|default_if_none:'' }}" placeholder="Ej: Azul" required>
+                {% if form.color_recorrido.errors %}
+                  <div class="invalid-feedback d-block">{{ form.color_recorrido.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <!-- Duración -->
+              <div class="col-md-4">
+                <label for="{{ form.duracion_aproximada_recorrido.id_for_label }}" class="form-label">Duración Aproximada (HH:MM)</label>
+                <input type="time"
+                       name="{{ form.duracion_aproximada_recorrido.name }}"
+                       id="{{ form.duracion_aproximada_recorrido.id_for_label }}"
+                       class="form-control {% if form.duracion_aproximada_recorrido.errors %}is-invalid{% endif %}"
+                       value="{{ form.duracion_aproximada_recorrido.value|default_if_none:''|time:'H:i' }}"
+                       required>
+                {% if form.duracion_aproximada_recorrido.errors %}
+                  <div class="invalid-feedback d-block">{{ form.duracion_aproximada_recorrido.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <!-- Descripción -->
+              <div class="col-12">
+                <label for="{{ form.descripcion_recorrido.id_for_label }}" class="form-label">Descripción</label>
+                <textarea name="{{ form.descripcion_recorrido.name }}" id="{{ form.descripcion_recorrido.id_for_label }}"
+                          class="form-control {% if form.descripcion_recorrido.errors %}is-invalid{% endif %}"
+                          rows="3" placeholder="Breve descripción del recorrido">{{ form.descripcion_recorrido.value|default_if_none:'' }}</textarea>
+                {% if form.descripcion_recorrido.errors %}
+                  <div class="invalid-feedback d-block">{{ form.descripcion_recorrido.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <!-- Foto -->
+              <div class="col-12">
+                <label for="{{ form.foto_recorrido.id_for_label }}" class="form-label">Foto (opcional)</label>
+                <input type="file" name="{{ form.foto_recorrido.name }}" id="{{ form.foto_recorrido.id_for_label }}"
+                       class="form-control {% if form.foto_recorrido.errors %}is-invalid{% endif %}" accept="image/*">
+                {% if form.foto_recorrido.errors %}
+                  <div class="invalid-feedback d-block">{{ form.foto_recorrido.errors|striptags }}</div>
+                {% endif %}
+                {% if object and object.foto_recorrido %}
+                  <div class="mt-2">
+                    <img src="{{ object.foto_recorrido.url }}" alt="Foto actual" class="img-thumbnail" style="max-height:140px;">
                   </div>
                 {% endif %}
               </div>
-
-              <div class="col-md-6">
-                <label for="{{ form.apellido_chofer.id_for_label }}" class="form-label">{{ form.apellido_chofer.label }}</label>
-                {{ form.apellido_chofer|add_class:"form-control" }}
-                {% if form.apellido_chofer.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.apellido_chofer.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="col-md-6">
-                <label for="{{ form.legajo_chofer.id_for_label }}" class="form-label">{{ form.legajo_chofer.label }}</label>
-                {{ form.legajo_chofer|add_class:"form-control" }}
-                {% if form.legajo_chofer.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.legajo_chofer.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="col-md-6">
-                <label for="{{ form.dni_chofer.id_for_label }}" class="form-label">{{ form.dni_chofer.label }}</label>
-                {{ form.dni_chofer|add_class:"form-control" }}
-                {% if form.dni_chofer.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.dni_chofer.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="col-md-6">
-                <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
-                {{ form.telefono|add_class:"form-control" }}
-                {% if form.telefono.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.telefono.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="col-md-6">
-                <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label">{{ form.fecha_ingreso.label }}</label>
-                {{ form.fecha_ingreso|add_class:"form-control" }}
-                {% if form.fecha_ingreso.errors %}
-                  <div class="invalid-feedback d-block">
-                    {% for error in form.fecha_ingreso.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-
-            
+            </div>
+            <!-- Botones -->
             <div class="d-flex gap-2 mt-4">
-              <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i> Guardar</button>
-              <a href="{% url 'admin-choferes' %}" class="btn btn-secondary"><i class="bi bi-x-circle me-2"></i> Cancelar</a>
+              <button type="submit" class="btn btn-primary">Guardar</button>
+              <a href="{% url 'admin-recorridos' %}" class="btn btn-secondary">Cancelar</a>
             </div>
           </form>
-
         </div>
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-  // Validación Bootstrap
   (function () {
     'use strict';
     var forms = document.querySelectorAll('.needs-validation');

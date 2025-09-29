@@ -582,6 +582,15 @@ class CrearRecorridoView(SuperUserRequiredMixin, CreateView):
     template_name = 'admin/recorrido_form.html'
     success_url = reverse_lazy('admin-recorridos')
 
+    def post(self, request, *args, **kwargs):
+        print("Datos recibidos en POST:", request.POST)  # Depuración
+        response = super().post(request, *args, **kwargs)  # Llamar al método padre
+        if self.request.POST and not self.object:  # Si no se guardó (error en el formulario)
+            form = self.get_form()
+            print("Errores del formulario:", form.errors)  # Depuración
+        elif self.object:  # Si se guardó correctamente
+            print("Datos limpios:", self.object.__dict__)  # Depuración con los atributos del objeto
+        return response
 class EditarRecorridoView(SuperUserRequiredMixin, UpdateView):
     model = Recorrido
     form_class = RecorridoForm

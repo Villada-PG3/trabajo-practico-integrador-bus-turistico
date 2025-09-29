@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje
 import datetime
 from django import forms
+import re
 from .models import Bus, EstadoBus
 User = get_user_model()
 
@@ -396,23 +397,24 @@ class EstadoBusHistorialForm(forms.ModelForm):
             'estado_bus': forms.Select(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
         }
         
+from django import forms
+from .models import Recorrido
+
 class RecorridoForm(forms.ModelForm):
-    # Número en minutos (se ve y valida como <input type="number">)
-    duracion_aproximada_recorrido = forms.IntegerField(
-        min_value=1,
-        label='Duración (minutos)',
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',           # Bootstrap limpio
-            'placeholder': 'Duración en minutos',
-            'step': '1',
-            'min': '1',
-            'inputmode': 'numeric'
-        })
+    duracion_aproximada_recorrido = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'HH:MM (ej: 01:30)',
+            'pattern': '[0-2][0-9]:[0-5][0-9]',  # Restricción de formato HH:MM
+            'title': 'Ingresa la duración en formato HH:MM (ej: 01:30)'
+        }),
+        label='Duración Aproximada (HH:MM)'
     )
 
     class Meta:
         model = Recorrido
-        fields = '__all__'
+        fields = ['color_recorrido', 'descripcion_recorrido', 'duracion_aproximada_recorrido', 'foto_recorrido']
         widgets = {
             'color_recorrido': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -423,6 +425,25 @@ class RecorridoForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Breve descripción del recorrido'
             }),
+            'foto_recorrido': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
         }
 
- 
+    def clean_duracion_aproximada_recorrido(self):
+        duracion = self.cleaned_data.get('duracion_aproximada_recorrido')
+        if not duracion:
+            raise forms.ValidationError("Debes ingresar una duración, salame! Usa formato HH:MM (ej: 01:30).")
+        # Validar formato HH:MM (horas 00-23, minutos 00-59)
+        if not re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', duracion):
+            raise forms.ValidationError("Formato inválido, peruano. Usa HH:MM (ej: 01:30). Horas 00-23, minutos 00-59.")
+        # Convertir a objeto time para el modelo
+        try:
+            from django.utils.dateparse import parse_time
+            parsed_time = parse_time(duracion)
+            if not parsed_time:
+                raise ValueError
+            return parsed_time
+        except ValueError:
+            raise forms.ValidationError("Formato inválido, revisa de nuevo. Usa HH:MM (ej: 01:30).")
