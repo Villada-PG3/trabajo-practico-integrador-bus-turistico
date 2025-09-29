@@ -343,15 +343,14 @@ document.addEventListener('DOMContentLoaded', animateCounters);
         </div>
     </div>
 </section>
-
-<!-- Testimonios -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5 animate-on-scroll">
-            <h2 class="display-5 fw-bold text-primary mb-3">Lo que dicen nuestros turistas</h2>
-            <p class="lead text-muted">Experiencias reales de personas que vivieron la magia de Buenos Aires</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-4 animate-on-scroll">
-                <div class="modern
+<!-- Precios -->
+<section id="precios" class="container my-5">
+  <h2>Precios</h2>
+  <ul>
+    {% for precio in precios %}
+      <li>{{ precio.nombre }}: ${{ precio.valor }}</li>
+    {% empty %}
+      <li>No hay precios cargados.</li>
+    {% endfor %}
+  </ul>
+</section>

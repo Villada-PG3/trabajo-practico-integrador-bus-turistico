@@ -1,7 +1,7 @@
-from django.views.generic import TemplateView, ListView, CreateView, DetailView
+from django.views.generic import TemplateView, ListView, CreateView, DetailView, View
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
-from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
+from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada, Precio, Traduccion
 from django.views import View
 from django.shortcuts import render, redirect
 
@@ -23,8 +23,16 @@ class UsuarioInicioView(TemplateView):
                 estadobushistorial__estado_bus__nombre_estado='Operativo'
             ).distinct().count(),
             'recorridos_populares': Recorrido.objects.annotate(
-                total_paradas=Count('recorridoparadas')  # CORREGIDO: usar recorridoparadas
+                total_paradas=Count('recorridoparadas')  # usando recorridoparadas
             ).order_by('-total_paradas')[:3],
+            
+            # Traducciones dinámicas
+            'titulo_inicio': get_traduccion("inicio_titulo", self.request, "Descubre Buenos Aires como nunca antes"),
+            'descripcion_inicio': get_traduccion("inicio_descripcion", self.request, "Recorre los barrios más emblemáticos y vive la ciudad con nuestro servicio de buses turísticos."),
+
+            
+            # 🔥 Precios
+            'precios': Precio.objects.all(),
         })
         
         return context
@@ -181,3 +189,32 @@ class UsuarioBusquedaView(TemplateView):
             })
             
         return context
+
+
+class UsuarioPreciosView(TemplateView):
+    template_name = 'usuario/precios.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_precios'] = 'Precios Bus Turístico Buenos Aires'
+        context['subtitulo_precios'] = 'Elegí el pase que más te convenga'
+        context['precios'] = Precio.objects.all()  # <- asegurate que trae objetos
+        return context
+
+class CambiarIdiomaView(View):
+    def post(self, request, *args, **kwargs):
+        idioma = request.POST.get("idioma", "es")
+        if idioma not in ["es", "en"]:  # solo aceptamos español e inglés
+            idioma = "es"
+        request.session["idioma"] = idioma  
+        return redirect(request.META.get("HTTP_REFERER", "usuario-inicio"))
+
+
+
+# --- Función auxiliar para traducciones ---
+def get_traduccion(clave, request, default=""):
+    idioma = request.session.get("idioma", "es")
+    try:
+        return Traduccion.objects.get(clave=clave, idioma=idioma).texto
+    except Traduccion.DoesNotExist:
+        return default

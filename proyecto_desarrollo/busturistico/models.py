@@ -193,3 +193,47 @@ class Consulta(models.Model):
 
     def __str__(self):
         return f"Consulta de {self.nombre} ({self.email})"
+
+
+class Precio(models.Model):
+    TIPO_CHOICES = [
+        ('24h', 'Pase 24 horas'),
+        ('48h', 'Pase 48 horas'),
+        ('familiar', 'Pase Familiar'),
+    ]
+
+    tipo = models.CharField(max_length=20, choices= TIPO_CHOICES)
+    precio_usd = models.DecimalField(max_digits=6, decimal_places=2)
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+    
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - ${self.precio_usd} USD"
+
+
+# Solo la parte relevante del modelo Traduccion actualizada
+
+class Traduccion(models.Model):
+    CLAVE_CHOICES = [
+        ('inicio_titulo', 'Título sección inicio'),
+        ('inicio_descripcion', 'Descripción sección inicio'),
+        ('precios_titulo', 'Título sección precios'),
+        ('precios_subtitulo', 'Subtítulo sección precios'),
+        # Podés agregar más claves según necesites
+    ]
+
+    clave = models.CharField(max_length=50, choices=CLAVE_CHOICES)
+    idioma = models.CharField(max_length=5, choices=[
+        ('es', 'Español'),
+        ('en', 'English'),
+        ('pt', 'Português'),
+    ])
+    texto = models.TextField()
+
+    class Meta:
+        unique_together = ('clave', 'idioma')
+        verbose_name_plural = "Traducciones"
+
+    def __str__(self):
+        return f"{self.clave} [{self.idioma}]"
