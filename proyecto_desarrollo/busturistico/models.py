@@ -143,7 +143,7 @@ class EstadoViaje(models.Model):
 
 
 class Viaje(models.Model):
-    fecha_programada = models.DateTimeField()
+    fecha_programada = models.DateField()
     hora_inicio_programada = models.TimeField()
     fecha_hora_inicio_real = models.DateTimeField(null=True, blank=True)
     fecha_hora_fin_real = models.DateTimeField(null=True, blank=True)
