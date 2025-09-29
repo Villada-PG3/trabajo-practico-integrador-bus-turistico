@@ -48,6 +48,14 @@ urlpatterns = [
     path('admin/recorridos/<int:pk>/', views.RecorridoDetailView.as_view(), name='admin-detalle-recorrido'),
     path('admin/recorridos/<int:pk>/editar/', views.EditarRecorridoView.as_view(), name='admin-editar-recorrido'),
     path('admin/recorridos/<int:pk>/eliminar/', views.EliminarRecorridoView.as_view(), name='admin-eliminar-recorrido'),
+    # Reportes
+    path('admin/reportes/', views.ReportesView.as_view(), name='admin-reportes'),
+    path('admin/generar-reporte/', views.generar_reporte, name='generar-reporte'),
+
+    # Consultas
+    path('admin/consultas/', views.ConsultasView.as_view(), name='admin-consultas'),
+    path('admin/consultas/<int:pk>/', views.ConsultaDetailView.as_view(), name='admin-consulta-detalle'),
+
     # Usuario público
     path('', include('busturistico.urls_usuario')),
     

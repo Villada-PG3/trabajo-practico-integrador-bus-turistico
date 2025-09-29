@@ -1,0 +1,43 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Detalle de Consulta{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Consulta de {{ object.nombre }}</h2>
+
+    <!-- Tarjeta con información de la consulta -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ object.email }}</p>
+            <p><strong>Teléfono:</strong> {{ object.telefono|default:"-" }}</p>
+            <p><strong>Personas:</strong> {{ object.personas|default:"-" }}</p>
+            <p><strong>Recorrido de interés:</strong> {{ object.recorrido_interes|default:"-" }}</p>
+            <p><strong>Fecha de interés:</strong> {{ object.fecha_interes|date:"d/m/Y"|default:"-" }}</p>
+            <p><strong>Mensaje:</strong></p>
+            <div class="p-2 bg-light rounded">{{ object.mensaje }}</div>
+            <p class="mt-2"><strong>Fecha de envío:</strong> {{ object.fecha_envio|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+
+    <!-- Formulario de respuesta -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Responder Consulta</h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_respuesta" class="form-label">Respuesta</label>
+                    <!-- agregamos la clase Bootstrap manualmente -->
+                    {{ form.respuesta }}
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.respondida }} 
+                    <label class="form-check-label">Marcar como respondida</label>
+                </div>
+                <button type="submit" class="btn btn-success">Guardar Respuesta</button>
+                <a href="{% url 'admin-consultas' %}" class="btn btn-secondary ms-2">Volver</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

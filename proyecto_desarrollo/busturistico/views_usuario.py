@@ -1,8 +1,9 @@
 from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
-from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
-
+from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
+from django.views import View
+from django.shortcuts import render, redirect
 
 class MapaView(TemplateView):
     template_name = "usuario/mapa.html"
@@ -135,25 +136,24 @@ class UsuarioDetalleParadaView(DetailView):
         })
         return context
 
-class UsuarioContactoView(TemplateView):
-    template_name = 'usuario/contacto.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'horarios_atencion': {
-                'lunes_viernes': '08:00 - 18:00',
-                'sabados': '09:00 - 17:00',
-                'domingos': '10:00 - 16:00',
-            },
-            'contacto_info': {
-                'telefono': '+54 9 11 1234-5678',
-                'email': 'info@busturistico.com',
-                'direccion': 'La Calera, Córdoba, Argentina',
-                'whatsapp': '+54 9 11 1234-5678',
-            }
-        })
-        return context
+class UsuarioContactoView(View):
+    template_name = "usuario/contacto.html"
+
+    def get(self, request, *args, **kwargs):
+        # lo mismo que tenías
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        Consulta.objects.create(
+            nombre=request.POST.get("nombre"),
+            email=request.POST.get("email"),
+            telefono=request.POST.get("telefono"),
+            personas=request.POST.get("personas"),
+            fecha_interes=request.POST.get("fecha_interes") or None,
+            recorrido_interes=request.POST.get("recorrido_interes"),
+            mensaje=request.POST.get("mensaje"),
+        )
+        return redirect("/contacto/?success=1")
 
 # Vista adicional para búsqueda AJAX (opcional)
 class UsuarioBusquedaView(TemplateView):

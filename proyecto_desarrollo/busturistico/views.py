@@ -10,21 +10,21 @@ from django.utils import timezone
 from datetime import timedelta
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
-)
-
+)   
 from math import radians, sin, cos, sqrt, atan2
 import json
-
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje
+    UbicacionColectivo, Viaje, Consulta
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
     RecorridoForm, ViajeCreateForm
 )
 
+from django.core.mail import send_mail
+from django.conf import settings
 
 # --- Mixins and Helper Functions ---
 class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -36,20 +36,6 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def handle_no_permission(self):
         return redirect('admin:login')
-
-def haversine(lat1, lon1, lat2, lon2):
-    """
-    Calcula la distancia de la gran-círculo entre dos puntos
-    en la tierra (especificados en coordenadas decimales)
-    """
-    R = 6371.0
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = R * c
-    return distance
 
 
 # --- Dashboard Views ---
@@ -259,36 +245,7 @@ class BusDetailView(SuperUserRequiredMixin, DetailView):
         ).first()
         context['viaje_actual'] = viaje_actual
 
-        if viaje_actual:
-            context['estado_actual'] = 'Activo'
-            context['recorrido_actual'] = viaje_actual.recorrido
-            ubicacion_actual = UbicacionColectivo.objects.filter(viaje=viaje_actual).order_by('-timestamp_ubicacion').first()
-            context['ubicacion_actual'] = ubicacion_actual
-            
-            if ubicacion_actual:
-                paradas = RecorridoParada.objects.filter(recorrido=viaje_actual.recorrido).select_related('parada')
-                if paradas:
-                    try:
-                        closest = min(paradas, key=lambda rp: haversine(
-                            ubicacion_actual.latitud, ubicacion_actual.longitud,
-                            rp.parada.latitud_parada, rp.parada.longitud_parada
-                        ))
-                        context['closest_parada'] = closest.parada
-                    except (ValueError, TypeError) as e:
-                        context['closest_parada'] = None
-        else:
-            historial = EstadoBusHistorial.objects.filter(patente_bus=bus).order_by('-fecha_inicio_estado').first()
-            context['estado_actual'] = historial.estado_bus.nombre_estado if historial else 'Sin estado'
-            context['recorrido_actual'] = None
-            context['ubicacion_actual'] = None
-            context['closest_parada'] = None
-
-        last_mant = EstadoBusHistorial.objects.filter(
-            patente_bus=bus,
-            estado_bus__nombre_estado__iexact='en mantenimiento'
-        ).order_by('-fecha_inicio_estado').first()
-        context['ultimo_mantenimiento'] = last_mant.fecha_inicio_estado if last_mant else None
-        return context
+ 
 
 class CrearBusView(SuperUserRequiredMixin, CreateView):
     model = Bus
@@ -363,28 +320,7 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
                 counts['en_curso'] += 1
             else:
                 viaje.estado_actual = 'Programado'
-                counts['programados'] += 1
-            
-            # Calcular closest_parada solo para viajes en curso
-            viaje.closest_parada = None
-            if viaje.recorrido and viaje.estado_actual == 'En Curso':
-                ubicacion_actual = viaje.ubicacioncolectivo_set.order_by('-timestamp_ubicacion').first()
-                if ubicacion_actual and viaje.recorrido.recorridoparadas.exists():
-                    try:
-                        closest = min(
-                            viaje.recorrido.recorridoparadas.all(),  # Usa 'recorridoparadas'
-                            key=lambda rp: haversine(
-                                ubicacion_actual.latitud, 
-                                ubicacion_actual.longitud,
-                                rp.parada.latitud_parada, 
-                                rp.parada.longitud_parada
-                            )
-                        )
-                        viaje.closest_parada = closest.parada
-                    except (ValueError, TypeError, AttributeError):
-                        pass  # closest_parada queda None
-            
-            trips_with_status.append(viaje)
+                counts['programados'] += 1      
         
         # Filtrar trips para display
         if status_filter == 'programados':
@@ -652,3 +588,38 @@ class EliminarAtractivoView(SuperUserRequiredMixin, DeleteView):
 
 class BaseUsuarioView(TemplateView):
     template_name = 'usuario/base_usuario.html'
+
+class ConsultasView(SuperUserRequiredMixin, ListView):
+    model = Consulta
+    template_name = "admin/consultas.html"
+    context_object_name = "consultas"
+    ordering = ["-fecha_envio"]
+
+
+class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
+    model = Consulta
+    fields = ["respuesta", "respondida"]
+    template_name = "admin/consulta_detalle.html"
+    success_url = reverse_lazy("admin-consultas")
+
+    def form_valid(self, form):
+        consulta = form.save(commit=False)
+
+        # Si hay respuesta, enviamos el mail (aunque respondida ya sea True)
+        if consulta.respuesta:
+            try:
+                send_mail(
+                    subject=f"Respuesta a tu consulta - Bus Turístico",
+                    message=consulta.respuesta,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[consulta.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print("Error al enviar correo:", e)
+
+            # Marcamos como respondida siempre que haya respuesta
+            consulta.respondida = True
+
+        consulta.save()
+        return super().form_valid(form)

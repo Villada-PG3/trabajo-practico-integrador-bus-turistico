@@ -8,10 +8,13 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje
+from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje, Consulta
 import datetime
+<<<<<<< HEAD
 from django import forms
 import re
+=======
+>>>>>>> ea00a7af96ef64951b8620bd12f49b39a03a959c
 from .models import Bus, EstadoBus
 User = get_user_model()
 
@@ -396,6 +399,18 @@ class EstadoBusHistorialForm(forms.ModelForm):
         widgets = {
             'estado_bus': forms.Select(attrs={'class': 'shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'}),
         }
+
+
+
+class RespuestaForm(forms.ModelForm):
+    class Meta:
+        model = Consulta
+        fields = ["respuesta", "respondida"]
+        widgets = {
+            "respuesta": forms.Textarea(attrs={"rows": 5, "class": "form-control"}),
+            "respondida": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
         
 from django import forms
 from .models import Recorrido
@@ -431,6 +446,7 @@ class RecorridoForm(forms.ModelForm):
             })
         }
 
+<<<<<<< HEAD
     def clean_duracion_aproximada_recorrido(self):
         duracion = self.cleaned_data.get('duracion_aproximada_recorrido')
         if not duracion:
@@ -447,3 +463,6 @@ class RecorridoForm(forms.ModelForm):
             return parsed_time
         except ValueError:
             raise forms.ValidationError("Formato inválido, revisa de nuevo. Usa HH:MM (ej: 01:30).")
+=======
+ 
+>>>>>>> ea00a7af96ef64951b8620bd12f49b39a03a959c
