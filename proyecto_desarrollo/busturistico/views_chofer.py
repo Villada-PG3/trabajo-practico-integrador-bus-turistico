@@ -4,7 +4,15 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView, View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Recorrido, Viaje, Chofer, EstadoViaje, Bus
+from .models import (
+    Recorrido,
+    Viaje,
+    Chofer,
+    EstadoViaje,
+    Bus,
+    RecorridoParada,
+    UbicacionColectivo,
+)
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import datetime
@@ -117,6 +125,10 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
             estado_en_curso = None
         viaje_asignado.save()
 
+        # Simular el recorrido si aún no hay ubicaciones registradas
+        if not UbicacionColectivo.objects.filter(viaje=viaje_asignado).exists():
+            self._simular_recorrido_ideal(viaje_asignado)
+
         messages.success(request, f'Viaje al recorrido {viaje_asignado.recorrido.color_recorrido} iniciado correctamente.')
         return redirect('viaje-en-curso')
 
@@ -135,23 +147,61 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
         if len(rps) >= 2:
             coords = [(rp.parada.latitud_parada, rp.parada.longitud_parada) for rp in rps]
         else:
-            # 2) Fallback: si es el Recorrido Verde, usar coordenadas aproximadas conocidas
+            # 2) Fallback: usar rutas aproximadas por color cuando no hay paradas cargadas.
             color = (recorrido.color_recorrido or '').strip().lower()
-            if 'verde' in color:
-                # Orden provisto por el usuario
-                coords = [
-                    (-34.5569, -58.4016),  # 03 Club de Pescadores
-                    (-34.5686, -58.4100),  # 02 Planetario
-                    (-34.5834, -58.4037),  # 01 MALBA (conexion)
-                    (-34.5705, -58.4116),  # 11 Monumento a los Españoles (conexion)
-                    (-34.5855, -58.4307),  # 10 Palermo Soho II (aprox)
-                    (-34.5746, -58.4260),  # 09 Distrito Arcos II (aprox)
-                    (-34.5413, -58.4313),  # 04 Parque de la Memoria
-                    (-34.5453, -58.4493),  # 05 El Monumental
-                    (-34.5610, -58.4491),  # 06 Belgrano Barrio Chino
-                    (-34.5697, -58.4255),  # 07 Campo Argentino de Polo
-                    (-34.5655, -58.4155),  # 08 Bosques de Palermo (conexion)
-                ]
+            fallback_paths = {
+                'verde': [
+                    (-34.5569, -58.4016),  # Club de Pescadores
+                    (-34.5686, -58.4100),  # Planetario
+                    (-34.5834, -58.4037),  # MALBA (conexión)
+                    (-34.5705, -58.4116),  # Monumento a los Españoles (conexión)
+                    (-34.5855, -58.4307),  # Palermo Soho II (aprox)
+                    (-34.5746, -58.4260),  # Distrito Arcos II (aprox)
+                    (-34.5413, -58.4313),  # Parque de la Memoria
+                    (-34.5453, -58.4493),  # El Monumental
+                    (-34.5610, -58.4491),  # Belgrano Barrio Chino
+                    (-34.5697, -58.4255),  # Campo Argentino de Polo
+                    (-34.5655, -58.4155),  # Bosques de Palermo (conexión)
+                ],
+                'rojo': [
+                    (-34.6083, -58.3712),  # Plaza de Mayo
+                    (-34.6177, -58.3685),  # San Telmo
+                    (-34.6288, -58.3696),  # La Boca / Caminito
+                    (-34.6226, -58.3817),  # Parque Lezama
+                    (-34.6100, -58.3816),  # Puerto Madero Sur
+                    (-34.6020, -58.3792),  # Puerto Madero Norte
+                    (-34.6010, -58.3850),  # Obelisco
+                    (-34.5983, -58.3924),  # Tribunales
+                    (-34.6026, -58.3975),  # Teatro Colón
+                    (-34.6063, -58.3925),  # Congreso de la Nación
+                ],
+                'azul': [
+                    (-34.6037, -58.3816),  # Obelisco
+                    (-34.5894, -58.3817),  # Recoleta
+                    (-34.5779, -58.4033),  # Palermo Chico
+                    (-34.5634, -58.4490),  # Colegiales
+                    (-34.5715, -58.4588),  # Chacarita
+                    (-34.5871, -58.4562),  # Villa Crespo
+                    (-34.6024, -58.4417),  # Almagro
+                    (-34.6106, -58.4280),  # Boedo
+                    (-34.6174, -58.4127),  # Parque Patricios
+                    (-34.6136, -58.3953),  # San Cristóbal
+                ],
+            }
+            for key, path in fallback_paths.items():
+                if key in color:
+                    coords = path
+                    break
+
+        if len(coords) < 2:
+            # Último recurso: traza un pequeño circuito en el microcentro.
+            coords = [
+                (-34.6037, -58.3816),
+                (-34.6050, -58.3770),
+                (-34.6072, -58.3805),
+                (-34.6058, -58.3850),
+                (-34.6037, -58.3816),
+            ]
 
         if len(coords) < 2:
             # Nada que simular
