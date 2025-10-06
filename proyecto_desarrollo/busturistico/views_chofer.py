@@ -4,6 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView, View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.conf import settings
 from .models import (
     Recorrido,
     Viaje,
@@ -17,6 +18,11 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import datetime
 import logging
+import json
+from urllib import request as urlrequest, parse as urlparse
+
+
+logger = logging.getLogger(__name__)
 
 class ChoferRequiredMixin:
     """Mixin que requiere que el usuario sea un chofer activo"""
@@ -140,66 +146,76 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
         recorrido = viaje.recorrido
         now = timezone.now()
 
-        # 1) Intentar usar las paradas del recorrido cargadas en DB
-        rps = list(RecorridoParada.objects.filter(recorrido=recorrido).select_related('parada').order_by('orden'))
+        # 1) Ruta basada en las paradas cargadas para el recorrido
+        rps = list(
+            RecorridoParada.objects
+            .filter(recorrido=recorrido)
+            .select_related('parada')
+            .order_by('orden')
+        )
+        raw_points = [
+            (rp.parada.latitud_parada, rp.parada.longitud_parada)
+            for rp in rps
+            if rp.parada.latitud_parada is not None and rp.parada.longitud_parada is not None
+        ]
 
-        coords = []
-        if len(rps) >= 2:
-            coords = [(rp.parada.latitud_parada, rp.parada.longitud_parada) for rp in rps]
-        else:
-            # 2) Fallback: usar rutas aproximadas por color cuando no hay paradas cargadas.
-            color = (recorrido.color_recorrido or '').strip().lower()
-            fallback_paths = {
-                'verde': [
-                    (-34.5569, -58.4016),  # Club de Pescadores
-                    (-34.5686, -58.4100),  # Planetario
-                    (-34.5834, -58.4037),  # MALBA (conexión)
-                    (-34.5705, -58.4116),  # Monumento a los Españoles (conexión)
-                    (-34.5855, -58.4307),  # Palermo Soho II (aprox)
-                    (-34.5746, -58.4260),  # Distrito Arcos II (aprox)
-                    (-34.5413, -58.4313),  # Parque de la Memoria
-                    (-34.5453, -58.4493),  # El Monumental
-                    (-34.5610, -58.4491),  # Belgrano Barrio Chino
-                    (-34.5697, -58.4255),  # Campo Argentino de Polo
-                    (-34.5655, -58.4155),  # Bosques de Palermo (conexión)
-                ],
-                'rojo': [
-                    (-34.6083, -58.3712),  # Plaza de Mayo
-                    (-34.6177, -58.3685),  # San Telmo
-                    (-34.6288, -58.3696),  # La Boca / Caminito
-                    (-34.6226, -58.3817),  # Parque Lezama
-                    (-34.6100, -58.3816),  # Puerto Madero Sur
-                    (-34.6020, -58.3792),  # Puerto Madero Norte
-                    (-34.6010, -58.3850),  # Obelisco
-                    (-34.5983, -58.3924),  # Tribunales
-                    (-34.6026, -58.3975),  # Teatro Colón
-                    (-34.6063, -58.3925),  # Congreso de la Nación
-                ],
-                'azul': [
-                    (-34.6037, -58.3816),  # Obelisco
-                    (-34.5894, -58.3817),  # Recoleta
-                    (-34.5779, -58.4033),  # Palermo Chico
-                    (-34.5634, -58.4490),  # Colegiales
-                    (-34.5715, -58.4588),  # Chacarita
-                    (-34.5871, -58.4562),  # Villa Crespo
-                    (-34.6024, -58.4417),  # Almagro
-                    (-34.6106, -58.4280),  # Boedo
-                    (-34.6174, -58.4127),  # Parque Patricios
-                    (-34.6136, -58.3953),  # San Cristóbal
-                ],
-            }
-            for key, path in fallback_paths.items():
-                if key in color:
-                    coords = path
-                    break
+        def _build_city_path(points):
+            if len(points) < 2:
+                return points
 
+            def _manhattan_segment(a, b, step=0.00035):
+                lat1, lon1 = a
+                lat2, lon2 = b
+                path = [a]
+                current_lat, current_lon = lat1, lon1
+
+                # Determinar el orden de piernas para evitar cortes bruscos
+                leg_order = ['lon', 'lat']
+                if abs(lat2 - lat1) > abs(lon2 - lon1):
+                    leg_order = ['lat', 'lon']
+
+                for leg in leg_order:
+                    if leg == 'lon':
+                        diff = lon2 - current_lon
+                        if abs(diff) < 1e-9:
+                            continue
+                        steps = max(int(abs(diff) / step), 1)
+                        for s in range(1, steps + 1):
+                            lon = current_lon + diff * (s / steps)
+                            path.append((current_lat, lon))
+                        current_lon = lon2
+                    else:  # leg == 'lat'
+                        diff = lat2 - current_lat
+                        if abs(diff) < 1e-9:
+                            continue
+                        steps = max(int(abs(diff) / step), 1)
+                        for s in range(1, steps + 1):
+                            lat = current_lat + diff * (s / steps)
+                            path.append((lat, current_lon))
+                        current_lat = lat2
+
+                if path[-1] != b:
+                    path.append(b)
+                return path
+
+            expanded = [points[0]]
+            for start, end in zip(points, points[1:]):
+                segment = _manhattan_segment(start, end)
+                expanded.extend(segment[1:])  # omitir el primer punto para no duplicar
+            return expanded
+
+        coords = self._route_with_osrm(raw_points)
+        if not coords:
+            coords = _build_city_path(raw_points)
+
+        # 2) Fallback manual suave cercano al obelisco
         if len(coords) < 2:
-            # Último recurso: traza un pequeño circuito en el microcentro.
             coords = [
-                (-34.6037, -58.3816),
-                (-34.6050, -58.3770),
-                (-34.6072, -58.3805),
-                (-34.6058, -58.3850),
+                (-34.6037, -58.3816),  # Obelisco
+                (-34.6045, -58.3780),  # Corrientes y Florida
+                (-34.6070, -58.3790),  # Plaza Lavalle
+                (-34.6090, -58.3825),  # Congreso
+                (-34.6060, -58.3855),  # 9 de Julio y Belgrano
                 (-34.6037, -58.3816),
             ]
 
@@ -217,7 +233,7 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
 
         # Parámetros de simulación: 6 pasos por tramo, cada 10 segundos
         steps_per_segment = 6
-        interval_seconds = 10
+        interval_seconds = 3
 
         def interp(a, b, t):
             return a + (b - a) * t
@@ -238,6 +254,88 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
                     viaje=viaje,
                 )
                 step_index += 1
+
+    def _route_with_osrm(self, points):
+        if len(points) < 2:
+            return None
+
+        base_url = getattr(settings, 'OSRM_BASE_URL', '')
+        if not base_url:
+            return None
+
+        coords_str = ';'.join(f"{lng},{lat}" for lat, lng in points)
+        coords_path = urlparse.quote(coords_str, safe=';,-0123456789.')
+        query = urlparse.urlencode({'overview': 'full', 'geometries': 'polyline6', 'steps': 'false'})
+        url = f"{base_url.rstrip('/')}/route/v1/driving/{coords_path}?{query}"
+
+        try:
+            with urlrequest.urlopen(url, timeout=5) as response:
+                payload = json.load(response)
+        except Exception as exc:
+            logger.warning("OSRM routing failed: %s", exc)
+            return None
+
+        routes = payload.get('routes')
+        if not routes:
+            return None
+
+        geometry = routes[0].get('geometry')
+        if not geometry:
+            return None
+
+        try:
+            return self._decode_polyline6(geometry)
+        except Exception as exc:
+            logger.warning("OSRM polyline decode failed: %s", exc)
+            return None
+
+    @staticmethod
+    def _decode_polyline6(encoded):
+        """Decodifica una polyline codificada con precisión 1e-6."""
+        if not encoded:
+            return []
+
+        coords = []
+        index = 0
+        lat = 0
+        lng = 0
+        length = len(encoded)
+
+        while index < length:
+            result = 0
+            shift = 0
+            while True:
+                if index >= length:
+                    break
+                b = ord(encoded[index]) - 63
+                index += 1
+                result |= (b & 0x1F) << shift
+                shift += 5
+                if b < 0x20:
+                    break
+            delta_lat = ~(result >> 1) if (result & 1) else (result >> 1)
+            lat += delta_lat
+
+            if index >= length:
+                break
+
+            result = 0
+            shift = 0
+            while True:
+                if index >= length:
+                    break
+                b = ord(encoded[index]) - 63
+                index += 1
+                result |= (b & 0x1F) << shift
+                shift += 5
+                if b < 0x20:
+                    break
+            delta_lng = ~(result >> 1) if (result & 1) else (result >> 1)
+            lng += delta_lng
+
+            coords.append((lat / 1_000_000.0, lng / 1_000_000.0))
+
+        return coords
     
 # Nueva vista para los detalles del viaje en curso
 class DetalleViajeView(ChoferRequiredMixin, View):

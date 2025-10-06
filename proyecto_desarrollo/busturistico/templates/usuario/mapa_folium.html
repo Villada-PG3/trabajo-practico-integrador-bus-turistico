@@ -1,0 +1,22 @@
+{% extends 'usuario/base_usuario.html' %}
+{% block title %}Mapa Folium{% endblock %}
+{% block content %}
+<section class="container py-4">
+  <h1 class="h3 mb-3">Mapa generado con Folium</h1>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% else %}
+    <p class="text-muted">Recorrido: {{ recorrido.color_recorrido }} · Paradas: {{ paradas|length }}</p>
+    {% if warning %}
+      <div class="alert alert-warning">{{ warning }}</div>
+    {% endif %}
+    {% if folium_map %}
+      <div class="ratio ratio-4x3">
+        {{ folium_map|safe }}
+      </div>
+    {% else %}
+      <div class="alert alert-info">No se pudo generar el mapa.</div>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

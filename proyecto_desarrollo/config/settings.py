@@ -137,3 +137,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Motor de ruteo (OSRM)
+OSRM_BASE_URL = os.environ.get('OSRM_BASE_URL', 'http://127.0.0.1:5000')

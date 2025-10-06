@@ -1,7 +1,10 @@
 from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
+from django.conf import settings
 from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
+import folium
+import requests
 
 class UsuarioInicioView(TemplateView):
     template_name = 'usuario/inicio.html'
@@ -180,3 +183,95 @@ class UsuarioBusquedaView(TemplateView):
 # Mapa en vivo (Leaflet + polling)
 class UsuarioMapaView(TemplateView):
     template_name = 'usuario/mapa.html'
+
+
+class UsuarioMapaFoliumView(TemplateView):
+    template_name = 'usuario/mapa_folium.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        recorrido_id = self.request.GET.get('recorrido')
+        recorrido = None
+
+        if recorrido_id:
+            recorrido = Recorrido.objects.filter(pk=recorrido_id).first()
+        if not recorrido:
+            recorrido = (
+                Recorrido.objects
+                .filter(recorridoparadas__isnull=False)
+                .distinct()
+                .first()
+            )
+
+        if not recorrido:
+            context['error'] = 'No hay recorridos con paradas cargadas para mostrar.'
+            return context
+
+        paradas = list(
+            RecorridoParada.objects
+            .filter(recorrido=recorrido)
+            .select_related('parada')
+            .order_by('orden')
+        )
+
+        if len(paradas) < 2:
+            context['error'] = 'Se necesitan al menos dos paradas con coordenadas para trazar la ruta.'
+            context['recorrido'] = recorrido
+            return context
+
+        waypoints = [
+            [p.parada.longitud_parada, p.parada.latitud_parada]
+            for p in paradas
+        ]
+
+        mapa = folium.Map(location=[waypoints[0][1], waypoints[0][0]], zoom_start=13)
+
+        for idx, coord in enumerate(waypoints, start=1):
+            folium.Marker(
+                location=[coord[1], coord[0]],
+                popup=f"Parada {idx}",
+                icon=folium.Icon(color="blue")
+            ).add_to(mapa)
+
+        base_url = getattr(settings, 'OSRM_BASE_URL', '').strip() or 'https://router.project-osrm.org'
+        base_url = base_url.rstrip('/')
+        coordinates = ';'.join(f"{lon},{lat}" for lon, lat in waypoints)
+        params = {
+            'overview': 'full',
+            'geometries': 'geojson',
+        }
+
+        osrm_route = None
+        try:
+            response = requests.get(f"{base_url}/route/v1/driving/{coordinates}", params=params, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('code') == 'Ok' and data.get('routes'):
+                    osrm_route = data['routes'][0]['geometry']['coordinates']
+            else:
+                context['warning'] = 'OSRM devolvió un estado inesperado.'
+        except requests.RequestException:
+            context['warning'] = 'No se pudo contactar al servicio OSRM.'
+
+        if osrm_route:
+            route_latlon = [[coord[1], coord[0]] for coord in osrm_route]
+            folium.PolyLine(
+                locations=route_latlon,
+                color='blue',
+                weight=4,
+                opacity=0.7
+            ).add_to(mapa)
+        else:
+            folium.PolyLine(
+                locations=[[wp[1], wp[0]] for wp in waypoints],
+                color='red',
+                weight=3,
+                opacity=0.6,
+                dash_array='5,5'
+            ).add_to(mapa)
+
+        context['recorrido'] = recorrido
+        context['paradas'] = [p.parada for p in paradas]
+        context['folium_map'] = mapa._repr_html_()
+        return context
