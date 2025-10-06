@@ -1,55 +1,83 @@
 {% extends "admin/base_admin.html" %}
 {% load app_filters %}
 {% block title %}Gestión de Flota - Panel Admin{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3">
     <h1 class="mb-2">Gestión de Flota</h1>
     <p class="mb-4">Administra los buses y sus asignaciones</p>
+
     <a href="{% url 'admin-nuevo-bus' %}" class="new-btn">+ Nuevo Bus</a>
+
     <div class="row mb-3">
+        <!-- Tarjeta con resumen de estados -->
         <div class="col-md-6">
             <div class="card p-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h5>Total Buses</h5>
                     <span class="badge bg-primary">{{ buses_total.count }}</span>
                 </div>
-                <div class="d-flex justify-content-around">
+                <div class="d-flex justify-content-around flex-wrap">
                     {% for estado in estados_disponibles %}
                         {% with estado_lower=estado.nombre_estado|lower %}
-                            <div><span class="status-badge status-{{ estado_lower|slugify }}">{{ estado.nombre_estado }} {{ estado_counts|get_dict_value:estado_lower }}</span></div>
+                            {% if estado_lower != "operativo" %}
+                                <div class="mb-2">
+                                    <span class="status-badge status-{{ estado_lower|slugify }}">
+                                        {{ estado.nombre_estado }} {{ estado_counts|get_dict_value:estado_lower }}
+                                    </span>
+                                </div>
+                            {% endif %}
                         {% endwith %}
                     {% empty %}
-                        <div><span class="status-badge">Sin Estado {{ estado_counts|get_dict_value:'sin_estado' }}</span></div>
+                        <div><span class="status-badge">Sin Estado</span></div>
                     {% endfor %}
                 </div>
             </div>
         </div>
+
+        <!-- Filtros y buscador -->
         <div class="col-md-6">
             <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="Buscar por patente, unidad o chofer...">
                 <button class="btn btn-outline-secondary" type="button">Buscar</button>
             </div>
-            <div class="btn-group" role="group">
+
+            <div class="btn-group flex-wrap" role="group">
                 <a href="{% url 'admin-flota' %}" class="btn btn-dark {% if not estado_filter %}active{% endif %}">Todos</a>
                 {% for estado in estados_disponibles %}
                     {% with estado_lower=estado.nombre_estado|lower %}
-                        <a href="{% url 'admin-flota' %}?estado={{ estado_lower }}" class="btn btn-{% if estado_lower == 'activo' %}success{% elif estado_lower == 'reparacion' %}warning{% else %}secondary{% endif %} {% if estado_filter == estado_lower %}active{% endif %}">{{ estado.nombre_estado }}</a>
+                        {% if estado_lower != "operativo" %}
+                            <a href="{% url 'admin-flota' %}?estado={{ estado_lower }}"
+                               class="btn btn-{% if estado_lower == 'activo' %}success{% elif estado_lower == 'reparacion' %}warning{% else %}secondary{% endif %} {% if estado_filter == estado_lower %}active{% endif %}">
+                               {{ estado.nombre_estado }}
+                            </a>
+                        {% endif %}
                     {% endwith %}
                 {% empty %}
-                    <a href="{% url 'admin-flota' %}?estado=sin_estado" class="btn btn-secondary {% if estado_filter == 'sin_estado' %}active{% endif %}">Sin Estado</a>
+                    <a href="{% url 'admin-flota' %}?estado=sin_estado"
+                       class="btn btn-secondary {% if estado_filter == 'sin_estado' %}active{% endif %}">
+                       Sin Estado
+                    </a>
                 {% endfor %}
             </div>
         </div>
     </div>
+
+    <!-- Listado de buses -->
     <div class="row">
         {% for item in bus_data %}
         <div class="col-md-6 mb-3">
             <div class="card p-3">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h5>Unidad {{ item.bus.numero_unidad }}</h5>
-                        <p>Patente: {{ item.bus.patente_bus }}</p>
-                        <p>Compra: {{ item.bus.fecha_compra|date:"d/m/Y" }}</p>
+                        <p class="mb-1">Patente: {{ item.bus.patente_bus }}</p>
+                        <p class="mb-1">Compra: {{ item.bus.fecha_compra|date:"d/m/Y" }}</p>
+                        {% if item.ultimo_mantenimiento %}
+                            <p class="mb-0 text-muted">
+                                Últ. Mantenimiento: {{ item.ultimo_mantenimiento|date:"d/m/Y" }}
+                            </p>
+                        {% endif %}
                     </div>
                     <div>
                         <span class="status-badge status-{{ item.estado|lower|slugify }}">
@@ -57,7 +85,7 @@
                         </span>
                     </div>
                 </div>
-                <div class="mt-2 text-end">
+                <div class="mt-3 text-end">
                     <a href="{% url 'admin-detalle-bus' item.bus.pk %}" class="btn btn-info btn-sm me-1">Detalle</a>
                     <a href="{% url 'admin-editar-bus' item.bus.pk %}" class="btn btn-primary btn-sm me-1">Editar</a>
                     <a href="{% url 'admin-eliminar-bus' item.bus.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
@@ -65,8 +93,10 @@
             </div>
         </div>
         {% empty %}
-        <div class="col-12">
-            <p>No hay buses registrados {% if estado_filter %}para el estado "{{ estado_filter|capfirst }}"{% endif %}.</p>
+        <div class="col-12 text-center mt-4">
+            <p class="text-muted">
+                No hay buses registrados {% if estado_filter %}para el estado "{{ estado_filter|capfirst }}"{% endif %}.
+            </p>
         </div>
         {% endfor %}
     </div>

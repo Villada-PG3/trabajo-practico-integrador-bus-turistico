@@ -1,29 +1,46 @@
 {% extends 'admin/base_admin.html' %}
 
-{% block title %}Detalle de Bus: {{ bus.patente_bus }}{% endblock %}
+{% block title %}Detalle de Bus{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">Detalle de Bus: {{ bus.patente_bus }}</h1>
+    <h1 class="mb-4">Detalle de Bus{% if bus.patente_bus %}: {{ bus.patente_bus }}{% endif %}</h1>
     
+    <!-- Información General -->
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Información General</h5>
-            <p><strong>Número de Unidad:</strong> {{ bus.numero_unidad }}</p>
-            <p><strong>Fecha de Compra:</strong> {{ bus.fecha_compra|date:"d/m/Y H:i" }}</p>
-            <p><strong>Estado Actual:</strong> {{ estado_actual }}</p>
+            <p><strong>Número de Unidad:</strong> {{ bus.numero_unidad|default:"N/A" }}</p>
+            <p><strong>Fecha de Compra:</strong> 
+                {% if bus.fecha_compra %}
+                    {{ bus.fecha_compra|date:"d/m/Y" }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+            <p><strong>Estado Actual:</strong> {{ estado_actual|default:"No disponible" }}</p>
         </div>
     </div>
     
+    <!-- Asignación Actual -->
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Asignación Actual</h5>
             {% if viaje_actual %}
                 <p><strong>Recorrido Actual:</strong> {{ recorrido_actual.color_recorrido }} - {{ recorrido_actual.descripcion_recorrido }}</p>
+
                 {% if ubicacion_actual %}
-                    <p><strong>Coordenadas Actuales:</strong> Latitud {{ ubicacion_actual.latitud }}, Longitud {{ ubicacion_actual.longitud }} (Actualizado: {{ ubicacion_actual.timestamp_ubicacion|date:"d/m/Y H:i" }})</p>
+                    <p><strong>Coordenadas Actuales:</strong> 
+                        Latitud {{ ubicacion_actual.latitud }}, Longitud {{ ubicacion_actual.longitud }} 
+                        (Actualizado: {{ ubicacion_actual.timestamp_ubicacion|date:"d/m/Y H:i" }})
+                    </p>
+
                     {% if closest_parada %}
-                        <p><strong>Parada Más Cercana:</strong> {{ closest_parada.nombre_parada }} (Dirección: {{ closest_parada.direccion_parada }})</p>
+                        <p><strong>Parada Más Cercana:</strong> {{ closest_parada.nombre_parada }} 
+                            {% if closest_parada.direccion_parada %}
+                                (Dirección: {{ closest_parada.direccion_parada }})
+                            {% endif %}
+                        </p>
                     {% else %}
                         <p>No se pudo determinar la parada más cercana.</p>
                     {% endif %}
@@ -35,10 +52,15 @@
             {% endif %}
         </div>
     </div>
-    
+
+    <!-- Acciones -->
     <div class="mt-4">
-        <a href="{% url 'admin-editar-bus' bus.pk %}" class="btn btn-primary me-2">Editar Bus</a>
-        <a href="{% url 'admin-eliminar-bus' bus.pk %}" class="btn btn-danger me-2">Eliminar Bus</a>
+        {% if bus.pk %}
+            <a href="{% url 'admin-editar-bus' bus.pk %}" class="btn btn-primary me-2">Editar Bus</a>
+            <a href="{% url 'admin-eliminar-bus' bus.pk %}" class="btn btn-danger me-2">Eliminar Bus</a>
+        {% else %}
+            <p class="text-muted">Acciones no disponibles: el bus no tiene ID válido.</p>
+        {% endif %}
         <a href="{% url 'admin-flota' %}" class="btn btn-secondary">Volver a la Lista de Flota</a>
     </div>
 </div>

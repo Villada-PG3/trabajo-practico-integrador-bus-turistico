@@ -161,15 +161,60 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         chofer = self.object
+
         
-        # This is the key query.
+        buses_conducidos = (
+        Viaje.objects.filter(chofer=chofer, patente_bus__isnull=False)
+    .values_list("patente_bus__patente_bus", flat=True)
+    .distinct()
+)
+
+        ultimos_recorridos = (
+    Viaje.objects.filter(chofer=chofer)
+    .select_related("recorrido", "patente_bus")
+    .order_by("-id")[:5]
+)
+
+        
+        
+        
         viaje_asignado = Viaje.objects.filter(
             chofer=chofer,
             fecha_hora_inicio_real__isnull=False,
             fecha_hora_fin_real__isnull=True
         ).first()
 
-        context['viaje_asignado'] = viaje_asignado
+        # 🔹 Cálculos de estadísticas
+        viajes_total = Viaje.objects.filter(chofer=chofer).count()
+        viajes_completados = Viaje.objects.filter(chofer=chofer, fecha_hora_fin_real__isnull=False).count()
+        viajes_en_curso = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_fin_real__isnull=True,
+            fecha_hora_inicio_real__isnull=False
+        ).count()
+        viajes_programados = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=True
+        ).count()
+
+        # Último viaje completado
+        ultimo_viaje = (
+            Viaje.objects.filter(chofer=chofer, fecha_hora_fin_real__isnull=False)
+            .select_related("recorrido", "patente_bus")
+            .order_by("-fecha_hora_fin_real")
+            .first()
+        )
+
+        context.update({
+            "buses_conducidos": list(buses_conducidos),
+                "ultimos_recorridos": ultimos_recorridos,
+            "viaje_asignado": viaje_asignado,
+            "viajes_total": viajes_total,
+            "viajes_completados": viajes_completados,
+            "viajes_en_curso": viajes_en_curso,
+            "viajes_programados": viajes_programados,
+            "ultimo_viaje": ultimo_viaje,
+        })
         return context
 
 # --- Bus/Flota Management Views ---
@@ -255,7 +300,7 @@ class CrearBusView(SuperUserRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        estado_inicial = EstadoBus.objects.get_or_create(nombre_estado='Operativo')[0]
+        estado_inicial = EstadoBus.objects.get_or_create(nombre_estado='Activo')[0]
         EstadoBusHistorial.objects.create(
             patente_bus=self.object,
             estado_bus=estado_inicial,
@@ -300,18 +345,17 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         status_filter = self.request.GET.get('status', 'en_curso').lower()
-        
-        # Base queryset con prefetch para eficiencia
-        all_trips = Viaje.objects.select_related('patente_bus', 'chofer', 'recorrido').prefetch_related(
-            'ubicacioncolectivo_set', 
-            'recorrido__recorridoparadas__parada'  # Corrige a 'recorridoparadas'
+
+        # Traemos todos los viajes con sus relaciones para eficiencia
+        all_trips = Viaje.objects.select_related(
+            'patente_bus', 'chofer', 'recorrido'
         ).order_by('-fecha_programada')
-        
+
         trips_with_status = []
         counts = {'en_curso': 0, 'programados': 0, 'completados': 0}
-        
+
+        # Clasificamos cada viaje según sus fechas
         for viaje in all_trips:
-            # Determinar estado_actual (dinámico para template)
             if viaje.fecha_hora_fin_real:
                 viaje.estado_actual = 'Completado'
                 counts['completados'] += 1
@@ -320,16 +364,19 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
                 counts['en_curso'] += 1
             else:
                 viaje.estado_actual = 'Programado'
-                counts['programados'] += 1      
-        
-        # Filtrar trips para display
+                counts['programados'] += 1
+
+            trips_with_status.append(viaje)
+
+        # Filtramos según el estado seleccionado
         if status_filter == 'programados':
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Programado']
         elif status_filter == 'completados':
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Completado']
-        else:
+        else:  # en_curso o por defecto
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'En Curso']
-        
+
+        # Pasamos todo al contexto
         context.update({
             'status_filter': status_filter,
             'viajes_en_curso_count': counts['en_curso'],

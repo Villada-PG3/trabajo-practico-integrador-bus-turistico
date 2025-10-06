@@ -326,7 +326,7 @@ class ViajeCreateForm(forms.ModelForm):
         ).exists():
             raise ValidationError({'chofer': 'Este chofer está asignado a un viaje activo.'})
 
-        return cleaned_data
+        return cleaned_data 
 class AtractivoForm(forms.ModelForm):
     parada_a_asignar = forms.ModelChoiceField(
         queryset=Parada.objects.all(),
@@ -390,8 +390,7 @@ class RespuestaForm(forms.ModelForm):
         }
 
         
-from django import forms
-from .models import Recorrido
+
 
 class RecorridoForm(forms.ModelForm):
     duracion_aproximada_recorrido = forms.CharField(
