@@ -53,6 +53,10 @@ urlpatterns = [
     path('admin/consultas/', views.ConsultasView.as_view(), name='admin-consultas'),
     path('admin/consultas/<int:pk>/', views.ConsultaDetailView.as_view(), name='admin-consulta-detalle'),
 
+    # Reservas 
+    path('admin/reservas/', views.ReservasView.as_view(), name='admin-reservas'),
+
+
     # Usuario público
     path('', include('busturistico.urls_usuario')),
     

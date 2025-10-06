@@ -124,14 +124,17 @@
                             {% endif %}
                         </ul>
                         
-                       <div class="d-grid gap-2 mt-auto">
-                            <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
+                      <!-- precios.html - dentro del loop de cada precio (MODIFICADO) -->
+                        <div class="d-grid gap-2 mt-auto">
+                            <!-- MODIFICADO: ahora dirige al formulario de reserva para ese pase -->
+                            <a href="{% url 'usuario-reservar' precio.id %}" class="btn btn-primary btn-lg">
                                 <i class="fas fa-ticket-alt me-2"></i>Reservar Ahora
                             </a>
                             <small class="text-muted">
                                 <i class="fas fa-shield-alt me-1"></i>Cancelación gratuita hasta 24h antes
                             </small>
                         </div>
+
 
                     </div>
                 </div>

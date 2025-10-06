@@ -14,6 +14,8 @@ urlpatterns = [
     path('busqueda/', views_usuario.UsuarioBusquedaView.as_view(), name='usuario-busqueda'),
     path('cambiar-idioma/', views_usuario.CambiarIdiomaView.as_view(), name='cambiar-idioma'),
     path('precios/', views_usuario.UsuarioPreciosView.as_view(), name='usuario-precios'),
+    path('reservar/<int:precio_id>/', views_usuario.ReservaCreateView.as_view(), name='usuario-reservar'),
+
 ]
 
 if settings.DEBUG:

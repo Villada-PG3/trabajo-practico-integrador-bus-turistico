@@ -237,3 +237,29 @@ class Traduccion(models.Model):
 
     def __str__(self):
         return f"{self.clave} [{self.idioma}]"
+
+
+
+# -------------------------
+class Reserva(models.Model):
+    nombre = models.CharField(max_length=100)
+    email = models.EmailField()
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    cantidad_personas = models.IntegerField(default=1)
+    fecha_reserva = models.DateField()
+    recorrido = models.ForeignKey(Recorrido, on_delete=models.CASCADE)
+    pase = models.ForeignKey(Precio, on_delete=models.CASCADE)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-creado_en']
+        verbose_name = 'Reserva'
+        verbose_name_plural = 'Reservas'
+
+    def __str__(self):
+        # Mostramos tipo de pase y nombre para identificar en listas
+        try:
+            pase_label = self.pase.get_tipo_display()
+        except Exception:
+            pase_label = str(self.pase)
+        return f"Reserva #{self.id} — {self.nombre} — {pase_label}"

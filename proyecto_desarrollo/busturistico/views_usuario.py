@@ -1,9 +1,11 @@
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, View
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
-from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada, Precio, Traduccion
+from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada, Precio, Traduccion, Reserva
 from django.views import View
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,  get_object_or_404
+from django.urls import reverse_lazy
+from django.contrib import messages
 
 class MapaView(TemplateView):
     template_name = "usuario/mapa.html"
@@ -218,3 +220,39 @@ def get_traduccion(clave, request, default=""):
         return Traduccion.objects.get(clave=clave, idioma=idioma).texto
     except Traduccion.DoesNotExist:
         return default
+
+class ReservaCreateView(CreateView):
+    model = Reserva
+    # Excluimos 'pase' porque lo seteamos desde la URL (precio_id)
+    fields = [
+        'nombre',
+        'email',
+        'telefono',
+        'cantidad_personas',
+        'fecha_reserva',
+        'recorrido',
+    ]
+    template_name = 'usuario/reserva_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Verificamos que el pase exista; si no, 404
+        self.precio_obj = get_object_or_404(Precio, pk=self.kwargs.get('precio_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Pasamos info del pase al template (p. ej. nombre y precio)
+        ctx['precio_obj'] = self.precio_obj
+        return ctx
+
+    def form_valid(self, form):
+        # Seteamos el pase antes de guardar
+        form.instance.pase = self.precio_obj
+        response = super().form_valid(form)
+        # Mensaje de confirmación (se puede mostrar en la plantilla destino)
+        messages.success(self.request, 'Reserva creada correctamente. Nos pondremos en contacto pronto.')
+        return response
+
+    def get_success_url(self):
+        # Volvemos a la página de precios con query param para que muestres confirmación si querés
+        return reverse_lazy('usuario-precios') + '?reserved=1'

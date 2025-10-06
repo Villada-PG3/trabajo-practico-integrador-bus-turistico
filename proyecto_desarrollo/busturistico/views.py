@@ -18,7 +18,7 @@ import json
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje, Consulta
+    UbicacionColectivo, Viaje, Consulta, Reserva
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
@@ -680,3 +680,11 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
         consulta.save()
         return super().form_valid(form)
+
+
+class ReservasView(SuperUserRequiredMixin, ListView):
+    model = Reserva
+    template_name = 'admin/reservas.html'
+    context_object_name = 'reservas'
+    ordering = ['-creado_en']
+    paginate_by = 25  # opcional: paginación
