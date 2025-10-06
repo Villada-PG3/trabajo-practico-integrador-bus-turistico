@@ -472,29 +472,24 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
 
     def form_valid(self, form):
         with transaction.atomic():
-            parada = form.save()
+            self.object = form.save()  # Set self.object to the saved Parada instance
             recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
             orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
             if recorrido_a_asignar and orden_en_recorrido:
                 RecorridoParada.objects.create(
                     recorrido=recorrido_a_asignar,
-                    parada=parada,
+                    parada=self.object,
                     orden=orden_en_recorrido
                 )
             elif recorrido_a_asignar and not orden_en_recorrido:
                 orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
                 RecorridoParada.objects.create(
                     recorrido=recorrido_a_asignar,
-                    parada=parada,
+                    parada=self.object,
                     orden=orden_en_recorrido
                 )
         messages.success(self.request, "Parada creada correctamente.")
-        return redirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = "Crear Nueva Parada"
-        return context
+        return super().form_valid(form)  # Call super().form_valid(form) to handle the redirect
 
 class EditarParadaView(SuperUserRequiredMixin, UpdateView):
     model = Parada
