@@ -6,21 +6,109 @@
   {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
   {% else %}
-    <p class="text-muted">Recorrido: {{ recorrido.color_recorrido }} · Paradas: {{ paradas|length }}</p>
-    {% if viaje_en_curso %}
-      <div class="alert alert-success py-2 mb-3">
-        Viaje en curso con el colectivo {{ viaje_en_curso.patente_bus.patente_bus }} - Chofer: {{ viaje_en_curso.chofer }}
+    <p class="text-muted mb-2">Recorrido seleccionado: {{ recorrido.color_recorrido }} · Paradas: {{ paradas|length }}</p>
+    <div class="modern-card p-4 mb-3 shadow-sm">
+      <div class="d-flex align-items-center mb-3">
+        <div class="card-icon me-3" style="width:56px;height:56px;">
+          <i class="fas fa-map-signs"></i>
+        </div>
+        <div>
+          <h4 class="mb-1">Panel de Viajes en Vivo</h4>
+          <p class="text-muted mb-0 small">Personalizá la vista del mapa para seguir un recorrido específico o comparar varios colectivos.</p>
+        </div>
       </div>
-    {% else %}
-      <div class="alert alert-info py-2 mb-3">
-        No hay un viaje en curso para este recorrido actualmente. Se muestra la ruta de forma estática.
+
+      {% if warnings %}
+        <div class="alert alert-warning py-2 mb-4">
+          <ul class="mb-0 small">
+            {% for warning in warnings %}
+              <li>{{ warning }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <form method="get" class="row g-3 align-items-end mb-4">
+        <div class="col-12 col-md-4">
+          <label class="form-label text-uppercase fw-semibold small mb-1">Recorrido</label>
+          <select name="recorrido" class="form-select form-select-sm">
+            {% if recorridos_filtrables %}
+              {% for rec in recorridos_filtrables %}
+                <option value="{{ rec.id }}"{% if rec.id == selected_recorrido_id %} selected{% endif %}>
+                  {{ rec.color_recorrido }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option value="" selected>Sin recorridos activos</option>
+            {% endif %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label text-uppercase fw-semibold small mb-1">Viaje activo</label>
+          <select name="viaje_id" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            {% for viaje in viajes_filtrables %}
+              <option value="{{ viaje.id }}"{% if viaje.id == selected_viaje_id %} selected{% endif %}>
+                #{{ viaje.id }} · {{ viaje.recorrido.color_recorrido }} · {{ viaje.patente_bus.patente_bus }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <button class="btn btn-sm btn-primary w-100" type="submit">
+            <i class="fas fa-filter me-1"></i>Aplicar
+          </button>
+        </div>
+        <div class="col-6 col-md-2">
+          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'usuario-mapa-folium' %}">
+            <i class="fas fa-undo me-1"></i>Limpiar
+          </a>
+        </div>
+      </form>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <h6 class="text-uppercase text-muted small mb-2">Recorridos visibles</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for payload in map_payloads %}
+              <span class="badge rounded-pill px-3 py-2 {% if payload.is_focused %}bg-primary text-white{% else %}bg-light text-dark border{% endif %}">
+                <i class="fas fa-route me-1"></i>{{ payload.recorrido_color }}
+                <span class="small ms-1 text-muted">{{ payload.paradas_total }} paradas{% if payload.bus %} · bus activo{% endif %}</span>
+              </span>
+            {% empty %}
+              <span class="text-muted small">No hay recorridos para mostrar.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <h6 class="text-uppercase text-muted small mb-2">Estado de viajes</h6>
+          {% if active_viajes_info %}
+            <ul class="list-unstyled mb-0 small">
+              {% for viaje in active_viajes_info %}
+                <li class="py-1 d-flex justify-content-between align-items-center{% if viaje.is_focused %} fw-semibold{% endif %}">
+                  <span>
+                    <i class="fas fa-bus me-2 text-primary"></i>
+                    Recorrido {{ viaje.recorrido_color }} · Bus {{ viaje.bus_patente }} · Chofer {{ viaje.chofer }}
+                  </span>
+                  {% if viaje.is_focused %}
+                    <span class="badge bg-primary">Seleccionado</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="alert alert-info py-2 mb-0 small">
+              No hay viajes en curso en este momento. Se muestra la ruta {{ recorrido.color_recorrido }} de forma estática.
+            </div>
+          {% endif %}
+        </div>
       </div>
-    {% endif %}
-    {% if warning %}
-      <div class="alert alert-warning">{{ warning }}</div>
-    {% endif %}
-    <div class="ratio ratio-4x3">
-      <div id="mapaFolium" class="w-100 h-100 rounded shadow-sm"></div>
+    </div>
+
+    <div class="modern-card p-0 overflow-hidden shadow-sm">
+      <div class="ratio ratio-4x3">
+        <div id="mapaFolium" class="w-100 h-100"></div>
+      </div>
     </div>
   {% endif %}
 </section>
@@ -46,11 +134,7 @@
 
   const mapCenter = {{ map_center_json|safe }};
   const mapBounds = {{ map_bounds_json|safe }};
-  const routeCoords = {{ route_coords_json|safe }};
-  const paradas = {{ paradas_geo_json|safe }};
-  const routeColor = "{{ route_color }}";
-  const initialPoint = {{ bus_initial_point_json|default:"null"|safe }};
-  const futurePoints = {{ animation_future_points_json|safe }};
+  const mapPayloads = {{ map_payloads_json|safe }};
   const defaultDelay = {{ animation_default_delay_ms|default:2000 }};
 
   const map = L.map('mapaFolium', {
@@ -63,6 +147,10 @@
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
+  let userInteracted = false;
+  const interactionEvents = ['dragstart', 'movestart', 'zoomstart', 'mousedown', 'touchstart'];
+  interactionEvents.forEach(evt => map.on(evt, () => { userInteracted = true; }));
+
   if (Array.isArray(mapBounds) && mapBounds.length === 2) {
     map.fitBounds(mapBounds, { padding: [30, 30] });
   } else if (Array.isArray(mapCenter) && mapCenter.length === 2) {
@@ -71,80 +159,96 @@
     map.setView([-34.6037, -58.3816], 13);
   }
 
-  if (Array.isArray(routeCoords) && routeCoords.length) {
-    const routeOptions = {
-      color: routeColor === 'blue' ? '#0d6efd' : '#f03',
-      weight: routeColor === 'blue' ? 4 : 3,
-      opacity: 0.8,
-    };
-    if (routeColor !== 'blue') {
-      routeOptions.dashArray = '6,6';
-    }
-    const routeLine = L.polyline(routeCoords, routeOptions).addTo(map);
-    map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+  if (!Array.isArray(mapPayloads)) {
+    console.warn('No hay datos de recorridos para renderizar.');
+    return;
   }
 
-  if (Array.isArray(paradas) && paradas.length) {
-    paradas.forEach(p => {
-      L.marker([p.lat, p.lng], { title: p.nombre })
-        .addTo(map)
-        .bindPopup(`#${p.orden} · ${p.nombre}`);
+  mapPayloads.forEach(payload => {
+    if (Array.isArray(payload.route_coords) && payload.route_coords.length) {
+      const polyline = L.polyline(payload.route_coords, {
+        color: payload.route_color || '#0d6efd',
+        weight: payload.is_focused ? 5 : 3,
+        opacity: payload.is_focused ? 0.95 : 0.7,
+        dashArray: payload.line_dash || null,
+      }).addTo(map);
+      if (payload.is_focused) {
+        polyline.bringToFront();
+      }
+    }
+
+    if (payload.show_paradas && Array.isArray(payload.paradas)) {
+      payload.paradas.forEach(p => {
+        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') {
+          return;
+        }
+        L.circleMarker([p.lat, p.lng], {
+          radius: 5,
+          color: payload.route_color || '#0d6efd',
+          fillColor: payload.route_color || '#0d6efd',
+          fillOpacity: 0.9,
+          weight: 1,
+        })
+          .addTo(map)
+          .bindPopup(`#${p.orden} · ${p.nombre}`);
+      });
+    }
+
+    if (!payload.bus || !payload.bus.initial_point) {
+      return;
+    }
+
+    const initial = payload.bus.initial_point;
+    if (typeof initial.lat !== 'number' || typeof initial.lng !== 'number') {
+      return;
+    }
+
+    const iconColor = payload.bus.marker_color || payload.route_color || '#0d6efd';
+    const busIcon = L.divIcon({
+      html: `<div style="font-size:26px; line-height:26px; color:${iconColor};">🚌</div>`,
+      className: 'bus-marker-icon',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
-  }
 
-  const busIcon = L.divIcon({
-    html: '<div style="font-size:28px; line-height:28px;">🚌</div>',
-    className: 'bus-marker-icon',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-
-  let marker = null;
-  if (initialPoint && typeof initialPoint.lat === 'number' && typeof initialPoint.lng === 'number') {
-    marker = L.marker([initialPoint.lat, initialPoint.lng], { icon: busIcon }).addTo(map);
-    marker.bindTooltip('Colectivo en ruta', { permanent: false });
-    map.panTo([initialPoint.lat, initialPoint.lng]);
-  } else if (Array.isArray(futurePoints) && futurePoints.length) {
-    const first = futurePoints[0];
-    if (typeof first.lat === 'number' && typeof first.lng === 'number') {
-      marker = L.marker([first.lat, first.lng], { icon: busIcon }).addTo(map);
-      marker.bindTooltip('Colectivo en ruta', { permanent: false });
-      map.panTo([first.lat, first.lng]);
+    const marker = L.marker([initial.lat, initial.lng], { icon: busIcon }).addTo(map);
+    if (payload.bus.tooltip) {
+      marker.bindTooltip(payload.bus.tooltip, { permanent: false });
     }
-  }
+    if (payload.bus.pan_map && !userInteracted) {
+      map.panTo([initial.lat, initial.lng], { animate: true });
+    }
 
-  if (marker && Array.isArray(futurePoints) && futurePoints.length) {
-    console.debug('Animando colectivo con', futurePoints.length, 'puntos futuros.');
-    const minDelay = 300;
+    const futurePoints = Array.isArray(payload.bus.future_points) ? payload.bus.future_points : [];
+    if (!futurePoints.length) {
+      return;
+    }
 
-    function scheduleStep(index) {
+    const minDelay = 250;
+    function animate(index) {
       if (index >= futurePoints.length) {
         return;
       }
-
       const point = futurePoints[index];
       if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
-        scheduleStep(index + 1);
+        animate(index + 1);
         return;
       }
-
       const delay = (typeof point.delay_ms === 'number' && point.delay_ms > 0)
         ? point.delay_ms
         : defaultDelay;
 
       setTimeout(() => {
         marker.setLatLng([point.lat, point.lng]);
-        map.panTo([point.lat, point.lng], { animate: true });
-        scheduleStep(index + 1);
+        if (payload.bus.pan_map && !userInteracted) {
+          map.panTo([point.lat, point.lng], { animate: true });
+        }
+        animate(index + 1);
       }, Math.max(delay, minDelay));
     }
 
-    scheduleStep(0);
-  } else if (marker) {
-    console.info('No hay puntos futuros para animar; se muestra la última ubicación conocida.');
-  } else {
-    console.info('No se pudo inicializar el marcador del colectivo.');
-  }
+    animate(0);
+  });
 })();
 </script>
 {% endif %}

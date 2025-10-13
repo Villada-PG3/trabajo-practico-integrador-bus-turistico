@@ -18,6 +18,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import datetime
 import logging
+import math
 import requests
 
 
@@ -231,29 +232,47 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
             viaje=viaje,
         )
 
-        # Parámetros de simulación: 6 pasos por tramo, cada 10 segundos
-        steps_per_segment = 6
-        interval_seconds = 3
+        # Parámetros de simulación: velocidad constante aproximada para todos los recorridos
+        target_speed_kmh = 25  # velocidad deseada del bus
+        min_segment_seconds = 2
+        interval_seconds = 1
+
+        def haversine_km(lat1, lon1, lat2, lon2):
+            """Distancia aproximada en km entre dos puntos."""
+            R = 6371.0
+            lat1_rad, lon1_rad, lat2_rad, lon2_rad = map(math.radians, [lat1, lon1, lat2, lon2])
+            dlat = lat2_rad - lat1_rad
+            dlon = lon2_rad - lon1_rad
+            a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            return R * c
 
         def interp(a, b, t):
             return a + (b - a) * t
 
-        step_index = 1
+        current_ts = now
         for i in range(len(coords) - 1):
             (lat1, lng1) = coords[i]
             (lat2, lng2) = coords[i + 1]
-            for s in range(1, steps_per_segment + 1):
-                f = s / steps_per_segment
+            distance_km = haversine_km(lat1, lng1, lat2, lng2)
+            if distance_km < 1e-6:
+                distance_km = 0.001  # evitar tiempos nulos
+
+            segment_seconds = max(min_segment_seconds, (distance_km / target_speed_kmh) * 3600)
+            steps = max(1, int(segment_seconds / interval_seconds))
+            seconds_per_step = segment_seconds / steps
+
+            for s in range(1, steps + 1):
+                f = s / steps
                 lat = interp(lat1, lat2, f)
                 lng = interp(lng1, lng2, f)
-                ts = now + datetime.timedelta(seconds=step_index * interval_seconds)
+                current_ts += datetime.timedelta(seconds=seconds_per_step)
                 UbicacionColectivo.objects.create(
                     latitud=lat,
                     longitud=lng,
-                    timestamp_ubicacion=ts,
+                    timestamp_ubicacion=current_ts,
                     viaje=viaje,
                 )
-                step_index += 1
 
     def _route_with_osrm(self, points):
         if len(points) < 2:

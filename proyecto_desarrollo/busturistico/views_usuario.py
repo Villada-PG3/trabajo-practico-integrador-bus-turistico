@@ -220,155 +220,322 @@ class UsuarioMapaFoliumView(TemplateView):
             context['error'] = 'No hay recorridos con paradas cargadas para mostrar.'
             return context
 
-        paradas = list(
+        viaje_id = self.request.GET.get('viaje_id')
+
+        paradas_qs = list(
             RecorridoParada.objects
             .filter(recorrido=recorrido)
             .select_related('parada')
             .order_by('orden')
         )
 
-        if len(paradas) < 2:
+        if len(paradas_qs) < 2:
             context['error'] = 'Se necesitan al menos dos paradas con coordenadas para trazar la ruta.'
             context['recorrido'] = recorrido
             return context
+        warnings_list = []
 
-        waypoints = [
-            [p.parada.longitud_parada, p.parada.latitud_parada]
-            for p in paradas
-        ]
-
-        base_url = getattr(settings, 'OSRM_BASE_URL', '').strip() or 'https://router.project-osrm.org'
-        base_url = base_url.rstrip('/')
-        coordinates = ';'.join(f"{lon},{lat}" for lon, lat in waypoints)
-        params = {
-            'overview': 'full',
-            'geometries': 'geojson',
+        color_palette = {
+            'rojo': '#dc3545',
+            'verde': '#198754',
+            'azul': '#0d6efd',
+            'amarillo': '#ffc107',
+            'naranja': '#fd7e14',
+            'violeta': '#6f42c1',
+            'purpura': '#6f42c1',
+            'morado': '#6f42c1',
+            'rosa': '#e83e8c',
+            'celeste': '#0dcaf0',
+            'cian': '#0dcaf0',
+            'gris': '#6c757d',
         }
 
-        osrm_route = None
-        try:
-            response = requests.get(f"{base_url}/route/v1/driving/{coordinates}", params=params, timeout=5)
-            if response.status_code == 200:
+        def resolve_color(nombre: str) -> str:
+            if not nombre:
+                return '#0d6efd'
+            key = nombre.strip().lower()
+            return color_palette.get(key, '#0d6efd')
+
+        def build_route_data(recorrido_obj, paradas_list):
+            waypoints = [
+                [p.parada.longitud_parada, p.parada.latitud_parada]
+                for p in paradas_list
+            ]
+            osrm_route = None
+            osrm_ok = False
+            base_url = getattr(settings, 'OSRM_BASE_URL', '').strip() or 'https://router.project-osrm.org'
+            base_url = base_url.rstrip('/')
+            coordinates = ';'.join(f"{lon},{lat}" for lon, lat in waypoints)
+            params = {'overview': 'full', 'geometries': 'geojson'}
+            try:
+                response = requests.get(f"{base_url}/route/v1/driving/{coordinates}", params=params, timeout=5)
+                response.raise_for_status()
                 data = response.json()
                 if data.get('code') == 'Ok' and data.get('routes'):
                     osrm_route = data['routes'][0]['geometry']['coordinates']
+                    osrm_ok = True
+                else:
+                    warnings_list.append(
+                        f"OSRM no devolvió una ruta óptima para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                    )
+            except requests.exceptions.HTTPError:
+                warnings_list.append(
+                    f"OSRM devolvió un estado inesperado para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                )
+            except requests.RequestException:
+                warnings_list.append(
+                    f"No se pudo contactar a OSRM para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                )
+
+            if osrm_ok and osrm_route:
+                route_coords = [[coord[1], coord[0]] for coord in osrm_route]
+                line_dash = None
             else:
-                context['warning'] = 'OSRM devolvió un estado inesperado.'
-        except requests.RequestException:
-            context['warning'] = 'No se pudo contactar al servicio OSRM.'
+                route_coords = [[wp[1], wp[0]] for wp in waypoints]
+                line_dash = '6,6'
 
-        route_latlon = []
-        if osrm_route:
-            route_latlon = [[coord[1], coord[0]] for coord in osrm_route]
-        else:
-            route_latlon = [[wp[1], wp[0]] for wp in waypoints]
+            coords_for_bounds = route_coords or [[wp[1], wp[0]] for wp in waypoints]
+            if not coords_for_bounds:
+                return None
 
-        paradas_geo = [
-            {
-                'lat': parada.parada.latitud_parada,
-                'lng': parada.parada.longitud_parada,
-                'nombre': parada.parada.nombre_parada,
-                'orden': parada.orden,
-            }
-            for parada in paradas
-        ]
-
-        coords_for_bounds = route_latlon or [[wp[1], wp[0]] for wp in waypoints]
-        latitudes = [coord[0] for coord in coords_for_bounds]
-        longitudes = [coord[1] for coord in coords_for_bounds]
-        if latitudes and longitudes:
+            latitudes = [coord[0] for coord in coords_for_bounds]
+            longitudes = [coord[1] for coord in coords_for_bounds]
             bounds = [
                 [min(latitudes), min(longitudes)],
                 [max(latitudes), max(longitudes)]
             ]
-        else:
-            bounds = [[waypoints[0][1], waypoints[0][0]], [waypoints[0][1], waypoints[0][0]]]
+            center = [
+                sum(latitudes) / len(latitudes),
+                sum(longitudes) / len(longitudes)
+            ]
 
-        map_center = [waypoints[0][1], waypoints[0][0]]
-        route_color = 'blue' if osrm_route else 'red'
+            paradas_geo = [
+                {
+                    'lat': parada.parada.latitud_parada,
+                    'lng': parada.parada.longitud_parada,
+                    'nombre': parada.parada.nombre_parada,
+                    'orden': parada.orden,
+                }
+                for parada in paradas_list
+            ]
 
-        # Preparar animación para el colectivo en viaje
+            return {
+                'route_coords': route_coords,
+                'route_color': resolve_color(recorrido_obj.color_recorrido),
+                'line_dash': line_dash,
+                'paradas_geo': paradas_geo,
+                'bounds_points': coords_for_bounds,
+                'bounds': bounds,
+                'center': center,
+                'paradas_objs': paradas_list,
+            }
+
         default_delay_ms = 2000
-        animation_future_points = []
-        initial_point = None
-        viaje_en_curso = (
-            Viaje.objects
-            .filter(
-                recorrido=recorrido,
-                fecha_hora_inicio_real__isnull=False,
-                fecha_hora_fin_real__isnull=True
-            )
-            .select_related('patente_bus', 'chofer')
-            .order_by('fecha_hora_inicio_real')
-            .first()
-        )
 
-        if viaje_en_curso:
+        def build_animation_points(viaje_obj, route_coords):
             ubicaciones_qs = (
                 UbicacionColectivo.objects
-                .filter(viaje=viaje_en_curso)
+                .filter(viaje=viaje_obj)
                 .exclude(latitud__isnull=True)
                 .exclude(longitud__isnull=True)
                 .order_by('timestamp_ubicacion')
-            )[:600]
+            )
 
             ubicaciones = list(ubicaciones_qs)
             if ubicaciones:
                 now_dt = timezone.now()
                 past_points = [u for u in ubicaciones if u.timestamp_ubicacion <= now_dt]
-                if past_points:
-                    current_point = past_points[-1]
-                    future_points = [u for u in ubicaciones if u.timestamp_ubicacion > now_dt]
-                else:
-                    current_point = ubicaciones[0]
-                    future_points = ubicaciones[1:]
+                current_point = past_points[-1] if past_points else ubicaciones[0]
+                future_candidates = [
+                    u for u in ubicaciones
+                    if u.timestamp_ubicacion > current_point.timestamp_ubicacion
+                ]
 
-                initial_point = {
+                initial = {
                     'lat': current_point.latitud,
                     'lng': current_point.longitud,
                     'timestamp': current_point.timestamp_ubicacion.isoformat(),
                 }
 
+                future_points = []
                 min_delay_ms = 500
                 previous_ts = max(current_point.timestamp_ubicacion, now_dt)
-                for punto in future_points:
+                for punto in future_candidates:
                     delta = punto.timestamp_ubicacion - previous_ts
                     diff_ms = int(delta.total_seconds() * 1000) if delta else 0
                     if diff_ms <= 0:
                         diff_ms = default_delay_ms
-                    animation_future_points.append({
+                    future_points.append({
                         'lat': punto.latitud,
                         'lng': punto.longitud,
                         'delay_ms': max(diff_ms, min_delay_ms),
                         'timestamp': punto.timestamp_ubicacion.isoformat(),
                     })
                     previous_ts = punto.timestamp_ubicacion
-            elif route_latlon:
-                # Fallback: animar siguiendo la polilínea calculada aunque no haya ubicaciones registradas todavía
+
+                return initial, future_points
+
+            if route_coords:
                 now_dt = timezone.now()
-                if route_latlon:
-                    initial_point = {
-                        'lat': route_latlon[0][0],
-                        'lng': route_latlon[0][1],
+                initial = {
+                    'lat': route_coords[0][0],
+                    'lng': route_coords[0][1],
+                    'timestamp': now_dt.isoformat(),
+                }
+                future_points = [
+                    {
+                        'lat': coord[0],
+                        'lng': coord[1],
+                        'delay_ms': default_delay_ms,
                         'timestamp': now_dt.isoformat(),
                     }
-                    for coord in route_latlon[1:]:
-                        animation_future_points.append({
-                            'lat': coord[0],
-                            'lng': coord[1],
-                            'delay_ms': default_delay_ms,
-                            'timestamp': now_dt.isoformat(),
-                        })
+                    for coord in route_coords[1:]
+                ]
+                return initial, future_points
+
+            return None, []
+
+        selected_route_data = build_route_data(recorrido, paradas_qs)
+        if not selected_route_data:
+            context['error'] = 'No se pudo construir la ruta para el recorrido seleccionado.'
+            context['recorrido'] = recorrido
+            return context
+
+        route_cache = {recorrido.id: selected_route_data}
+        paradas_cache = {recorrido.id: paradas_qs}
+
+        base_active_viajes_qs = (
+            Viaje.objects
+            .filter(
+                fecha_hora_inicio_real__isnull=False,
+                fecha_hora_fin_real__isnull=True
+            )
+            .select_related('recorrido', 'patente_bus', 'chofer')
+            .order_by('recorrido_id', 'fecha_hora_inicio_real')
+        )
+
+        base_active_viajes = list(base_active_viajes_qs)
+
+        recorridos_filtrables = []
+        seen_recorridos = set()
+        for viaje in base_active_viajes:
+            if viaje.recorrido_id not in seen_recorridos:
+                seen_recorridos.add(viaje.recorrido_id)
+                recorridos_filtrables.append(viaje.recorrido)
+
+        selected_viaje_id = None
+        if viaje_id and viaje_id.isdigit():
+            selected_viaje_id = int(viaje_id)
+
+        if selected_viaje_id:
+            active_viajes = [v for v in base_active_viajes if v.id == selected_viaje_id]
+        else:
+            active_viajes = base_active_viajes
+
+        map_payloads = []
+        active_viajes_info = []
+        all_coords = list(selected_route_data['bounds_points'])
+
+        for viaje in active_viajes:
+            data = route_cache.get(viaje.recorrido_id)
+            if data is None:
+                otras_paradas = list(
+                    RecorridoParada.objects
+                    .filter(recorrido=viaje.recorrido)
+                    .select_related('parada')
+                    .order_by('orden')
+                )
+                paradas_cache[viaje.recorrido_id] = otras_paradas
+                if len(otras_paradas) < 2:
+                    continue
+                data = build_route_data(viaje.recorrido, otras_paradas)
+                if not data:
+                    continue
+                route_cache[viaje.recorrido_id] = data
+
+            initial_point, future_points = build_animation_points(viaje, data['route_coords'])
+            bus_data = None
+            if initial_point or future_points:
+                if not initial_point and future_points:
+                    initial_point = future_points[0]
+                bus_data = {
+                    'tooltip': f"Viaje #{viaje.id} · {viaje.recorrido.color_recorrido} · Bus {viaje.patente_bus.patente_bus}",
+                    'initial_point': initial_point,
+                    'future_points': future_points,
+                    'marker_color': data['route_color'],
+                    'pan_map': viaje.recorrido_id == recorrido.id,
+                }
+
+            map_payloads.append({
+                'viaje_id': viaje.id,
+                'recorrido_id': viaje.recorrido_id,
+                'recorrido_color': viaje.recorrido.color_recorrido,
+                'paradas_total': len(paradas_cache.get(viaje.recorrido_id, [])),
+                'route_coords': data['route_coords'],
+                'route_color': data['route_color'],
+                'line_dash': data['line_dash'],
+                'paradas': data['paradas_geo'],
+                'bus': bus_data,
+                'is_focused': viaje.recorrido_id == recorrido.id,
+                'show_paradas': viaje.recorrido_id == recorrido.id,
+            })
+            all_coords.extend(data['bounds_points'])
+
+            active_viajes_info.append({
+                'viaje_id': viaje.id,
+                'recorrido_id': viaje.recorrido_id,
+                'recorrido_color': viaje.recorrido.color_recorrido,
+                'bus_patente': viaje.patente_bus.patente_bus,
+                'chofer': str(viaje.chofer),
+                'is_focused': viaje.recorrido_id == recorrido.id,
+            })
+
+        if not any(payload['recorrido_id'] == recorrido.id for payload in map_payloads):
+            map_payloads.append({
+                'viaje_id': None,
+                'recorrido_id': recorrido.id,
+                'recorrido_color': recorrido.color_recorrido,
+                'paradas_total': len(paradas_qs),
+                'route_coords': selected_route_data['route_coords'],
+                'route_color': selected_route_data['route_color'],
+                'line_dash': selected_route_data['line_dash'],
+                'paradas': selected_route_data['paradas_geo'],
+                'bus': None,
+                'is_focused': True,
+                'show_paradas': True,
+            })
+
+        if not all_coords:
+            all_coords = list(selected_route_data['bounds_points'])
+
+        if all_coords:
+            latitudes = [coord[0] for coord in all_coords]
+            longitudes = [coord[1] for coord in all_coords]
+            bounds = [
+                [min(latitudes), min(longitudes)],
+                [max(latitudes), max(longitudes)]
+            ]
+            map_center = [
+                (min(latitudes) + max(latitudes)) / 2,
+                (min(longitudes) + max(longitudes)) / 2
+            ]
+        else:
+            bounds = selected_route_data['bounds']
+            map_center = selected_route_data['center']
 
         context['recorrido'] = recorrido
-        context['paradas'] = [p.parada for p in paradas]
+        context['paradas'] = [p.parada for p in paradas_qs]
+        context['active_viajes_info'] = active_viajes_info
+        context['map_payloads'] = map_payloads
+        context['map_payloads_json'] = json.dumps(map_payloads)
         context['map_center_json'] = json.dumps(map_center)
         context['map_bounds_json'] = json.dumps(bounds)
-        context['route_coords_json'] = json.dumps(route_latlon)
-        context['paradas_geo_json'] = json.dumps(paradas_geo)
-        context['route_color'] = route_color
-        context['viaje_en_curso'] = viaje_en_curso
-        context['bus_initial_point_json'] = json.dumps(initial_point)
-        context['animation_future_points_json'] = json.dumps(animation_future_points)
         context['animation_default_delay_ms'] = default_delay_ms
+        context['selected_recorrido_id'] = recorrido.id
+        context['selected_viaje_id'] = selected_viaje_id
+        context['viajes_filtrables'] = base_active_viajes
+        context['recorridos_filtrables'] = recorridos_filtrables
+        context['has_active_viajes'] = bool(active_viajes_info)
+        if warnings_list:
+            context['warnings'] = warnings_list
         return context
