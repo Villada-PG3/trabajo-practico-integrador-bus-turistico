@@ -9,6 +9,8 @@ from django.conf.urls.static import static
 from busturistico import views_chofer, urls_chofer
 
 urlpatterns = [
+    # API pública JSON
+    path('api/', include('busturistico.urls_api')),
     path('chofer/', include('busturistico.urls_chofer')),
     # Dashboard
     path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),
@@ -62,7 +64,8 @@ urlpatterns = [
     
     # Admin de Django
     path('admin/', admin.site.urls),
-] 
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+ 
 
 # Servir archivos media en desarrollo
 if settings.DEBUG:

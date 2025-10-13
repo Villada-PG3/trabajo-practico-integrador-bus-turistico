@@ -58,7 +58,10 @@
                         </button>
                     </form>
                     
-                    <a href="#" class="btn btn-outline-primary btn-lg">
+                    <button id="btn-share" class="btn btn-outline-primary btn-lg me-2" type="button">
+                        <i class="fas fa-location-arrow me-2"></i>Compartir Ubicación
+                    </button>
+                    <a href="#" class="btn btn-outline-secondary btn-lg">
                         <i class="fas fa-exclamation-triangle me-2"></i>Reportar Problema
                     </a>
                 </div>
@@ -134,6 +137,37 @@ function mostrarTiempoTranscurrido() {
 setInterval(mostrarTiempoTranscurrido, 60000);
 // Ejecutar inmediatamente
 mostrarTiempoTranscurrido();
+
+// Geolocalización simple para enviar ubicación periódicamente
+let sharing = false;
+let watchId = null;
+
+async function sendPosition(lat, lng) {
+    try {
+        await fetch('/api/viajes/{{ viaje.id }}/ubicacion/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            body: JSON.stringify({lat: lat, lng: lng})
+        });
+    } catch (e) {
+        // Silencioso
+    }
+}
+
+function startSharing() {
+    if (!navigator.geolocation) { alert('Geolocalización no soportada'); return; }
+    if (sharing) return;
+    sharing = true;
+    document.getElementById('btn-share').classList.remove('btn-outline-primary');
+    document.getElementById('btn-share').classList.add('btn-primary');
+    document.getElementById('btn-share').innerHTML = '<i class="fas fa-location-arrow me-2"></i>Compartiendo...';
+    watchId = navigator.geolocation.watchPosition(pos => {
+        const {latitude, longitude} = pos.coords;
+        sendPosition(latitude, longitude);
+    }, err => {}, {enableHighAccuracy: true, maximumAge: 5000, timeout: 10000});
+}
+
+document.getElementById('btn-share').addEventListener('click', startSharing);
 </script>
 
 <!-- Agregar elemento para mostrar tiempo transcurrido -->

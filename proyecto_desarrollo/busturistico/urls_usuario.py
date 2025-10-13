@@ -12,6 +12,8 @@ urlpatterns = [
     path('contacto/', views_usuario.UsuarioContactoView.as_view(), name='usuario-contacto'),
     path('mapa/', MapaView.as_view(), name='usuario-mapa'),
     path('busqueda/', views_usuario.UsuarioBusquedaView.as_view(), name='usuario-busqueda'),
+    path('mapa/', views_usuario.UsuarioMapaView.as_view(), name='usuario-mapa'),
+    path('mapa-folium/', views_usuario.UsuarioMapaFoliumView.as_view(), name='usuario-mapa-folium'),
 ]
 
 if settings.DEBUG:

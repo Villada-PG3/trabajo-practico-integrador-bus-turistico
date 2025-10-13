@@ -4,11 +4,25 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView, View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Recorrido, Viaje, Chofer, EstadoViaje, Bus
+from django.conf import settings
+from .models import (
+    Recorrido,
+    Viaje,
+    Chofer,
+    EstadoViaje,
+    Bus,
+    RecorridoParada,
+    UbicacionColectivo,
+)
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import datetime
 import logging
+import math
+import requests
+
+
+logger = logging.getLogger(__name__)
 
 class ChoferRequiredMixin:
     """Mixin que requiere que el usuario sea un chofer activo"""
@@ -117,8 +131,175 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
             estado_en_curso = None
         viaje_asignado.save()
 
+        # Simular el recorrido si aún no hay ubicaciones registradas
+        if not UbicacionColectivo.objects.filter(viaje=viaje_asignado).exists():
+            self._simular_recorrido_ideal(viaje_asignado)
+
         messages.success(request, f'Viaje al recorrido {viaje_asignado.recorrido.color_recorrido} iniciado correctamente.')
         return redirect('viaje-en-curso')
+
+    def _simular_recorrido_ideal(self, viaje: Viaje):
+        """
+        Genera ubicaciones futuras a intervalos regulares recorriendo las paradas del recorrido.
+        La API pública ignora timestamps futuros, por lo que el mapa mostrará el avance con el tiempo.
+        """
+        recorrido = viaje.recorrido
+        now = timezone.now()
+
+        # 1) Ruta basada en las paradas cargadas para el recorrido
+        rps = list(
+            RecorridoParada.objects
+            .filter(recorrido=recorrido)
+            .select_related('parada')
+            .order_by('orden')
+        )
+        raw_points = [
+            (rp.parada.latitud_parada, rp.parada.longitud_parada)
+            for rp in rps
+            if rp.parada.latitud_parada is not None and rp.parada.longitud_parada is not None
+        ]
+
+        def _build_city_path(points):
+            if len(points) < 2:
+                return points
+
+            def _manhattan_segment(a, b, step=0.00035):
+                lat1, lon1 = a
+                lat2, lon2 = b
+                path = [a]
+                current_lat, current_lon = lat1, lon1
+
+                # Determinar el orden de piernas para evitar cortes bruscos
+                leg_order = ['lon', 'lat']
+                if abs(lat2 - lat1) > abs(lon2 - lon1):
+                    leg_order = ['lat', 'lon']
+
+                for leg in leg_order:
+                    if leg == 'lon':
+                        diff = lon2 - current_lon
+                        if abs(diff) < 1e-9:
+                            continue
+                        steps = max(int(abs(diff) / step), 1)
+                        for s in range(1, steps + 1):
+                            lon = current_lon + diff * (s / steps)
+                            path.append((current_lat, lon))
+                        current_lon = lon2
+                    else:  # leg == 'lat'
+                        diff = lat2 - current_lat
+                        if abs(diff) < 1e-9:
+                            continue
+                        steps = max(int(abs(diff) / step), 1)
+                        for s in range(1, steps + 1):
+                            lat = current_lat + diff * (s / steps)
+                            path.append((lat, current_lon))
+                        current_lat = lat2
+
+                if path[-1] != b:
+                    path.append(b)
+                return path
+
+            expanded = [points[0]]
+            for start, end in zip(points, points[1:]):
+                segment = _manhattan_segment(start, end)
+                expanded.extend(segment[1:])  # omitir el primer punto para no duplicar
+            return expanded
+
+        coords = self._route_with_osrm(raw_points)
+        if not coords:
+            # Si OSRM falla, recorrer las paradas en línea recta (ruta roja)
+            coords = raw_points
+
+        # 2) Fallback manual suave cercano al obelisco
+        if len(coords) < 2:
+            coords = [
+                (-34.6037, -58.3816),  # Obelisco
+                (-34.6045, -58.3780),  # Corrientes y Florida
+                (-34.6070, -58.3790),  # Plaza Lavalle
+                (-34.6090, -58.3825),  # Congreso
+                (-34.6060, -58.3855),  # 9 de Julio y Belgrano
+                (-34.6037, -58.3816),
+            ]
+
+        if len(coords) < 2:
+            # Nada que simular
+            return
+
+        # Crear un punto inicial en la primera parada (visible de inmediato)
+        UbicacionColectivo.objects.create(
+            latitud=coords[0][0],
+            longitud=coords[0][1],
+            timestamp_ubicacion=now,
+            viaje=viaje,
+        )
+
+        # Parámetros de simulación: velocidad constante aproximada para todos los recorridos
+        target_speed_kmh = 25  # velocidad deseada del bus
+        min_segment_seconds = 2
+        interval_seconds = 1
+
+        def haversine_km(lat1, lon1, lat2, lon2):
+            """Distancia aproximada en km entre dos puntos."""
+            R = 6371.0
+            lat1_rad, lon1_rad, lat2_rad, lon2_rad = map(math.radians, [lat1, lon1, lat2, lon2])
+            dlat = lat2_rad - lat1_rad
+            dlon = lon2_rad - lon1_rad
+            a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            return R * c
+
+        def interp(a, b, t):
+            return a + (b - a) * t
+
+        current_ts = now
+        for i in range(len(coords) - 1):
+            (lat1, lng1) = coords[i]
+            (lat2, lng2) = coords[i + 1]
+            distance_km = haversine_km(lat1, lng1, lat2, lng2)
+            if distance_km < 1e-6:
+                distance_km = 0.001  # evitar tiempos nulos
+
+            segment_seconds = max(min_segment_seconds, (distance_km / target_speed_kmh) * 3600)
+            steps = max(1, int(segment_seconds / interval_seconds))
+            seconds_per_step = segment_seconds / steps
+
+            for s in range(1, steps + 1):
+                f = s / steps
+                lat = interp(lat1, lat2, f)
+                lng = interp(lng1, lng2, f)
+                current_ts += datetime.timedelta(seconds=seconds_per_step)
+                UbicacionColectivo.objects.create(
+                    latitud=lat,
+                    longitud=lng,
+                    timestamp_ubicacion=current_ts,
+                    viaje=viaje,
+                )
+
+    def _route_with_osrm(self, points):
+        if len(points) < 2:
+            return None
+
+        base_url = getattr(settings, 'OSRM_BASE_URL', 'https://bonnie-stoney-boorishly.ngrok-free.dev').strip() or 'https://router.project-osrm.org'
+        base_url = base_url.rstrip('/')
+        coordinates = ';'.join(f"{lng},{lat}" for lat, lng in points)
+        params = {'overview': 'full', 'geometries': 'geojson'}
+        url = f"{base_url}/route/v1/driving/{coordinates}"
+        try:
+            response = requests.get(url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as exc:
+            logger.warning("OSRM routing failed: %s", exc)
+            return None
+
+        routes = data.get('routes')
+        if not routes:
+            return None
+
+        geometry = routes[0].get('geometry', {}).get('coordinates')
+        if not geometry:
+            return None
+
+        return [(lat, lng) for lng, lat in geometry]
     
 # Nueva vista para los detalles del viaje en curso
 class DetalleViajeView(ChoferRequiredMixin, View):
