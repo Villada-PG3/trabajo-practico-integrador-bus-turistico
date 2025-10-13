@@ -18,8 +18,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import datetime
 import logging
-import json
-from urllib import request as urlrequest, parse as urlparse
+import requests
 
 
 logger = logging.getLogger(__name__)
@@ -260,83 +259,28 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
         if len(points) < 2:
             return None
 
-        base_url = getattr(settings, 'OSRM_BASE_URL', '')
-        if not base_url:
-            return None
-
-        coords_str = ';'.join(f"{lng},{lat}" for lat, lng in points)
-        coords_path = urlparse.quote(coords_str, safe=';,-0123456789.')
-        query = urlparse.urlencode({'overview': 'full', 'geometries': 'polyline6', 'steps': 'false'})
-        url = f"{base_url.rstrip('/')}/route/v1/driving/{coords_path}?{query}"
-
+        base_url = getattr(settings, 'OSRM_BASE_URL', 'https://bonnie-stoney-boorishly.ngrok-free.dev').strip() or 'https://router.project-osrm.org'
+        base_url = base_url.rstrip('/')
+        coordinates = ';'.join(f"{lng},{lat}" for lat, lng in points)
+        params = {'overview': 'full', 'geometries': 'geojson'}
+        url = f"{base_url}/route/v1/driving/{coordinates}"
         try:
-            with urlrequest.urlopen(url, timeout=5) as response:
-                payload = json.load(response)
-        except Exception as exc:
+            response = requests.get(url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as exc:
             logger.warning("OSRM routing failed: %s", exc)
             return None
 
-        routes = payload.get('routes')
+        routes = data.get('routes')
         if not routes:
             return None
 
-        geometry = routes[0].get('geometry')
+        geometry = routes[0].get('geometry', {}).get('coordinates')
         if not geometry:
             return None
 
-        try:
-            return self._decode_polyline6(geometry)
-        except Exception as exc:
-            logger.warning("OSRM polyline decode failed: %s", exc)
-            return None
-
-    @staticmethod
-    def _decode_polyline6(encoded):
-        """Decodifica una polyline codificada con precisión 1e-6."""
-        if not encoded:
-            return []
-
-        coords = []
-        index = 0
-        lat = 0
-        lng = 0
-        length = len(encoded)
-
-        while index < length:
-            result = 0
-            shift = 0
-            while True:
-                if index >= length:
-                    break
-                b = ord(encoded[index]) - 63
-                index += 1
-                result |= (b & 0x1F) << shift
-                shift += 5
-                if b < 0x20:
-                    break
-            delta_lat = ~(result >> 1) if (result & 1) else (result >> 1)
-            lat += delta_lat
-
-            if index >= length:
-                break
-
-            result = 0
-            shift = 0
-            while True:
-                if index >= length:
-                    break
-                b = ord(encoded[index]) - 63
-                index += 1
-                result |= (b & 0x1F) << shift
-                shift += 5
-                if b < 0x20:
-                    break
-            delta_lng = ~(result >> 1) if (result & 1) else (result >> 1)
-            lng += delta_lng
-
-            coords.append((lat / 1_000_000.0, lng / 1_000_000.0))
-
-        return coords
+        return [(lat, lng) for lng, lat in geometry]
     
 # Nueva vista para los detalles del viaje en curso
 class DetalleViajeView(ChoferRequiredMixin, View):
