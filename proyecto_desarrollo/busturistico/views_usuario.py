@@ -2,9 +2,21 @@ from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from django.conf import settings
-from .models import Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
-import folium
+from .models import (
+    Bus,
+    Chofer,
+    Viaje,
+    EstadoBusHistorial,
+    EstadoBus,
+    EstadoViaje,
+    Parada,
+    Recorrido,
+    ParadaAtractivo,
+    RecorridoParada,
+    UbicacionColectivo,
+)
 import requests
+import json
 
 class UsuarioInicioView(TemplateView):
     template_name = 'usuario/inicio.html'
@@ -225,15 +237,6 @@ class UsuarioMapaFoliumView(TemplateView):
             for p in paradas
         ]
 
-        mapa = folium.Map(location=[waypoints[0][1], waypoints[0][0]], zoom_start=13)
-
-        for idx, coord in enumerate(waypoints, start=1):
-            folium.Marker(
-                location=[coord[1], coord[0]],
-                popup=f"Parada {idx}",
-                icon=folium.Icon(color="blue")
-            ).add_to(mapa)
-
         base_url = getattr(settings, 'OSRM_BASE_URL', '').strip() or 'https://router.project-osrm.org'
         base_url = base_url.rstrip('/')
         coordinates = ';'.join(f"{lon},{lat}" for lon, lat in waypoints)
@@ -254,24 +257,108 @@ class UsuarioMapaFoliumView(TemplateView):
         except requests.RequestException:
             context['warning'] = 'No se pudo contactar al servicio OSRM.'
 
+        route_latlon = []
         if osrm_route:
             route_latlon = [[coord[1], coord[0]] for coord in osrm_route]
-            folium.PolyLine(
-                locations=route_latlon,
-                color='blue',
-                weight=4,
-                opacity=0.7
-            ).add_to(mapa)
         else:
-            folium.PolyLine(
-                locations=[[wp[1], wp[0]] for wp in waypoints],
-                color='red',
-                weight=3,
-                opacity=0.6,
-                dash_array='5,5'
-            ).add_to(mapa)
+            route_latlon = [[wp[1], wp[0]] for wp in waypoints]
+
+        paradas_geo = [
+            {
+                'lat': parada.parada.latitud_parada,
+                'lng': parada.parada.longitud_parada,
+                'nombre': parada.parada.nombre_parada,
+                'orden': parada.orden,
+            }
+            for parada in paradas
+        ]
+
+        coords_for_bounds = route_latlon or [[wp[1], wp[0]] for wp in waypoints]
+        latitudes = [coord[0] for coord in coords_for_bounds]
+        longitudes = [coord[1] for coord in coords_for_bounds]
+        if latitudes and longitudes:
+            bounds = [
+                [min(latitudes), min(longitudes)],
+                [max(latitudes), max(longitudes)]
+            ]
+        else:
+            bounds = [[waypoints[0][1], waypoints[0][0]], [waypoints[0][1], waypoints[0][0]]]
+
+        map_center = [waypoints[0][1], waypoints[0][0]]
+        route_color = 'blue' if osrm_route else 'red'
+
+        # Preparar animación para el colectivo en viaje
+        default_delay_ms = 2000
+        animation_points = []
+        viaje_en_curso = (
+            Viaje.objects
+            .filter(
+                recorrido=recorrido,
+                fecha_hora_inicio_real__isnull=False,
+                fecha_hora_fin_real__isnull=True
+            )
+            .select_related('patente_bus', 'chofer')
+            .order_by('fecha_hora_inicio_real')
+            .first()
+        )
+
+        if viaje_en_curso:
+            ubicaciones_qs = (
+                UbicacionColectivo.objects
+                .filter(viaje=viaje_en_curso)
+                .exclude(latitud__isnull=True)
+                .exclude(longitud__isnull=True)
+                .order_by('timestamp_ubicacion')
+            )[:600]
+
+            ubicaciones = list(ubicaciones_qs)
+            if ubicaciones:
+                animation_points = [
+                    {
+                        'lat': ubicacion.latitud,
+                        'lng': ubicacion.longitud,
+                        'timestamp': ubicacion.timestamp_ubicacion.isoformat()
+                    }
+                    for ubicacion in ubicaciones
+                ]
+
+                if len(animation_points) > 1:
+                    for idx in range(len(animation_points) - 1):
+                        current_ts = ubicaciones[idx].timestamp_ubicacion
+                        next_ts = ubicaciones[idx + 1].timestamp_ubicacion
+                        delta = next_ts - current_ts
+                        diff_ms = int(delta.total_seconds() * 1000) if delta else 0
+                        if diff_ms <= 0:
+                            diff_ms = default_delay_ms
+                        animation_points[idx]['delay_to_next_ms'] = max(diff_ms, 750)
+                    animation_points[-1]['delay_to_next_ms'] = None
+                else:
+                    animation_points[0]['delay_to_next_ms'] = None
+            elif route_latlon:
+                # Fallback: animar siguiendo la polilínea calculada aunque no haya ubicaciones registradas todavía
+                now_iso = timezone.now().isoformat()
+                animation_points = [
+                    {
+                        'lat': coord[0],
+                        'lng': coord[1],
+                        'timestamp': now_iso,
+                        'delay_to_next_ms': None,
+                    }
+                    for coord in route_latlon
+                ]
+                if len(animation_points) > 1:
+                    for idx in range(len(animation_points) - 1):
+                        animation_points[idx]['delay_to_next_ms'] = default_delay_ms
+                    animation_points[-1]['delay_to_next_ms'] = None
 
         context['recorrido'] = recorrido
         context['paradas'] = [p.parada for p in paradas]
-        context['folium_map'] = mapa._repr_html_()
+        context['map_center_json'] = json.dumps(map_center)
+        context['map_bounds_json'] = json.dumps(bounds)
+        context['route_coords_json'] = json.dumps(route_latlon)
+        context['paradas_geo_json'] = json.dumps(paradas_geo)
+        context['route_color'] = route_color
+        context['viaje_en_curso'] = viaje_en_curso
+        context['animation_points_json'] = json.dumps(animation_points)
+        context['animation_default_delay_ms'] = default_delay_ms
         return context

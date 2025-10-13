@@ -7,16 +7,132 @@
     <div class="alert alert-danger">{{ error }}</div>
   {% else %}
     <p class="text-muted">Recorrido: {{ recorrido.color_recorrido }} · Paradas: {{ paradas|length }}</p>
+    {% if viaje_en_curso %}
+      <div class="alert alert-success py-2 mb-3">
+        Viaje en curso con el colectivo {{ viaje_en_curso.patente_bus.patente_bus }} - Chofer: {{ viaje_en_curso.chofer }}
+      </div>
+    {% else %}
+      <div class="alert alert-info py-2 mb-3">
+        No hay un viaje en curso para este recorrido actualmente. Se muestra la ruta de forma estática.
+      </div>
+    {% endif %}
     {% if warning %}
       <div class="alert alert-warning">{{ warning }}</div>
     {% endif %}
-    {% if folium_map %}
-      <div class="ratio ratio-4x3">
-        {{ folium_map|safe }}
-      </div>
-    {% else %}
-      <div class="alert alert-info">No se pudo generar el mapa.</div>
-    {% endif %}
+    <div class="ratio ratio-4x3">
+      <div id="mapaFolium" class="w-100 h-100 rounded shadow-sm"></div>
+    </div>
   {% endif %}
 </section>
+{% if not error %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+#mapaFolium { min-height: 400px; }
+.bus-marker-icon {
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+</style>
+<script>
+(function () {
+  if (typeof L === 'undefined') {
+    console.error('Leaflet no está disponible.');
+    return;
+  }
+
+  const mapCenter = {{ map_center_json|safe }};
+  const mapBounds = {{ map_bounds_json|safe }};
+  const routeCoords = {{ route_coords_json|safe }};
+  const paradas = {{ paradas_geo_json|safe }};
+  const routeColor = "{{ route_color }}";
+  const pathPoints = {{ animation_points_json|safe }};
+  const defaultDelay = {{ animation_default_delay_ms|default:2000 }};
+
+  const map = L.map('mapaFolium', {
+    zoomControl: true,
+    preferCanvas: true
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  if (Array.isArray(mapBounds) && mapBounds.length === 2) {
+    map.fitBounds(mapBounds, { padding: [30, 30] });
+  } else if (Array.isArray(mapCenter) && mapCenter.length === 2) {
+    map.setView(mapCenter, 13);
+  } else {
+    map.setView([-34.6037, -58.3816], 13);
+  }
+
+  if (Array.isArray(routeCoords) && routeCoords.length) {
+    const routeOptions = {
+      color: routeColor === 'blue' ? '#0d6efd' : '#f03',
+      weight: routeColor === 'blue' ? 4 : 3,
+      opacity: 0.8,
+    };
+    if (routeColor !== 'blue') {
+      routeOptions.dashArray = '6,6';
+    }
+    const routeLine = L.polyline(routeCoords, routeOptions).addTo(map);
+    map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+  }
+
+  if (Array.isArray(paradas) && paradas.length) {
+    paradas.forEach(p => {
+      L.marker([p.lat, p.lng], { title: p.nombre })
+        .addTo(map)
+        .bindPopup(`#${p.orden} · ${p.nombre}`);
+    });
+  }
+
+  if (Array.isArray(pathPoints) && pathPoints.length) {
+    console.debug('Iniciando animación de colectivo con', pathPoints.length, 'puntos.');
+    const busIcon = L.divIcon({
+      html: '<div style="font-size:28px; line-height:28px;">🚌</div>',
+      className: 'bus-marker-icon',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+
+    const firstPoint = pathPoints[0];
+    const marker = L.marker([firstPoint.lat, firstPoint.lng], { icon: busIcon }).addTo(map);
+    marker.bindTooltip('Colectivo en ruta', { permanent: false });
+    map.panTo([firstPoint.lat, firstPoint.lng]);
+
+    let index = 0;
+    function advance() {
+      index += 1;
+      if (index >= pathPoints.length) {
+        return;
+      }
+
+      const point = pathPoints[index];
+      if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
+        return;
+      }
+      marker.setLatLng([point.lat, point.lng]);
+      map.panTo([point.lat, point.lng], { animate: true });
+
+      const delay = (typeof point.delay_to_next_ms === 'number' && point.delay_to_next_ms > 0)
+        ? point.delay_to_next_ms
+        : defaultDelay;
+      setTimeout(advance, delay);
+    }
+
+    const initialDelay = (typeof firstPoint.delay_to_next_ms === 'number' && firstPoint.delay_to_next_ms > 0)
+      ? firstPoint.delay_to_next_ms
+      : defaultDelay;
+    setTimeout(advance, initialDelay);
+  } else {
+    console.info('No hay puntos de animación disponibles para este viaje.');
+  }
+})();
+</script>
+{% endif %}
 {% endblock %}

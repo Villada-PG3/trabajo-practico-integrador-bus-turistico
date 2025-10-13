@@ -206,7 +206,8 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
 
         coords = self._route_with_osrm(raw_points)
         if not coords:
-            coords = _build_city_path(raw_points)
+            # Si OSRM falla, recorrer las paradas en línea recta (ruta roja)
+            coords = raw_points
 
         # 2) Fallback manual suave cercano al obelisco
         if len(coords) < 2:
