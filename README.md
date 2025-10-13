@@ -35,8 +35,7 @@ Proyecto educativo que modela:
 
 ## Requisitos Previos
 - **Python 3.10+**
-- **Git**
-- **SQLite** (incluido por defecto con Python)  
+- **Git**  
 - **Windows/macOS/Linux**
 
 ---
