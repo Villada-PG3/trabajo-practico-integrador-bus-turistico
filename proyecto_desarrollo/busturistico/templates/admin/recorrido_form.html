@@ -1,6 +1,5 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}{% if form.instance.pk %}Editar Recorrido{% else %}Crear Nuevo Recorrido{% endif %}{% endblock %}
-
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
@@ -9,9 +8,7 @@
         <div class="card-body p-4 p-md-5">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h4 m-0">{% if form.instance.pk %}Editar Recorrido{% else %}Crear Nuevo Recorrido{% endif %}</h2>
-            
           </div>
-
           {% if form.non_field_errors %}
             <div class="alert alert-danger">
               <ul class="mb-0">
@@ -21,7 +18,6 @@
               </ul>
             </div>
           {% endif %}
-
           <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
             {% csrf_token %}
             <div class="row g-3">
@@ -35,18 +31,19 @@
                   <div class="invalid-feedback d-block">{{ form.color_recorrido.errors|striptags }}</div>
                 {% endif %}
               </div>
-
               <!-- Duración -->
-              <div class="col-md-6">
-                <label for="{{ form.duracion_aproximada_recorrido.id_for_label }}" class="form-label">Duración Aproximada</label>
-                <input type="time" name="{{ form.duracion_aproximada_recorrido.name }}" id="{{ form.duracion_aproximada_recorrido.id_for_label }}"
+              <div class="col-md-4">
+                <label for="{{ form.duracion_aproximada_recorrido.id_for_label }}" class="form-label">Duración Aproximada (HH:MM)</label>
+                <input type="text"
+                       name="{{ form.duracion_aproximada_recorrido.name }}"
+                       id="{{ form.duracion_aproximada_recorrido.id_for_label }}"
                        class="form-control {% if form.duracion_aproximada_recorrido.errors %}is-invalid{% endif %}"
-                       value="{{ form.duracion_aproximada_recorrido.value|time:'H:i'|default_if_none:'' }}" required>
+                       value="{{ form.duracion_aproximada_recorrido.value|default_if_none:'' }}"
+                       placeholder="HH:MM (ej: 01:30)" required>
                 {% if form.duracion_aproximada_recorrido.errors %}
                   <div class="invalid-feedback d-block">{{ form.duracion_aproximada_recorrido.errors|striptags }}</div>
                 {% endif %}
               </div>
-
               <!-- Descripción -->
               <div class="col-12">
                 <label for="{{ form.descripcion_recorrido.id_for_label }}" class="form-label">Descripción</label>
@@ -57,7 +54,6 @@
                   <div class="invalid-feedback d-block">{{ form.descripcion_recorrido.errors|striptags }}</div>
                 {% endif %}
               </div>
-
               <!-- Foto -->
               <div class="col-12">
                 <label for="{{ form.foto_recorrido.id_for_label }}" class="form-label">Foto (opcional)</label>
@@ -66,31 +62,27 @@
                 {% if form.foto_recorrido.errors %}
                   <div class="invalid-feedback d-block">{{ form.foto_recorrido.errors|striptags }}</div>
                 {% endif %}
-                {% if object and object.foto_recorrido %}
+                {% if form.instance.pk and form.instance.foto_recorrido %}
                   <div class="mt-2">
-                    <img src="{{ object.foto_recorrido.url }}" alt="Foto actual" class="img-thumbnail" style="max-height:140px;">
+                    <img src="{{ form.instance.foto_recorrido.url }}" alt="Foto actual" class="img-thumbnail" style="max-height:140px;">
                   </div>
                 {% endif %}
               </div>
             </div>
-
             <!-- Botones -->
             <div class="d-flex gap-2 mt-4">
               <button type="submit" class="btn btn-primary">Guardar</button>
               <a href="{% url 'admin-recorridos' %}" class="btn btn-secondary">Cancelar</a>
             </div>
           </form>
-
         </div>
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-  // Bootstrap validation
   (function () {
     'use strict';
     var forms = document.querySelectorAll('.needs-validation');

@@ -5,6 +5,12 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="modern-card p-4 mb-4">
+                {% if recorrido.foto_recorrido %}
+                    <div class="mb-4">
+                        <img src="{{ recorrido.foto_recorrido.url }}" alt="{{ recorrido.color_recorrido }}" 
+                            class="img-fluid rounded shadow">
+                    </div>
+                {% endif %}
                 <div class="d-flex align-items-center mb-3">
                     <div class="card-icon me-3">
                         <i class="fas fa-city"></i>
@@ -326,36 +332,4 @@
     </div>
 </section>
 
-<style>
-.timeline-item:last-child::after {
-    display: none;
-}
-
-.timeline-item::after {
-    content: '';
-    position: absolute;
-    left: 20px;
-    top: 50px;
-    width: 2px;
-    height: calc(100% + 20px);
-    background: #dee2e6;
-    z-index: 0;
-}
-
-.timeline {
-    position: relative;
-}
-
-.timeline-marker {
-    position: relative;
-    z-index: 1;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
-.timeline-content {
-    position: relative;
-    z-index: 1;
-}
-</style>
 {% endblock %}

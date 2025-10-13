@@ -16,21 +16,18 @@
         <div class="col-md-12">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'en_curso' %}active{% endif %}" 
-                       href="?status=en_curso">
-                       En Curso ({{ viajes_en_curso_count }})
+                    <a class="nav-link {% if status_filter == 'en_curso' %}active{% endif %}" href="?status=en_curso">
+                        En Curso ({{ viajes_en_curso_count }})
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'programados' %}active{% endif %}" 
-                       href="?status=programados">
-                       Programados ({{ viajes_programados_count }})
+                    <a class="nav-link {% if status_filter == 'programados' %}active{% endif %}" href="?status=programados">
+                        Programados ({{ viajes_programados_count }})
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if status_filter == 'completados' %}active{% endif %}" 
-                       href="?status=completados">
-                       Completados ({{ viajes_completados_count }})
+                    <a class="nav-link {% if status_filter == 'completados' %}active{% endif %}" href="?status=completados">
+                        Completados ({{ viajes_completados_count }})
                     </a>
                 </li>
             </ul>
@@ -48,8 +45,29 @@
                             <h5 class="mb-1">Viaje #{{ viaje.id }}</h5>
                             <p class="mb-1"><strong>Bus:</strong> {{ viaje.patente_bus.patente_bus }}</p>
                             <p class="mb-1"><strong>Chofer:</strong> {{ viaje.chofer.nombre_chofer }} {{ viaje.chofer.apellido_chofer }}</p>
-                            <p class="mb-1"><strong>Programado:</strong> {{ viaje.fecha_programada|date:"H:i" }}</p>
-                            <p class="mb-1"><strong>Inicio Real:</strong> {{ viaje.fecha_hora_inicio_real|date:"H:i"|default:"N/A" }}</p>
+
+                            <!-- Fecha y hora programada (sin errores de formato) -->
+                            <p class="mb-1">
+                                <strong>Programado:</strong>
+                                {{ viaje.fecha_programada|date:"d/m/Y" }}
+                                {% if viaje.hora_inicio_programada %}
+                                    {{ viaje.hora_inicio_programada|time:"H:i" }}
+                                {% else %}
+                                    (sin hora)
+                                {% endif %}
+                            </p>
+
+                            <!-- Inicio real -->
+                            <p class="mb-1">
+                                <strong>Inicio Real:</strong>
+                                {% if viaje.fecha_hora_inicio_real %}
+                                    {{ viaje.fecha_hora_inicio_real|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+
+                            <!-- Parada actual -->
                             <p class="mb-1"><strong>Parada Actual:</strong> {{ viaje.closest_parada.nombre_parada|default:"N/A" }}</p>
                         </div>
                         
@@ -65,9 +83,8 @@
                     <!-- Botón para completar viaje -->
                     {% if viaje.estado_actual == 'En Curso' %}
                     <div class="mt-3 text-end">
-                        <a href="{% url 'completar-viaje' pk=viaje.id %}" 
-                           class="btn btn-success btn-sm">
-                           Completar Viaje
+                        <a href="{% url 'completar-viaje' pk=viaje.id %}" class="btn btn-success btn-sm">
+                            Completar Viaje
                         </a>
                     </div>
                     {% endif %}

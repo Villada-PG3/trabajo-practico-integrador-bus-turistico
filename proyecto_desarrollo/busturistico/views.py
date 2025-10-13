@@ -5,25 +5,31 @@ from django.db.models import Count, OuterRef, Subquery, Q, F
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.http import HttpResponseNotAllowed
 from django.utils import timezone
 from datetime import timedelta
+from django.forms import inlineformset_factory
+from django.shortcuts import render
+from django.db import transaction
+from .forms import ParadaForm, RecorridoParadaFormSet
+from .models import Parada
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
-)
-
+)   
 from math import radians, sin, cos, sqrt, atan2
 import json
-
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje
+    UbicacionColectivo, Viaje, Consulta
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
     RecorridoForm, ViajeCreateForm
 )
 
+from django.core.mail import send_mail
+from django.conf import settings
 
 # --- Mixins and Helper Functions ---
 class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -35,20 +41,6 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def handle_no_permission(self):
         return redirect('admin:login')
-
-def haversine(lat1, lon1, lat2, lon2):
-    """
-    Calcula la distancia de la gran-círculo entre dos puntos
-    en la tierra (especificados en coordenadas decimales)
-    """
-    R = 6371.0
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = R * c
-    return distance
 
 
 # --- Dashboard Views ---
@@ -155,23 +147,17 @@ class EditarChoferView(SuperUserRequiredMixin, UpdateView):
 class EliminarChoferView(SuperUserRequiredMixin, DeleteView):
     model = Chofer
     success_url = reverse_lazy('admin-choferes')
-    
+
+    def get(self, request, *args, **kwargs):
+        # Evita que intente renderizar chofer_confirm_delete.html
+        return HttpResponseNotAllowed(['POST'])
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        nombre = f"{self.object.nombre_chofer} {self.object.apellido_chofer}"
         self.object.delete()
-        messages.success(request, f'Chofer {self.object.nombre_chofer} eliminado correctamente.')
+        messages.success(request, f'Chofer {nombre} eliminado correctamente.')
         return redirect(self.get_success_url())
-
-def eliminar_chofer_directo(request, pk):
-    if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Acceso no autorizado'}, status=403)
-        
-    try:
-        chofer = get_object_or_404(Chofer, pk=pk)
-        chofer.delete()
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     model = Chofer
     template_name = 'admin/chofer_detalle.html'
@@ -180,15 +166,60 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         chofer = self.object
+
         
-        # This is the key query.
+        buses_conducidos = (
+        Viaje.objects.filter(chofer=chofer, patente_bus__isnull=False)
+    .values_list("patente_bus__patente_bus", flat=True)
+    .distinct()
+)
+
+        ultimos_recorridos = (
+    Viaje.objects.filter(chofer=chofer)
+    .select_related("recorrido", "patente_bus")
+    .order_by("-id")[:5]
+)
+
+        
+        
+        
         viaje_asignado = Viaje.objects.filter(
             chofer=chofer,
             fecha_hora_inicio_real__isnull=False,
             fecha_hora_fin_real__isnull=True
         ).first()
 
-        context['viaje_asignado'] = viaje_asignado
+        # 🔹 Cálculos de estadísticas
+        viajes_total = Viaje.objects.filter(chofer=chofer).count()
+        viajes_completados = Viaje.objects.filter(chofer=chofer, fecha_hora_fin_real__isnull=False).count()
+        viajes_en_curso = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_fin_real__isnull=True,
+            fecha_hora_inicio_real__isnull=False
+        ).count()
+        viajes_programados = Viaje.objects.filter(
+            chofer=chofer,
+            fecha_hora_inicio_real__isnull=True
+        ).count()
+
+        # Último viaje completado
+        ultimo_viaje = (
+            Viaje.objects.filter(chofer=chofer, fecha_hora_fin_real__isnull=False)
+            .select_related("recorrido", "patente_bus")
+            .order_by("-fecha_hora_fin_real")
+            .first()
+        )
+
+        context.update({
+            "buses_conducidos": list(buses_conducidos),
+                "ultimos_recorridos": ultimos_recorridos,
+            "viaje_asignado": viaje_asignado,
+            "viajes_total": viajes_total,
+            "viajes_completados": viajes_completados,
+            "viajes_en_curso": viajes_en_curso,
+            "viajes_programados": viajes_programados,
+            "ultimo_viaje": ultimo_viaje,
+        })
         return context
 
 # --- Bus/Flota Management Views ---
@@ -264,36 +295,7 @@ class BusDetailView(SuperUserRequiredMixin, DetailView):
         ).first()
         context['viaje_actual'] = viaje_actual
 
-        if viaje_actual:
-            context['estado_actual'] = 'Activo'
-            context['recorrido_actual'] = viaje_actual.recorrido
-            ubicacion_actual = UbicacionColectivo.objects.filter(viaje=viaje_actual).order_by('-timestamp_ubicacion').first()
-            context['ubicacion_actual'] = ubicacion_actual
-            
-            if ubicacion_actual:
-                paradas = RecorridoParada.objects.filter(recorrido=viaje_actual.recorrido).select_related('parada')
-                if paradas:
-                    try:
-                        closest = min(paradas, key=lambda rp: haversine(
-                            ubicacion_actual.latitud, ubicacion_actual.longitud,
-                            rp.parada.latitud_parada, rp.parada.longitud_parada
-                        ))
-                        context['closest_parada'] = closest.parada
-                    except (ValueError, TypeError) as e:
-                        context['closest_parada'] = None
-        else:
-            historial = EstadoBusHistorial.objects.filter(patente_bus=bus).order_by('-fecha_inicio_estado').first()
-            context['estado_actual'] = historial.estado_bus.nombre_estado if historial else 'Sin estado'
-            context['recorrido_actual'] = None
-            context['ubicacion_actual'] = None
-            context['closest_parada'] = None
-
-        last_mant = EstadoBusHistorial.objects.filter(
-            patente_bus=bus,
-            estado_bus__nombre_estado__iexact='en mantenimiento'
-        ).order_by('-fecha_inicio_estado').first()
-        context['ultimo_mantenimiento'] = last_mant.fecha_inicio_estado if last_mant else None
-        return context
+ 
 
 class CrearBusView(SuperUserRequiredMixin, CreateView):
     model = Bus
@@ -303,7 +305,7 @@ class CrearBusView(SuperUserRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        estado_inicial = EstadoBus.objects.get_or_create(nombre_estado='Operativo')[0]
+        estado_inicial = EstadoBus.objects.get_or_create(nombre_estado='Activo')[0]
         EstadoBusHistorial.objects.create(
             patente_bus=self.object,
             estado_bus=estado_inicial,
@@ -348,18 +350,17 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         status_filter = self.request.GET.get('status', 'en_curso').lower()
-        
-        # Base queryset con prefetch para eficiencia
-        all_trips = Viaje.objects.select_related('patente_bus', 'chofer', 'recorrido').prefetch_related(
-            'ubicacioncolectivo_set', 
-            'recorrido__recorridoparadas__parada'  # Corrige a 'recorridoparadas'
+
+        # Traemos todos los viajes con sus relaciones para eficiencia
+        all_trips = Viaje.objects.select_related(
+            'patente_bus', 'chofer', 'recorrido'
         ).order_by('-fecha_programada')
-        
+
         trips_with_status = []
         counts = {'en_curso': 0, 'programados': 0, 'completados': 0}
-        
+
+        # Clasificamos cada viaje según sus fechas
         for viaje in all_trips:
-            # Determinar estado_actual (dinámico para template)
             if viaje.fecha_hora_fin_real:
                 viaje.estado_actual = 'Completado'
                 counts['completados'] += 1
@@ -369,36 +370,18 @@ class ViajesView(SuperUserRequiredMixin, TemplateView):
             else:
                 viaje.estado_actual = 'Programado'
                 counts['programados'] += 1
-            
-            # Calcular closest_parada solo para viajes en curso
-            viaje.closest_parada = None
-            if viaje.recorrido and viaje.estado_actual == 'En Curso':
-                ubicacion_actual = viaje.ubicacioncolectivo_set.order_by('-timestamp_ubicacion').first()
-                if ubicacion_actual and viaje.recorrido.recorridoparadas.exists():
-                    try:
-                        closest = min(
-                            viaje.recorrido.recorridoparadas.all(),  # Usa 'recorridoparadas'
-                            key=lambda rp: haversine(
-                                ubicacion_actual.latitud, 
-                                ubicacion_actual.longitud,
-                                rp.parada.latitud_parada, 
-                                rp.parada.longitud_parada
-                            )
-                        )
-                        viaje.closest_parada = closest.parada
-                    except (ValueError, TypeError, AttributeError):
-                        pass  # closest_parada queda None
-            
+
             trips_with_status.append(viaje)
-        
-        # Filtrar trips para display
+
+        # Filtramos según el estado seleccionado
         if status_filter == 'programados':
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Programado']
         elif status_filter == 'completados':
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Completado']
-        else:
+        else:  # en_curso o por defecto
             trips_to_display = [v for v in trips_with_status if v.estado_actual == 'En Curso']
-        
+
+        # Pasamos todo al contexto
         context.update({
             'status_filter': status_filter,
             'viajes_en_curso_count': counts['en_curso'],
@@ -468,64 +451,73 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')
+    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
 
     def form_valid(self, form):
         with transaction.atomic():
-            self.object = form.save()  # Set self.object to the saved Parada instance
+            # Guarda la Parada
+            self.object = form.save()
+
+            # Toma los campos auxiliares del form para una sola asignación
             recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
             orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
-            if recorrido_a_asignar and orden_en_recorrido:
+
+            if recorrido_a_asignar:
+                if not orden_en_recorrido:
+                    # Si no te pasan orden, lo colocamos al final
+                    orden_en_recorrido = RecorridoParada.objects.filter(
+                        recorrido=recorrido_a_asignar
+                    ).count() + 1
+
                 RecorridoParada.objects.create(
                     recorrido=recorrido_a_asignar,
                     parada=self.object,
                     orden=orden_en_recorrido
                 )
-            elif recorrido_a_asignar and not orden_en_recorrido:
-                orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
-                RecorridoParada.objects.create(
-                    recorrido=recorrido_a_asignar,
-                    parada=self.object,
-                    orden=orden_en_recorrido
-                )
+
         messages.success(self.request, "Parada creada correctamente.")
-        return super().form_valid(form)  # Call super().form_valid(form) to handle the redirect
+        return redirect(self.get_success_url())  # ✅ redirección
 
 class EditarParadaView(SuperUserRequiredMixin, UpdateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')
+    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
 
     def form_valid(self, form):
         with transaction.atomic():
             parada = form.save()
+
+            # Campos auxiliares para una sola asignación
             recorrido_seleccionado = form.cleaned_data.get('recorrido_a_asignar')
             orden_seleccionado = form.cleaned_data.get('orden_en_recorrido')
-            recorrido_parada_existente = RecorridoParada.objects.filter(parada=parada).first()
+
+            # Busco si ya tenía una relación
+            rp_existente = RecorridoParada.objects.filter(parada=parada).first()
+
             if recorrido_seleccionado:
-                if recorrido_parada_existente:
-                    if (recorrido_parada_existente.recorrido != recorrido_seleccionado or
-                            recorrido_parada_existente.orden != orden_seleccionado):
-                        recorrido_parada_existente.recorrido = recorrido_seleccionado
-                        recorrido_parada_existente.orden = orden_seleccionado
-                        recorrido_parada_existente.save()
+                if rp_existente:
+                    # Actualizo si cambió recorrido u orden
+                    if (rp_existente.recorrido != recorrido_seleccionado or
+                        (orden_seleccionado and rp_existente.orden != orden_seleccionado)):
+                        rp_existente.recorrido = recorrido_seleccionado
+                        rp_existente.orden = orden_seleccionado or rp_existente.orden
+                        rp_existente.save()
                 else:
                     RecorridoParada.objects.create(
                         recorrido=recorrido_seleccionado,
                         parada=parada,
-                        orden=orden_seleccionado
+                        orden=orden_seleccionado or (
+                            RecorridoParada.objects.filter(recorrido=recorrido_seleccionado).count() + 1
+                        )
                     )
-            elif recorrido_parada_existente:
-                recorrido_parada_existente.delete()
+            else:
+                # Si eligen “no asignar”, borro la relación existente
+                if rp_existente:
+                    rp_existente.delete()
 
         messages.success(self.request, "Parada actualizada correctamente.")
-        return redirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = f"Editar Parada: {self.object.nombre_parada}"
-        return context
+        return redirect(self.get_success_url())  # ✅ redirección   
 
 class EliminarParadaView(SuperUserRequiredMixin, DeleteView):
     model = Parada
@@ -574,6 +566,15 @@ class CrearRecorridoView(SuperUserRequiredMixin, CreateView):
     template_name = 'admin/recorrido_form.html'
     success_url = reverse_lazy('admin-recorridos')
 
+    def post(self, request, *args, **kwargs):
+        print("Datos recibidos en POST:", request.POST)  # Depuración
+        response = super().post(request, *args, **kwargs)  # Llamar al método padre
+        if self.request.POST and not self.object:  # Si no se guardó (error en el formulario)
+            form = self.get_form()
+            print("Errores del formulario:", form.errors)  # Depuración
+        elif self.object:  # Si se guardó correctamente
+            print("Datos limpios:", self.object.__dict__)  # Depuración con los atributos del objeto
+        return response
 class EditarRecorridoView(SuperUserRequiredMixin, UpdateView):
     model = Recorrido
     form_class = RecorridoForm
@@ -625,103 +626,6 @@ class EliminarAtractivoView(SuperUserRequiredMixin, DeleteView):
     success_url = reverse_lazy('admin-atractivos')
 
 
-# --- Reporting Views ---
-class ReportesView(SuperUserRequiredMixin, ListView):
-    template_name = 'admin/reportes.html'
-    context_object_name = 'reportes'
-
-    def get_queryset(self):
-        viajes = Viaje.objects.all()
-        reportes = [
-            {
-                'id': viaje.id,
-                'fecha': viaje.fecha_programada if viaje.fecha_programada else timezone.now(),
-                'estado': 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente',
-                'descripcion': f'Reporte de viaje {viaje.id} - {viaje.recorrido}',
-                'foto': None
-            }
-            for viaje in viajes
-        ]
-        return reportes
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['total_reportes'] = Viaje.objects.count()
-        context['reportes_completados'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=False).count()
-        context['reportes_pendientes'] = Viaje.objects.filter(fecha_hora_fin_real__isnull=True).count()
-        return context
-
-def generar_reporte(request):
-    viajes = Viaje.objects.all()
-    reporte_data = "Reporte de Viajes - Generado el {}\n\n".format(timezone.now().strftime('%d/%m/%Y %H:%M'))
-    reporte_data += "ID,Fecha,Estado,Descripción\n"
-    for viaje in viajes:
-        estado = 'Completado' if viaje.fecha_hora_fin_real else 'Pendiente'
-        descripcion = f"Viaje {viaje.id} - {viaje.recorrido}"
-        reporte_data += f"{viaje.id},{viaje.fecha_programada.strftime('%d/%m/%Y') if viaje.fecha_programada else 'Sin fecha'},{estado},{descripcion}\n"
-
-    response = HttpResponse(reporte_data, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="reporte_viajes_{}.txt"'.format(timezone.now().strftime('%Y%m%d_%H%M'))
-    return response
-
-from django.db.models import Avg, F, ExpressionWrapper, DurationField
-from django.utils.timezone import localtime, now
-from django.views.generic import TemplateView
-from datetime import timedelta
-from .models import Viaje
-
-class ReportesDiariosView(SuperUserRequiredMixin, TemplateView):
-    template_name = 'admin/reportes.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        hoy = localtime(now()).date()
-        viajes_hoy = Viaje.objects.filter(fecha_programada__date=hoy)
-
-        # Lista de viajes con duración y demora
-        viajes_data = []
-        duraciones = []
-        demoras = []
-
-        for viaje in viajes_hoy:
-            # Calculamos duración real en minutos si existe
-            duracion = viaje.duracion_minutos_real
-            if duracion is None and viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
-                delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
-                duracion = int(delta.total_seconds() / 60)
-
-            # Calculamos demora en minutos si existe
-            demora = viaje.demora_inicio_minutos
-            if demora is None and viaje.fecha_hora_inicio_real:
-                programado = viaje.fecha_programada
-                delta = viaje.fecha_hora_inicio_real - programado
-                demora = int(delta.total_seconds() / 60)
-
-            if duracion is not None:
-                duraciones.append(duracion)
-            if demora is not None:
-                demoras.append(demora)
-
-            viajes_data.append({
-                'id': viaje.id,
-                'recorrido': str(viaje.recorrido),
-                'duracion_minutos': duracion,
-                'demora_minutos': demora,
-            })
-
-        # Promedios
-        promedio_duracion = round(sum(duraciones)/len(duraciones), 2) if duraciones else 0
-        promedio_demora = round(sum(demoras)/len(demoras), 2) if demoras else 0
-
-        context.update({
-            'viajes_data': viajes_data,
-            'promedio_duracion': promedio_duracion,
-            'promedio_demora': promedio_demora,
-            'fecha_reporte': hoy,
-        })
-
-        return context
 
 
 
@@ -732,3 +636,38 @@ class ReportesDiariosView(SuperUserRequiredMixin, TemplateView):
 
 class BaseUsuarioView(TemplateView):
     template_name = 'usuario/base_usuario.html'
+
+class ConsultasView(SuperUserRequiredMixin, ListView):
+    model = Consulta
+    template_name = "admin/consultas.html"
+    context_object_name = "consultas"
+    ordering = ["-fecha_envio"]
+
+
+class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
+    model = Consulta
+    fields = ["respuesta", "respondida"]
+    template_name = "admin/consulta_detalle.html"
+    success_url = reverse_lazy("admin-consultas")
+
+    def form_valid(self, form):
+        consulta = form.save(commit=False)
+
+        # Si hay respuesta, enviamos el mail (aunque respondida ya sea True)
+        if consulta.respuesta:
+            try:
+                send_mail(
+                    subject=f"Respuesta a tu consulta - Bus Turístico",
+                    message=consulta.respuesta,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[consulta.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print("Error al enviar correo:", e)
+
+            # Marcamos como respondida siempre que haya respuesta
+            consulta.respondida = True
+
+        consulta.save()
+        return super().form_valid(form)

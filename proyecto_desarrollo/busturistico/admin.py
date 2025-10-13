@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.core.mail import send_mail
+from django.conf import settings
 from .models import (
     Recorrido, RecorridoParada, Parada, ParadaAtractivo, Atractivo,
     Bus, EstadoBus, EstadoBusHistorial,
-    Chofer, Viaje, EstadoViaje
+    Chofer, Viaje, EstadoViaje, Consulta
 )
 
 @admin.register(Recorrido)
@@ -58,3 +60,29 @@ class ViajeAdmin(admin.ModelAdmin):
 @admin.register(EstadoViaje)
 class EstadoViajeAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre_estado', 'descripcion_estado')
+
+@admin.register(Consulta)
+class ConsultaAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "email", "telefono", "fecha_interes", "recorrido_interes", "fecha_envio", "respondida")
+    list_filter = ("respondida", "fecha_envio")
+    search_fields = ("nombre", "email", "mensaje")
+    ordering = ("-fecha_envio",)
+
+    fields = ("nombre", "email", "telefono", "personas", "fecha_interes", "recorrido_interes", "mensaje", "respuesta", "respondida", "fecha_envio")
+    readonly_fields = ("fecha_envio",)
+
+    actions = ["enviar_respuesta"]
+
+    @admin.action(description="Enviar respuesta por correo")
+    def enviar_respuesta(self, request, queryset):
+        for consulta in queryset:
+            if consulta.respuesta:
+                send_mail(
+                    subject="Respuesta a tu consulta - Bus Turístico",
+                    message=consulta.respuesta,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[consulta.email],
+                )
+                consulta.respondida = True
+                consulta.save()
+        self.message_user(request, "Respuestas enviadas correctamente.")

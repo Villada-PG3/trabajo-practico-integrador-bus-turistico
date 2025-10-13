@@ -30,21 +30,7 @@
                     {{ form.fecha_compra.errors }}
                 </div>
             {% endif %}
-        </div>
-        <div class="mb-3">
-            <label for="{{ form.estado_bus.id_for_label }}" class="form-label">{{ form.estado_bus.label }}</label>
-            <select name="{{ form.estado_bus.name }}" id="{{ form.estado_bus.id_for_label }}" class="form-control {% if form.estado_bus.errors %}is-invalid{% endif %}">
-                <option value="">Seleccione un estado inicial</option>
-                {% for estado in form.estado_bus.field.queryset %}
-                    <option value="{{ estado.id }}" {% if form.estado_bus.value == estado.id %}selected{% endif %}>{{ estado.nombre_estado }}</option>
-                {% endfor %}
-            </select>
-            {% if form.estado_bus.errors %}
-                <div class="invalid-feedback">
-                    {{ form.estado_bus.errors }}
-                </div>
-            {% endif %}
-        </div>
+        </div>            
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Guardar</button>
             <a href="{% url 'admin-flota' %}" class="btn btn-secondary">Cancelar</a>
