@@ -438,4 +438,12 @@ class RecorridoForm(forms.ModelForm):
             return parsed_time
         except ValueError:
             raise forms.ValidationError("Formato inválido, revisa de nuevo. Usa HH:MM (ej: 01:30).")
+from django.forms import inlineformset_factory
+from .models import Parada, RecorridoParada
 
+RecorridoParadaFormSet = inlineformset_factory(
+    Parada, RecorridoParada,
+    fields=('recorrido', 'orden'),
+    extra=1,
+    can_delete=True
+)

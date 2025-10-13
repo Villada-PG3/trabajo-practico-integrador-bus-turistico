@@ -8,6 +8,11 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseNotAllowed
 from django.utils import timezone
 from datetime import timedelta
+from django.forms import inlineformset_factory
+from django.shortcuts import render
+from django.db import transaction
+from .forms import ParadaForm, RecorridoParadaFormSet
+from .models import Parada
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
 )   
@@ -446,77 +451,73 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')
+    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
 
     def form_valid(self, form):
         with transaction.atomic():
-            try:
-                # Guarda el formulario y asigna el objeto a self.object
-                self.object = form.save()
-                recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
-                orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
+            # Guarda la Parada
+            self.object = form.save()
 
-                if recorrido_a_asignar:
-                    if not orden_en_recorrido:
-                        # Calcula el siguiente orden disponible si no se especifica
-                        orden_en_recorrido = RecorridoParada.objects.filter(recorrido=recorrido_a_asignar).count() + 1
-                    RecorridoParada.objects.create(
-                        recorrido=recorrido_a_asignar,
-                        parada=self.object,
-                        orden=orden_en_recorrido
-                    )
-                messages.success(self.request, "Parada creada correctamente.")
-                return super().form_valid(form)
-            except Exception as e:
-                messages.error(self.request, f"Error al crear la parada: {str(e)}")
-                return self.form_invalid(form)
+            # Toma los campos auxiliares del form para una sola asignación
+            recorrido_a_asignar = form.cleaned_data.get('recorrido_a_asignar')
+            orden_en_recorrido = form.cleaned_data.get('orden_en_recorrido')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = "Crear Nueva Parada"
-        return context
+            if recorrido_a_asignar:
+                if not orden_en_recorrido:
+                    # Si no te pasan orden, lo colocamos al final
+                    orden_en_recorrido = RecorridoParada.objects.filter(
+                        recorrido=recorrido_a_asignar
+                    ).count() + 1
 
-    def get_success_url(self):
-        # Asegura que devuelva una URL válida incluso si self.object es None
-        if self.object and hasattr(self.object, 'pk'):
-            return reverse_lazy('admin-paradas')
-        return super().get_success_url()  # Fallback a success_url definidot
+                RecorridoParada.objects.create(
+                    recorrido=recorrido_a_asignar,
+                    parada=self.object,
+                    orden=orden_en_recorrido
+                )
+
+        messages.success(self.request, "Parada creada correctamente.")
+        return redirect(self.get_success_url())  # ✅ redirección
 
 class EditarParadaView(SuperUserRequiredMixin, UpdateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')
+    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
 
     def form_valid(self, form):
         with transaction.atomic():
             parada = form.save()
+
+            # Campos auxiliares para una sola asignación
             recorrido_seleccionado = form.cleaned_data.get('recorrido_a_asignar')
             orden_seleccionado = form.cleaned_data.get('orden_en_recorrido')
-            recorrido_parada_existente = RecorridoParada.objects.filter(parada=parada).first()
+
+            # Busco si ya tenía una relación
+            rp_existente = RecorridoParada.objects.filter(parada=parada).first()
+
             if recorrido_seleccionado:
-                if recorrido_parada_existente:
-                    if (recorrido_parada_existente.recorrido != recorrido_seleccionado or
-                            recorrido_parada_existente.orden != orden_seleccionado):
-                        recorrido_parada_existente.recorrido = recorrido_seleccionado
-                        recorrido_parada_existente.orden = orden_seleccionado
-                        recorrido_parada_existente.save()
+                if rp_existente:
+                    # Actualizo si cambió recorrido u orden
+                    if (rp_existente.recorrido != recorrido_seleccionado or
+                        (orden_seleccionado and rp_existente.orden != orden_seleccionado)):
+                        rp_existente.recorrido = recorrido_seleccionado
+                        rp_existente.orden = orden_seleccionado or rp_existente.orden
+                        rp_existente.save()
                 else:
                     RecorridoParada.objects.create(
                         recorrido=recorrido_seleccionado,
                         parada=parada,
-                        orden=orden_seleccionado
+                        orden=orden_seleccionado or (
+                            RecorridoParada.objects.filter(recorrido=recorrido_seleccionado).count() + 1
+                        )
                     )
-            elif recorrido_parada_existente:
-                recorrido_parada_existente.delete()
+            else:
+                # Si eligen “no asignar”, borro la relación existente
+                if rp_existente:
+                    rp_existente.delete()
 
         messages.success(self.request, "Parada actualizada correctamente.")
-        return redirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = f"Editar Parada: {self.object.nombre_parada}"
-        return context
+        return redirect(self.get_success_url())  # ✅ redirección   
 
 class EliminarParadaView(SuperUserRequiredMixin, DeleteView):
     model = Parada
