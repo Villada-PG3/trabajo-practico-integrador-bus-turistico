@@ -289,7 +289,8 @@ class UsuarioMapaFoliumView(TemplateView):
 
         # Preparar animación para el colectivo en viaje
         default_delay_ms = 2000
-        animation_points = []
+        animation_future_points = []
+        initial_point = None
         viaje_en_curso = (
             Viaje.objects
             .filter(
@@ -313,43 +314,51 @@ class UsuarioMapaFoliumView(TemplateView):
 
             ubicaciones = list(ubicaciones_qs)
             if ubicaciones:
-                animation_points = [
-                    {
-                        'lat': ubicacion.latitud,
-                        'lng': ubicacion.longitud,
-                        'timestamp': ubicacion.timestamp_ubicacion.isoformat()
-                    }
-                    for ubicacion in ubicaciones
-                ]
-
-                if len(animation_points) > 1:
-                    for idx in range(len(animation_points) - 1):
-                        current_ts = ubicaciones[idx].timestamp_ubicacion
-                        next_ts = ubicaciones[idx + 1].timestamp_ubicacion
-                        delta = next_ts - current_ts
-                        diff_ms = int(delta.total_seconds() * 1000) if delta else 0
-                        if diff_ms <= 0:
-                            diff_ms = default_delay_ms
-                        animation_points[idx]['delay_to_next_ms'] = max(diff_ms, 750)
-                    animation_points[-1]['delay_to_next_ms'] = None
+                now_dt = timezone.now()
+                past_points = [u for u in ubicaciones if u.timestamp_ubicacion <= now_dt]
+                if past_points:
+                    current_point = past_points[-1]
+                    future_points = [u for u in ubicaciones if u.timestamp_ubicacion > now_dt]
                 else:
-                    animation_points[0]['delay_to_next_ms'] = None
+                    current_point = ubicaciones[0]
+                    future_points = ubicaciones[1:]
+
+                initial_point = {
+                    'lat': current_point.latitud,
+                    'lng': current_point.longitud,
+                    'timestamp': current_point.timestamp_ubicacion.isoformat(),
+                }
+
+                min_delay_ms = 500
+                previous_ts = max(current_point.timestamp_ubicacion, now_dt)
+                for punto in future_points:
+                    delta = punto.timestamp_ubicacion - previous_ts
+                    diff_ms = int(delta.total_seconds() * 1000) if delta else 0
+                    if diff_ms <= 0:
+                        diff_ms = default_delay_ms
+                    animation_future_points.append({
+                        'lat': punto.latitud,
+                        'lng': punto.longitud,
+                        'delay_ms': max(diff_ms, min_delay_ms),
+                        'timestamp': punto.timestamp_ubicacion.isoformat(),
+                    })
+                    previous_ts = punto.timestamp_ubicacion
             elif route_latlon:
                 # Fallback: animar siguiendo la polilínea calculada aunque no haya ubicaciones registradas todavía
-                now_iso = timezone.now().isoformat()
-                animation_points = [
-                    {
-                        'lat': coord[0],
-                        'lng': coord[1],
-                        'timestamp': now_iso,
-                        'delay_to_next_ms': None,
+                now_dt = timezone.now()
+                if route_latlon:
+                    initial_point = {
+                        'lat': route_latlon[0][0],
+                        'lng': route_latlon[0][1],
+                        'timestamp': now_dt.isoformat(),
                     }
-                    for coord in route_latlon
-                ]
-                if len(animation_points) > 1:
-                    for idx in range(len(animation_points) - 1):
-                        animation_points[idx]['delay_to_next_ms'] = default_delay_ms
-                    animation_points[-1]['delay_to_next_ms'] = None
+                    for coord in route_latlon[1:]:
+                        animation_future_points.append({
+                            'lat': coord[0],
+                            'lng': coord[1],
+                            'delay_ms': default_delay_ms,
+                            'timestamp': now_dt.isoformat(),
+                        })
 
         context['recorrido'] = recorrido
         context['paradas'] = [p.parada for p in paradas]
@@ -359,6 +368,7 @@ class UsuarioMapaFoliumView(TemplateView):
         context['paradas_geo_json'] = json.dumps(paradas_geo)
         context['route_color'] = route_color
         context['viaje_en_curso'] = viaje_en_curso
-        context['animation_points_json'] = json.dumps(animation_points)
+        context['bus_initial_point_json'] = json.dumps(initial_point)
+        context['animation_future_points_json'] = json.dumps(animation_future_points)
         context['animation_default_delay_ms'] = default_delay_ms
         return context
