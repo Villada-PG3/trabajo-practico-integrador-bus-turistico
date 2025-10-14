@@ -20,9 +20,9 @@
     }
   },
 
-  { "model": "busturistico.parada", "pk": 1,  "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": null, "latitud_parada": -34.5889, "longitud_parada": -58.4039 } },
-  { "model": "busturistico.parada", "pk": 2,  "fields": { "nombre_parada": "Planetario", "direccion_parada": "Av. Sarmiento y Belisario Roldán, Palermo", "descripcion_parada": "Planetario Galileo Galilei y Parque Tres de Febrero.", "foto_parada": null, "latitud_parada": -34.5725, "longitud_parada": -58.4116 } },
-  { "model": "busturistico.parada", "pk": 3,  "fields": { "nombre_parada": "Club de Pescadores", "direccion_parada": "Av. Costanera Rafael Obligado 5470, Costanera Norte", "descripcion_parada": "Muelle histórico sobre el Río de la Plata.", "foto_parada": null, "latitud_parada": -34.5555, "longitud_parada": -58.4069 } },
+  { "model": "busturistico.parada", "pk": 1,  "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": null, "latitud_parada": -34.576695, "longitud_parada": -58.40303 } },
+  { "model": "busturistico.parada", "pk": 2,  "fields": { "nombre_parada": "Planetario", "direccion_parada": "Av. Sarmiento y Belisario Roldán, Palermo", "descripcion_parada": "Planetario Galileo Galilei y Parque Tres de Febrero.", "foto_parada": null, "latitud_parada": -34.569527, "longitud_parada": -58.411488 } },
+  { "model": "busturistico.parada", "pk": 3,  "fields": { "nombre_parada": "Club de Pescadores", "direccion_parada": "Av. Costanera Rafael Obligado 5470, Costanera Norte", "descripcion_parada": "Muelle histórico sobre el Río de la Plata.", "foto_parada": null, "latitud_parada": -34.563352, "longitud_parada": -58.403327 } },
   { "model": "busturistico.parada", "pk": 4,  "fields": { "nombre_parada": "Parque de la Memoria", "direccion_parada": "Av. Costanera Rafael Obligado 6745, Costanera Norte", "descripcion_parada": "Espacio público de homenaje y arte contemporáneo.", "foto_parada": null, "latitud_parada": -34.5432, "longitud_parada": -58.4336 } },
   { "model": "busturistico.parada", "pk": 5,  "fields": { "nombre_parada": "El Monumental", "direccion_parada": "Av. Pres. Figueroa Alcorta 7597, Núñez", "descripcion_parada": "Estadio Mâs Monumental (River Plate).", "foto_parada": null, "latitud_parada": -34.5453, "longitud_parada": -58.4492 } },
   { "model": "busturistico.parada", "pk": 6,  "fields": { "nombre_parada": "Belgrano Barrio Chino", "direccion_parada": "Arribeños 2100, Belgrano C", "descripcion_parada": "Pórtico y galerías gastronómicas del Barrio Chino.", "foto_parada": null, "latitud_parada": -34.5617, "longitud_parada": -58.4448 } },
@@ -46,11 +46,12 @@
   { "model": "busturistico.recorridoparada", "pk": 11, "fields": { "recorrido": 1, "parada": 11, "orden": 11 } },
 
 
-  { "model": "busturistico.chofer", "pk": 1, "fields": { "nombre": "Juan",  "apellido": "Pérez",    "dni": "30123456" } },
-  { "model": "busturistico.chofer", "pk": 2, "fields": { "nombre": "María", "apellido": "López",    "dni": "32222333" } },
-  { "model": "busturistico.chofer", "pk": 3, "fields": { "nombre": "Carlos","apellido": "Gómez",    "dni": "28456789" } },
-  { "model": "busturistico.chofer", "pk": 4, "fields": { "nombre": "Lucía", "apellido": "Fernández","dni": "33111222" } },
-  { "model": "busturistico.chofer", "pk": 5, "fields": { "nombre": "Sofía", "apellido": "Martínez", "dni": "34555999" } },
+  { "model": "busturistico.chofer", "pk": 1, "fields": { "nombre_chofer": "Juan",  "apellido_chofer": "Pérez",     "dni_chofer": 30123456, "legajo_chofer": 3012, "telefono": "+54-11-5555-0101", "fecha_ingreso": "2021-05-10", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 2, "fields": { "nombre_chofer": "María", "apellido_chofer": "López",     "dni_chofer": 32222333, "legajo_chofer": 3222, "telefono": "+54-11-5555-0202", "fecha_ingreso": "2020-09-15", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 3, "fields": { "nombre_chofer": "Carlos","apellido_chofer": "Gómez",     "dni_chofer": 28456789, "legajo_chofer": 2845, "telefono": "+54-11-5555-0303", "fecha_ingreso": "2019-11-22", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 4, "fields": { "nombre_chofer": "Lucía", "apellido_chofer": "Fernández", "dni_chofer": 33111222, "legajo_chofer": 3311, "telefono": "+54-11-5555-0404", "fecha_ingreso": "2022-01-05", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 5, "fields": { "nombre_chofer": "Sofía", "apellido_chofer": "Martínez",  "dni_chofer": 34555999, "legajo_chofer": 3455, "telefono": "+54-11-5555-0505", "fecha_ingreso": "2023-03-18", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 6, "fields": { "nombre_chofer": "Tomas", "apellido_chofer": "Núñez",  "dni_chofer": 48600677, "legajo_chofer": 4860, "telefono": "+5493517881719", "fecha_ingreso": "2023-03-18", "activo": true } },
 
 
   { "model": "busturistico.bus", "pk": "AA123BB", "fields": { "numero_unidad": 1, "fecha_compra": "2022-03-10T10:00:00Z" } },
