@@ -282,15 +282,15 @@ class UsuarioMapaFoliumView(TemplateView):
                     osrm_ok = True
                 else:
                     warnings_list.append(
-                        f"OSRM no devolvió una ruta óptima para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                        f"OSRM no devolvió una ruta óptima para el recorrido {recorrido_obj.color_recorrido}."
                     )
             except requests.exceptions.HTTPError:
                 warnings_list.append(
-                    f"OSRM devolvió un estado inesperado para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                    f"OSRM devolvió un estado inesperado para el recorrido {recorrido_obj.color_recorrido}."
                 )
             except requests.RequestException:
                 warnings_list.append(
-                    f"No se pudo contactar a OSRM para el recorrido {recorrido_obj.color_recorrido}. Se usará la ruta roja por paradas."
+                    f"No se pudo contactar a OSRM para el recorrido {recorrido_obj.color_recorrido}."
                 )
 
             if osrm_ok and osrm_route:
