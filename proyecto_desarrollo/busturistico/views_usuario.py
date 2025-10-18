@@ -73,6 +73,7 @@ class UsuarioRecorridosView(ListView):
 
         # Adjuntar próximos horarios de viajes programados a cada recorrido de la página actual
         now = timezone.localtime()
+        today = now.date()
         page_obj = context.get('page_obj')
         if page_obj:
             for recorrido in page_obj.object_list:
@@ -81,7 +82,7 @@ class UsuarioRecorridosView(ListView):
                     .filter(
                         recorrido=recorrido,
                         fecha_hora_inicio_real__isnull=True,
-                        fecha_programada__date=now.date(),
+                        fecha_programada=today,
                         hora_inicio_programada__gte=now.time(),
                     )
                     .order_by('hora_inicio_programada')
@@ -116,12 +117,13 @@ class UsuarioDetalleRecorridoView(DetailView):
     def get_proximos_horarios(self):
         """Obtener próximos horarios de viajes programados (no iniciados) para el recorrido."""
         now = timezone.localtime()
+        today = now.date()
         viajes_qs = (
             Viaje.objects
             .filter(
                 recorrido=self.object,
                 fecha_hora_inicio_real__isnull=True,
-                fecha_programada__date=now.date(),
+                fecha_programada=today,
                 hora_inicio_programada__gte=now.time(),
             )
             .order_by('hora_inicio_programada')
