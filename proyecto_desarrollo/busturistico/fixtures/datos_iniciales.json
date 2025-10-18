@@ -20,17 +20,20 @@
     }
   },
 
-  { "model": "busturistico.parada", "pk": 1,  "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": null, "latitud_parada": -34.57732011764099, "longitud_parada": -58.40366662692628 } },
-  { "model": "busturistico.parada", "pk": 2,  "fields": { "nombre_parada": "Planetario", "direccion_parada": "Av. Sarmiento y Belisario Roldán, Palermo", "descripcion_parada": "Planetario Galileo Galilei y Parque Tres de Febrero.", "foto_parada": null, "latitud_parada": -34.57097823574259, "longitud_parada": -58.41157735841595 } },
-  { "model": "busturistico.parada", "pk": 3,  "fields": { "nombre_parada": "Club de Pescadores", "direccion_parada": "Av. Costanera Rafael Obligado 5470, Costanera Norte", "descripcion_parada": "Muelle histórico sobre el Río de la Plata.", "foto_parada": null, "latitud_parada": -34.563442603494124, "longitud_parada": -58.40433238869396 } },
-  { "model": "busturistico.parada", "pk": 4,  "fields": { "nombre_parada": "Parque de la Memoria", "direccion_parada": "Av. Costanera Rafael Obligado 6745, Costanera Norte", "descripcion_parada": "Espacio público de homenaje y arte contemporáneo.", "foto_parada": null, "latitud_parada": -34.542640, "longitud_parada": -58.435527 } },
-  { "model": "busturistico.parada", "pk": 5,  "fields": { "nombre_parada": "El Monumental", "direccion_parada": "Av. Pres. Figueroa Alcorta 7597, Núñez", "descripcion_parada": "Estadio Mâs Monumental (River Plate).", "foto_parada": null, "latitud_parada": -34.54630291291497, "longitud_parada": -58.45128968434523 } },
+  { "model": "busturistico.parada", "pk": 1,  "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": "paradas/01_ft1.jpg", "latitud_parada": -34.57732011764099, "longitud_parada": -58.40366662692628 } },
+  { "model": "busturistico.parada", "pk": 2,  "fields": { "nombre_parada": "Planetario", "direccion_parada": "Av. Sarmiento y Belisario Roldán, Palermo", "descripcion_parada": "Planetario Galileo Galilei y Parque Tres de Febrero.", "foto_parada": "paradas/02_ft1.jpg", "latitud_parada": -34.57097823574259, "longitud_parada": -58.41157735841595 } },
+  { "model": "busturistico.parada", "pk": 3,  "fields": { "nombre_parada": "Club de Pescadores", "direccion_parada": "Av. Costanera Rafael Obligado 5470, Costanera Norte", "descripcion_parada": "Muelle histórico sobre el Río de la Plata.", "foto_parada": "paradas/03_ft3.jpg", "latitud_parada": -34.563442603494124, "longitud_parada": -58.40433238869396 } },
+  { "model": "busturistico.parada", "pk": 4,  "fields": { "nombre_parada": "Parque de la Memoria", "direccion_parada": "Av. Costanera Rafael Obligado 6745, Costanera Norte", "descripcion_parada": "Espacio público de homenaje y arte contemporáneo.", "foto_parada": "paradas/parada04.webp", "latitud_parada": -34.542640, "longitud_parada": -58.435527 } },
+  { "model": "busturistico.parada", "pk": 5,  "fields": { "nombre_parada": "El Monumental", "direccion_parada": "Av. Pres. Figueroa Alcorta 7597, Núñez", "descripcion_parada": "Estadio Mâs Monumental (River Plate).", "foto_parada": "paradas/parada05.webp", "latitud_parada": -34.54630291291497, "longitud_parada": -58.45128968434523 } },
   { "model": "busturistico.parada", "pk": 6,  "fields": { "nombre_parada": "Belgrano Barrio Chino", "direccion_parada": "Arribeños 2100, Belgrano C", "descripcion_parada": "Pórtico y galerías gastronómicas del Barrio Chino.", "foto_parada": null, "latitud_parada": -34.5566043340473, "longitud_parada": -58.4498957463885 } },
   { "model": "busturistico.parada", "pk": 7,  "fields": { "nombre_parada": "Campo Argentino de Polo", "direccion_parada": "Av. del Libertador y Dorrego, Palermo", "descripcion_parada": "Estadio de polo y eventos; cerca de Hipódromo y Bosques.", "foto_parada": null, "latitud_parada": -34.570857550552546, "longitud_parada": -58.42467113029715 } },
   { "model": "busturistico.parada", "pk": 8,  "fields": { "nombre_parada": "Bosques de Palermo (Conexión)", "direccion_parada": "Av. Pedro Montt s/n (Rosedal), Palermo", "descripcion_parada": "Rosedal y lagos de Palermo. Punto de conexión.", "foto_parada": null, "latitud_parada": -34.574009301472465, "longitud_parada": -58.41643677243074 } },
   { "model": "busturistico.parada", "pk": 9,  "fields": { "nombre_parada": "Distrito Arcos II", "direccion_parada": "Paraguay 4979, Palermo", "descripcion_parada": "Paseo de compras a cielo abierto (outlet premium).", "foto_parada": null, "latitud_parada": -34.58193030544014, "longitud_parada": -58.42803376185722 } },
   { "model": "busturistico.parada", "pk": 10, "fields": { "nombre_parada": "Palermo Soho II", "direccion_parada": "Plazoleta Julio Cortázar (Honduras y Borges), Palermo", "descripcion_parada": "Corazón de Palermo Soho: diseño, cafés y ferias.", "foto_parada": null, "latitud_parada": -34.58893245868958, "longitud_parada": -58.4300691808661 } },
   { "model": "busturistico.parada", "pk": 11, "fields": { "nombre_parada": "Monumento a los Españoles (Conexión)", "direccion_parada": "Av. del Libertador y Av. Sarmiento, Palermo", "descripcion_parada": "Monumento de los Españoles (La Carta Magna). Punto de conexión.", "foto_parada": null, "latitud_parada": -34.57554739144023, "longitud_parada": -58.41532238084112 } },
+  { "model": "busturistico.parada", "pk": 12, "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": "paradas/01_ft1.jpg", "latitud_parada": -34.57732011764099, "longitud_parada": -58.40366662692628 } },
+  { "model": "busturistico.parada", "pk": 13, "fields": { "nombre_parada": "Bosques de Palermo (Conexión)", "direccion_parada": "Av. Pedro Montt s/n (Rosedal), Palermo", "descripcion_parada": "Rosedal y lagos de Palermo. Punto de conexión.", "foto_parada": null, "latitud_parada": -34.574009301472465, "longitud_parada": -58.41643677243074 } },
+  { "model": "busturistico.parada", "pk": 14, "fields": { "nombre_parada": "Monumento a los Españoles (Conexión)", "direccion_parada": "Av. del Libertador y Av. Sarmiento, Palermo", "descripcion_parada": "Monumento de los Españoles (La Carta Magna). Punto de conexión.", "foto_parada": "paradas/parada11.jpg", "latitud_parada": -34.57554739144023, "longitud_parada": -58.41532238084112 } },
 
 
   { "model": "busturistico.recorridoparada", "pk": 1,  "fields": { "recorrido": 1, "parada": 1,  "orden": 1 } },
@@ -44,6 +47,9 @@
   { "model": "busturistico.recorridoparada", "pk": 9,  "fields": { "recorrido": 1, "parada": 9,  "orden": 9 } },
   { "model": "busturistico.recorridoparada", "pk": 10, "fields": { "recorrido": 1, "parada": 10, "orden": 10 } },
   { "model": "busturistico.recorridoparada", "pk": 11, "fields": { "recorrido": 1, "parada": 11, "orden": 11 } },
+  { "model": "busturistico.recorridoparada", "pk": 12, "fields": { "recorrido": 2, "parada": 12, "orden": 1 } },
+  { "model": "busturistico.recorridoparada", "pk": 13, "fields": { "recorrido": 2, "parada": 13, "orden": 2 } },
+  { "model": "busturistico.recorridoparada", "pk": 14, "fields": { "recorrido": 2, "parada": 14, "orden": 3 } },
 
 
   { "model": "busturistico.chofer", "pk": 1, "fields": { "nombre_chofer": "Juan",  "apellido_chofer": "Pérez",     "dni_chofer": 30123456, "legajo_chofer": 3012, "telefono": "+54-11-5555-0101", "fecha_ingreso": "2021-05-10", "activo": true } },
@@ -84,6 +90,9 @@
   { "model": "busturistico.paradaatractivo", "pk": 9,  "fields": { "parada": 9,  "atractivo": 9  } },
   { "model": "busturistico.paradaatractivo", "pk": 10, "fields": { "parada": 10, "atractivo": 10 } },
   { "model": "busturistico.paradaatractivo", "pk": 11, "fields": { "parada": 11, "atractivo": 11 } },
+  { "model": "busturistico.paradaatractivo", "pk": 12, "fields": { "parada": 12, "atractivo": 1 } },
+  { "model": "busturistico.paradaatractivo", "pk": 13, "fields": { "parada": 13, "atractivo": 8 } },
+  { "model": "busturistico.paradaatractivo", "pk": 14, "fields": { "parada": 14, "atractivo": 11 } },
 
   {
     "model": "auth.user",
