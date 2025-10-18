@@ -52,12 +52,12 @@
   { "model": "busturistico.recorridoparada", "pk": 14, "fields": { "recorrido": 2, "parada": 14, "orden": 3 } },
 
 
-  { "model": "busturistico.chofer", "pk": 1, "fields": { "nombre_chofer": "Juan",  "apellido_chofer": "Pérez",     "dni_chofer": 30123456, "legajo_chofer": 3012, "telefono": "+54-11-5555-0101", "fecha_ingreso": "2021-05-10", "activo": true } },
-  { "model": "busturistico.chofer", "pk": 2, "fields": { "nombre_chofer": "María", "apellido_chofer": "López",     "dni_chofer": 32222333, "legajo_chofer": 3222, "telefono": "+54-11-5555-0202", "fecha_ingreso": "2020-09-15", "activo": true } },
-  { "model": "busturistico.chofer", "pk": 3, "fields": { "nombre_chofer": "Carlos","apellido_chofer": "Gómez",     "dni_chofer": 28456789, "legajo_chofer": 2845, "telefono": "+54-11-5555-0303", "fecha_ingreso": "2019-11-22", "activo": true } },
-  { "model": "busturistico.chofer", "pk": 4, "fields": { "nombre_chofer": "Lucía", "apellido_chofer": "Fernández", "dni_chofer": 33111222, "legajo_chofer": 3311, "telefono": "+54-11-5555-0404", "fecha_ingreso": "2022-01-05", "activo": true } },
-  { "model": "busturistico.chofer", "pk": 5, "fields": { "nombre_chofer": "Sofía", "apellido_chofer": "Martínez",  "dni_chofer": 34555999, "legajo_chofer": 3455, "telefono": "+54-11-5555-0505", "fecha_ingreso": "2023-03-18", "activo": true } },
-  { "model": "busturistico.chofer", "pk": 6, "fields": { "nombre_chofer": "Tomas", "apellido_chofer": "Núñez",  "dni_chofer": 48600677, "legajo_chofer": 4860, "telefono": "+5493517881719", "fecha_ingreso": "2023-03-18", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 1, "fields": { "user": 2, "nombre_chofer": "Juan",  "apellido_chofer": "Pérez",     "dni_chofer": 30123456, "legajo_chofer": 3012, "telefono": "+54-11-5555-0101", "fecha_ingreso": "2021-05-10", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 2, "fields": { "user": 3, "nombre_chofer": "María", "apellido_chofer": "López",     "dni_chofer": 32222333, "legajo_chofer": 3222, "telefono": "+54-11-5555-0202", "fecha_ingreso": "2020-09-15", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 3, "fields": { "user": 4, "nombre_chofer": "Carlos","apellido_chofer": "Gómez",     "dni_chofer": 28456789, "legajo_chofer": 2845, "telefono": "+54-11-5555-0303", "fecha_ingreso": "2019-11-22", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 4, "fields": { "user": 5, "nombre_chofer": "Lucía", "apellido_chofer": "Fernández", "dni_chofer": 33111222, "legajo_chofer": 3311, "telefono": "+54-11-5555-0404", "fecha_ingreso": "2022-01-05", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 5, "fields": { "user": 6, "nombre_chofer": "Sofía", "apellido_chofer": "Martínez",  "dni_chofer": 34555999, "legajo_chofer": 3455, "telefono": "+54-11-5555-0505", "fecha_ingreso": "2023-03-18", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 6, "fields": { "user": 7, "nombre_chofer": "Tomas", "apellido_chofer": "Núñez",  "dni_chofer": 48600677, "legajo_chofer": 4860, "telefono": "+5493517881719", "fecha_ingreso": "2023-03-18", "activo": true } },
 
 
   { "model": "busturistico.bus", "pk": "AA123BB", "fields": { "numero_unidad": 1, "fecha_compra": "2022-03-10T10:00:00Z" } },
@@ -106,6 +106,102 @@
       "last_name": "",
       "email": "admin@admin.com",
       "is_staff": true,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$f046c645ad13$w6s7eP4JoLcXJPMCOMmRaEp7rethc9p11VHs8o6Cn0c=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3012",
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "email": "chofer_3012@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$eb7d6ad5932a$TjM5YOH0V5xSQeGTXPqOoX1/vNs+evREOUdMAOyJmr0=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3222",
+      "first_name": "María",
+      "last_name": "López",
+      "email": "chofer_3222@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$0a7b129ecb6c$7Udb2vrcfkkEtE8mYVIgLEPmIuWQ9sUiDGu6goZERzw=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_2845",
+      "first_name": "Carlos",
+      "last_name": "Gómez",
+      "email": "chofer_2845@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$4b6043f6eb89$VaCPxQ7daNkE1NGFTpOYBeHrLVqOtTu87+Wep0lOqwI=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3311",
+      "first_name": "Lucía",
+      "last_name": "Fernández",
+      "email": "chofer_3311@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$2db85429fe98$pIyex9o70aI+x71NlebeXTvBFpZcriRkVFVPf/wQHyc=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3455",
+      "first_name": "Sofía",
+      "last_name": "Martínez",
+      "email": "chofer_3455@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$d5d1d9d0e619$86YtsRIrtErLpFzraA83bI4Ct8SzIKtVj3D2opse6J4=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_4860",
+      "first_name": "Tomas",
+      "last_name": "Núñez",
+      "email": "chofer_4860@busturistico.com",
+      "is_staff": false,
       "is_active": true,
       "date_joined": "2024-01-01T00:00:00Z"
     }
