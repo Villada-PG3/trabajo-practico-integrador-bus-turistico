@@ -11,9 +11,8 @@ from .models import (
     UbicacionColectivo,
     Recorrido,
     RecorridoParada,
-    EstadoViaje,
-    HistorialEstadoViaje,
 )
+from .services_viaje import finalizar_viaje
 
 
 def _haversine_km(lat1, lon1, lat2, lon2):
@@ -116,10 +115,10 @@ def post_ubicacion_viaje(request, viaje_id):
             parada_final.parada.latitud_parada,
             parada_final.parada.longitud_parada
         )
-        # Consideramos completado si está dentro de 75 metros de la última parada.
+        # Consideramos completado si está dentro de ~75 metros de la última parada.
         distancia_umbral_km = 0.075
         if distancia_final <= distancia_umbral_km:
-            finalizado = _finalizar_viaje_si_corresponde(viaje)
+            finalizado = finalizar_viaje(viaje, timestamp=timestamp)
 
     return JsonResponse({
         'ok': True,
@@ -135,6 +134,7 @@ def ubicaciones_activas(request):
     Devuelve viajes en curso con su última ubicación y estimación simple
     hacia la parada más cercana.
     """
+    now_dt = timezone.now()
     viajes = (
         Viaje.objects
         .filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
@@ -146,7 +146,7 @@ def ubicaciones_activas(request):
         # Tomar la última ubicación pasada (ignorar timestamps futuros por simulación)
         last = (
             UbicacionColectivo.objects
-            .filter(viaje=v, timestamp_ubicacion__lte=timezone.now())
+            .filter(viaje=v, timestamp_ubicacion__lte=now_dt)
             .order_by('-timestamp_ubicacion')
             .first()
         )
@@ -154,7 +154,40 @@ def ubicaciones_activas(request):
             continue
 
         # Parada más cercana del recorrido
-        rps = RecorridoParada.objects.filter(recorrido=v.recorrido).select_related('parada')
+        rps = list(
+            RecorridoParada.objects
+            .filter(recorrido=v.recorrido)
+            .select_related('parada')
+            .order_by('orden')
+        )
+
+        future_points_exist = UbicacionColectivo.objects.filter(
+            viaje=v,
+            timestamp_ubicacion__gt=now_dt
+        ).exists()
+
+        if (
+            not future_points_exist
+            and not v.fecha_hora_fin_real
+            and rps
+            and last.timestamp_ubicacion <= now_dt
+        ):
+            ultima_parada = rps[-1].parada
+            if (
+                ultima_parada.latitud_parada is not None
+                and ultima_parada.longitud_parada is not None
+            ):
+                distancia_final = _haversine_km(
+                    last.latitud,
+                    last.longitud,
+                    ultima_parada.latitud_parada,
+                    ultima_parada.longitud_parada
+                )
+                if distancia_final <= 0.075:  # ~75 metros
+                    if finalizar_viaje(v, timestamp=last.timestamp_ubicacion):
+                        # El viaje terminó; omitirlo de la respuesta.
+                        continue
+
         closest = None
         closest_km = None
         for rp in rps:

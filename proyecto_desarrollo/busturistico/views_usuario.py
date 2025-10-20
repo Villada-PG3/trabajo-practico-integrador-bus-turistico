@@ -2,6 +2,7 @@ from django.views.generic import TemplateView, ListView, CreateView, DetailView
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from django.conf import settings
+from math import radians, sin, cos, sqrt, atan2
 from .models import (
     Bus,
     Chofer,
@@ -20,6 +21,7 @@ import json
 from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada
 from django.views import View
 from django.shortcuts import render, redirect
+from .services_viaje import finalizar_viaje
 
 class MapaView(TemplateView):
     template_name = "usuario/mapa.html"
@@ -340,7 +342,15 @@ class UsuarioMapaFoliumView(TemplateView):
 
         default_delay_ms = 2000
 
-        def build_animation_points(viaje_obj, route_coords):
+        def build_animation_points(viaje_obj, route_coords, paradas_list):
+            def _distance_km(lat1, lon1, lat2, lon2):
+                lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+                dlon = lon2 - lon1
+                dlat = lat2 - lat1
+                a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+                c = 2 * atan2(sqrt(a), sqrt(1 - a))
+                return 6371.0 * c
+
             ubicaciones_qs = (
                 UbicacionColectivo.objects
                 .filter(viaje=viaje_obj)
@@ -380,6 +390,30 @@ class UsuarioMapaFoliumView(TemplateView):
                         'timestamp': punto.timestamp_ubicacion.isoformat(),
                     })
                     previous_ts = punto.timestamp_ubicacion
+
+                if (
+                    not future_points
+                    and past_points
+                    and current_point.timestamp_ubicacion <= now_dt
+                    and paradas_list
+                    and not viaje_obj.fecha_hora_fin_real
+                ):
+                    ultima_parada = paradas_list[-1].parada
+                    if (
+                        ultima_parada.latitud_parada is not None
+                        and ultima_parada.longitud_parada is not None
+                    ):
+                        distancia = _distance_km(
+                            current_point.latitud,
+                            current_point.longitud,
+                            ultima_parada.latitud_parada,
+                            ultima_parada.longitud_parada,
+                        )
+                        if distancia <= 0.075:  # ~75 metros
+                            finalizar_viaje(
+                                viaje_obj,
+                                timestamp=current_point.timestamp_ubicacion
+                            )
 
                 return initial, future_points
 
@@ -423,6 +457,9 @@ class UsuarioMapaFoliumView(TemplateView):
         )
 
         base_active_viajes = list(base_active_viajes_qs)
+        active_viajes_for_recorrido = [
+            v for v in base_active_viajes if v.recorrido_id == recorrido.id
+        ]
 
         recorridos_filtrables = []
         seen_recorridos = set()
@@ -436,9 +473,11 @@ class UsuarioMapaFoliumView(TemplateView):
             selected_viaje_id = int(viaje_id)
 
         if selected_viaje_id:
-            active_viajes = [v for v in base_active_viajes if v.id == selected_viaje_id]
+            active_viajes = [
+                v for v in active_viajes_for_recorrido if v.id == selected_viaje_id
+            ]
         else:
-            active_viajes = base_active_viajes
+            active_viajes = active_viajes_for_recorrido
 
         map_payloads = []
         active_viajes_info = []
@@ -461,7 +500,11 @@ class UsuarioMapaFoliumView(TemplateView):
                     continue
                 route_cache[viaje.recorrido_id] = data
 
-            initial_point, future_points = build_animation_points(viaje, data['route_coords'])
+            paradas_list = paradas_cache.get(viaje.recorrido_id, [])
+            initial_point, future_points = build_animation_points(viaje, data['route_coords'], paradas_list)
+            if viaje.fecha_hora_fin_real:
+                # Se finalizó automáticamente durante la simulación; omitirlo del mapa.
+                continue
             bus_data = None
             if initial_point or future_points:
                 if not initial_point and future_points:
@@ -541,7 +584,7 @@ class UsuarioMapaFoliumView(TemplateView):
         context['animation_default_delay_ms'] = default_delay_ms
         context['selected_recorrido_id'] = recorrido.id
         context['selected_viaje_id'] = selected_viaje_id
-        context['viajes_filtrables'] = base_active_viajes
+        context['viajes_filtrables'] = active_viajes_for_recorrido
         context['recorridos_filtrables'] = recorridos_filtrables
         context['has_active_viajes'] = bool(active_viajes_info)
         if warnings_list:
