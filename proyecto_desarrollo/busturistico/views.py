@@ -15,7 +15,7 @@ from .forms import ParadaForm, RecorridoParadaFormSet
 from .models import Parada
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
-)   
+) 
 from math import radians, sin, cos, sqrt, atan2
 import json
 from .models import (
@@ -31,7 +31,10 @@ from .forms import (
 from django.core.mail import send_mail
 from django.conf import settings
 
+# =============================================================================
 # --- Mixins and Helper Functions ---
+# =============================================================================
+
 class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Mixin para asegurar que solo los superusuarios puedan acceder a una vista.
@@ -40,10 +43,14 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        return redirect('admin:login')
+        # Redirige al login de admin si no tiene permiso
+        messages.error(self.request, 'Acceso no autorizado.')
+        return redirect('admin:login') 
 
-
+# =============================================================================
 # --- Dashboard Views ---
+# =============================================================================
+
 class DashboardView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/dashboard.html'
 
@@ -55,34 +62,34 @@ class DashboardView(SuperUserRequiredMixin, TemplateView):
             historial = EstadoBusHistorial.objects.filter(patente_bus=bus).order_by('-fecha_inicio_estado').first()
             estado = historial.estado_bus.nombre_estado if historial else 'Sin estado'
             estado_buses.append((bus, estado))
-        # Count active buses (where the latest status is "Activo")
+        
         buses_activos = sum(1 for bus, estado in estado_buses if estado.lower() == 'activo')
-        # Fetch active drivers
         choferes_activos = Chofer.objects.filter(activo=True).count()
-        # Fetch ongoing trips (for "En Curso")
         ahora = timezone.now()
+        
         viajes_en_curso = Viaje.objects.filter(
             fecha_hora_inicio_real__lte=ahora,
             fecha_hora_fin_real__isnull=True
         ).count()
-        # Fetch programmed trips (for "Programados")
+        
         viajes_programados = Viaje.objects.filter(
-            fecha_hora_inicio_real__isnull=True,  # No han comenzado
-            fecha_programada__gte=ahora.date()     # Programados para hoy o futuro
+            fecha_hora_inicio_real__isnull=True,
+            fecha_programada__gte=ahora.date()
         ).count()
 
-        # Update context with dynamic data for the template
         context.update({
             'estado_buses': estado_buses,
             'buses_activos': buses_activos,
             'choferes_activos': choferes_activos,
-            'viajes_en_curso': viajes_en_curso,    # Mantener para "En Curso" si lo necesitas
-            'viajes_programados': viajes_programados,  # Nuevo conteo para "Programados"
+            'viajes_en_curso': viajes_en_curso,
+            'viajes_programados': viajes_programados,
         })
         return context
 
-
+# =============================================================================
 # --- Chofer Management Views ---
+# =============================================================================
+
 class ChoferesView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/chofer.html'
     model = Chofer
@@ -158,6 +165,7 @@ class EliminarChoferView(SuperUserRequiredMixin, DeleteView):
         self.object.delete()
         messages.success(request, f'Chofer {nombre} eliminado correctamente.')
         return redirect(self.get_success_url())
+
 class ChoferDetailView(SuperUserRequiredMixin, DetailView):
     model = Chofer
     template_name = 'admin/chofer_detalle.html'
@@ -167,21 +175,17 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         chofer = self.object
 
-        
         buses_conducidos = (
-        Viaje.objects.filter(chofer=chofer, patente_bus__isnull=False)
-    .values_list("patente_bus__patente_bus", flat=True)
-    .distinct()
-)
+            Viaje.objects.filter(chofer=chofer, patente_bus__isnull=False)
+            .values_list("patente_bus__patente_bus", flat=True)
+            .distinct()
+        )
 
         ultimos_recorridos = (
-    Viaje.objects.filter(chofer=chofer)
-    .select_related("recorrido", "patente_bus")
-    .order_by("-id")[:5]
-)
-
-        
-        
+            Viaje.objects.filter(chofer=chofer)
+            .select_related("recorrido", "patente_bus")
+            .order_by("-id")[:5]
+        )
         
         viaje_asignado = Viaje.objects.filter(
             chofer=chofer,
@@ -189,7 +193,7 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
             fecha_hora_fin_real__isnull=True
         ).first()
 
-        # 🔹 Cálculos de estadísticas
+        # Cálculos de estadísticas
         viajes_total = Viaje.objects.filter(chofer=chofer).count()
         viajes_completados = Viaje.objects.filter(chofer=chofer, fecha_hora_fin_real__isnull=False).count()
         viajes_en_curso = Viaje.objects.filter(
@@ -212,7 +216,7 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
 
         context.update({
             "buses_conducidos": list(buses_conducidos),
-                "ultimos_recorridos": ultimos_recorridos,
+            "ultimos_recorridos": ultimos_recorridos,
             "viaje_asignado": viaje_asignado,
             "viajes_total": viajes_total,
             "viajes_completados": viajes_completados,
@@ -222,7 +226,10 @@ class ChoferDetailView(SuperUserRequiredMixin, DetailView):
         })
         return context
 
+# =============================================================================
 # --- Bus/Flota Management Views ---
+# =============================================================================
+
 class FlotaView(SuperUserRequiredMixin, TemplateView):
     template_name = 'admin/flota.html'
 
@@ -295,8 +302,6 @@ class BusDetailView(SuperUserRequiredMixin, DetailView):
         ).first()
         context['viaje_actual'] = viaje_actual
 
- 
-
 class CrearBusView(SuperUserRequiredMixin, CreateView):
     model = Bus
     form_class = BusForm
@@ -343,55 +348,72 @@ class CambiarEstadoBusView(SuperUserRequiredMixin, CreateView):
         return reverse_lazy('admin-detalle-bus', kwargs={'pk': self.kwargs['pk']})
 
 
+# =============================================================================
 # --- Viaje Management Views ---
-class ViajesView(SuperUserRequiredMixin, TemplateView):
+# =============================================================================
+
+# La vista ViajesView anterior (TemplateView) fue reemplazada por la lógica de ListView
+class ViajesView(SuperUserRequiredMixin, ListView):
+    model = Viaje
     template_name = 'admin/viajes.html'
+    context_object_name = 'viajes'
     
+    # -------------------------------------------------------------------------
+    # NOTA: Los contadores deben calcularse fuera del queryset si dependen 
+    # de estados dinámicos, pero el queryset debe devolver los viajes filtrados.
+    # -------------------------------------------------------------------------
+
+    def get_queryset(self):
+        # 1. Definir el filtro base (Optimizamos la consulta con select_related)
+        queryset = Viaje.objects.all().select_related('patente_bus', 'chofer', 'recorrido')
+        
+        # 2. Aplicar filtro de estado basado en la URL
+        self.status_filter = self.request.GET.get('status', 'en_curso')
+        
+        if self.status_filter == 'en_curso':
+            # Tiene fecha de inicio real, pero no de fin real
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
+        elif self.status_filter == 'programados':
+            # No tiene fecha de inicio real
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=True)
+        elif self.status_filter == 'completados':
+            # Tiene fecha de fin real
+            queryset = queryset.filter(fecha_hora_fin_real__isnull=False)
+        else:
+            # Por defecto, mostrar En Curso
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
+            self.status_filter = 'en_curso'
+        
+        # Añadimos un campo dinámico para el estado si no existe en el modelo.
+        # En el template se debe usar 'viaje.estado_actual'
+        
+        # Ordenar por fecha programada
+        return queryset.order_by('-fecha_programada', 'hora_inicio_programada')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        status_filter = self.request.GET.get('status', 'en_curso').lower()
-
-        # Traemos todos los viajes con sus relaciones para eficiencia
-        all_trips = Viaje.objects.select_related(
-            'patente_bus', 'chofer', 'recorrido'
-        ).order_by('-fecha_programada')
-
-        trips_with_status = []
-        counts = {'en_curso': 0, 'programados': 0, 'completados': 0}
-
-        # Clasificamos cada viaje según sus fechas
-        for viaje in all_trips:
+        
+        # 3. Recalcular contadores (para las pestañas de filtro)
+        all_viajes = Viaje.objects.all()
+        
+        context['viajes_en_curso_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True).count()
+        context['viajes_programados_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=True).count()
+        context['viajes_completados_count'] = all_viajes.filter(fecha_hora_fin_real__isnull=False).count()
+        
+        # Asignar el estado actual a cada objeto en el queryset para que el template lo use
+        for viaje in context['viajes']:
             if viaje.fecha_hora_fin_real:
                 viaje.estado_actual = 'Completado'
-                counts['completados'] += 1
             elif viaje.fecha_hora_inicio_real:
                 viaje.estado_actual = 'En Curso'
-                counts['en_curso'] += 1
             else:
                 viaje.estado_actual = 'Programado'
-                counts['programados'] += 1
-
-            trips_with_status.append(viaje)
-
-        # Filtramos según el estado seleccionado
-        if status_filter == 'programados':
-            trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Programado']
-        elif status_filter == 'completados':
-            trips_to_display = [v for v in trips_with_status if v.estado_actual == 'Completado']
-        else:  # en_curso o por defecto
-            trips_to_display = [v for v in trips_with_status if v.estado_actual == 'En Curso']
-
-        # Pasamos todo al contexto
-        context.update({
-            'status_filter': status_filter,
-            'viajes_en_curso_count': counts['en_curso'],
-            'viajes_programados_count': counts['programados'],
-            'viajes_completados_count': counts['completados'],
-            'viajes': trips_to_display,
-        })
+        
+        context['status_filter'] = self.status_filter
+        
         return context
 
-class CrearViajeView(CreateView):
+class CrearViajeView(SuperUserRequiredMixin, CreateView):
     model = Viaje
     form_class = ViajeCreateForm
     template_name = 'admin/viajes_form.html'
@@ -416,19 +438,34 @@ class CrearViajeView(CreateView):
         messages.success(self.request, f'Viaje #{self.object.id} programado correctamente.')
         return redirect(self.get_success_url())
 
-
+# -----------------------------------------------------------------------------
+# FUNCIÓN DE CÁLCULO DE DURACIÓN Y COMPLETADO (CORREGIDA)
+# -----------------------------------------------------------------------------
 def completar_viaje_y_limpiar(request, pk):
     if not request.user.is_superuser:
         messages.error(request, 'Acceso no autorizado.')
         return redirect('admin-viajes')
     
     viaje = get_object_or_404(Viaje, pk=pk)
+    
+    # 1. Marcar el tiempo de inicio (si no estaba) y de fin
     if viaje.fecha_hora_inicio_real is None:
         viaje.fecha_hora_inicio_real = timezone.now()
     
     viaje.fecha_hora_fin_real = timezone.now()
-    viaje.save(update_fields=['fecha_hora_inicio_real', 'fecha_hora_fin_real'])
     
+    # 2. CALCULAR DURACIÓN REAL
+    duracion_minutos_real = None
+    if viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
+        tiempo_delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
+        # Calcular duración total en minutos (entero)
+        duracion_minutos_real = int(tiempo_delta.total_seconds() / 60)
+        viaje.duracion_minutos_real = duracion_minutos_real
+
+    # 3. Guardar el objeto Viaje con las nuevas fechas y duración
+    viaje.save(update_fields=['fecha_hora_inicio_real', 'fecha_hora_fin_real', 'duracion_minutos_real'])
+    
+    # 4. Registrar el estado "Completado"
     estado_completado, _ = EstadoViaje.objects.get_or_create(
         nombre_estado='Completado',
         defaults={'descripcion_estado': 'Viaje completado'}
@@ -439,9 +476,52 @@ def completar_viaje_y_limpiar(request, pk):
         fecha_cambio_estado=timezone.now()
     )
     
-    messages.success(request, f'El viaje #{viaje.id} se marcó como completado correctamente.')
+    messages.success(request, f'El viaje #{viaje.id} se marcó como completado (Duración: {duracion_minutos_real} min).')
     return redirect('admin-viajes')
+
+# -----------------------------------------------------------------------------
+# FUNCIÓN DE REPORTE PDF (PROTEGIDA)
+# -----------------------------------------------------------------------------
+def generar_reporte_pdf(request, viaje_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'Acceso no autorizado.')
+        return redirect('admin-viajes')
+        
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+
+    # 1. Recopilar Datos (Datos de Ticket)
+    # Se asegura que la duración se calcule si por alguna razón no se guardó antes
+    duracion = viaje.duracion_minutos_real
+    if duracion is None and viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
+        tiempo_delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
+        duracion = int(tiempo_delta.total_seconds() / 60)
+
+    ticket_data = {
+        "Número de Viaje": viaje.id,
+        "Fecha y Hora Inicio Real": viaje.fecha_hora_inicio_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_inicio_real else 'N/A',
+        "Fecha y Hora Fin Real": viaje.fecha_hora_fin_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_fin_real else 'N/A',
+        "Número de Unidad (Patente)": viaje.patente_bus.patente_bus,
+        "Legajo Chofer": viaje.chofer.legajo_chofer,
+        "Nombre Completo Chofer": f"{viaje.chofer.nombre_chofer} {viaje.chofer.apellido_chofer}",
+        "Duración Real (minutos)": duracion if duracion is not None else 'N/A',
+        "Recorrido": str(viaje.recorrido)
+    }
+
+    # 2. Simulación de respuesta PDF (Usar ReportLab para producción)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_viaje_{viaje.id}.pdf"'
+
+    # Generación de contenido simple para simular el PDF
+    pdf_content = "\n".join([f"{k}: {v}" for k, v in ticket_data.items()])
+    response.write(f"Contenido del Reporte PDF (Simulación):\n\n{pdf_content}")
+
+    return response
+
+
+# =============================================================================
 # --- Parada Management Views ---
+# =============================================================================
+
 class ParadasView(SuperUserRequiredMixin, ListView):
     template_name = 'admin/paradas.html'
     model = Parada
@@ -451,7 +531,7 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
+    success_url = reverse_lazy('admin-paradas')
 
     def form_valid(self, form):
         with transaction.atomic():
@@ -476,13 +556,13 @@ class CrearParadaView(SuperUserRequiredMixin, CreateView):
                 )
 
         messages.success(self.request, "Parada creada correctamente.")
-        return redirect(self.get_success_url())  # ✅ redirección
+        return redirect(self.get_success_url())
 
 class EditarParadaView(SuperUserRequiredMixin, UpdateView):
     model = Parada
     form_class = ParadaForm
     template_name = 'admin/parada_form.html'
-    success_url = reverse_lazy('admin-paradas')  # ✅ redirige a la lista
+    success_url = reverse_lazy('admin-paradas')
 
     def form_valid(self, form):
         with transaction.atomic():
@@ -517,7 +597,7 @@ class EditarParadaView(SuperUserRequiredMixin, UpdateView):
                     rp_existente.delete()
 
         messages.success(self.request, "Parada actualizada correctamente.")
-        return redirect(self.get_success_url())  # ✅ redirección   
+        return redirect(self.get_success_url())
 
 class EliminarParadaView(SuperUserRequiredMixin, DeleteView):
     model = Parada
@@ -535,7 +615,10 @@ class ParadaDetailView(SuperUserRequiredMixin, DetailView):
         return context
 
 
+# =============================================================================
 # --- Recorrido Management Views ---
+# =============================================================================
+
 class RecorridosView(SuperUserRequiredMixin, ListView):
     model = Recorrido
     template_name = 'admin/recorridos.html'
@@ -567,14 +650,15 @@ class CrearRecorridoView(SuperUserRequiredMixin, CreateView):
     success_url = reverse_lazy('admin-recorridos')
 
     def post(self, request, *args, **kwargs):
-        print("Datos recibidos en POST:", request.POST)  # Depuración
-        response = super().post(request, *args, **kwargs)  # Llamar al método padre
-        if self.request.POST and not self.object:  # Si no se guardó (error en el formulario)
+        print("Datos recibidos en POST:", request.POST) 
+        response = super().post(request, *args, **kwargs) 
+        if self.request.POST and not self.object:
             form = self.get_form()
-            print("Errores del formulario:", form.errors)  # Depuración
-        elif self.object:  # Si se guardó correctamente
-            print("Datos limpios:", self.object.__dict__)  # Depuración con los atributos del objeto
+            print("Errores del formulario:", form.errors)
+        elif self.object:
+            print("Datos limpios:", self.object.__dict__)
         return response
+
 class EditarRecorridoView(SuperUserRequiredMixin, UpdateView):
     model = Recorrido
     form_class = RecorridoForm
@@ -587,7 +671,10 @@ class EliminarRecorridoView(SuperUserRequiredMixin, DeleteView):
     success_url = reverse_lazy('admin-recorridos')
 
 
+# =============================================================================
 # --- Atractivo Management Views ---
+# =============================================================================
+
 class AtractivoView(SuperUserRequiredMixin, ListView):
     model = Atractivo
     template_name = 'admin/atractivos.html'
@@ -626,13 +713,9 @@ class EliminarAtractivoView(SuperUserRequiredMixin, DeleteView):
     success_url = reverse_lazy('admin-atractivos')
 
 
-
-
-
-
-
-# --- Other Views ---
-
+# =============================================================================
+# --- Other Views / Consultas ---
+# =============================================================================
 
 class BaseUsuarioView(TemplateView):
     template_name = 'usuario/base_usuario.html'
@@ -653,7 +736,7 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
     def form_valid(self, form):
         consulta = form.save(commit=False)
 
-        # Si hay respuesta, enviamos el mail (aunque respondida ya sea True)
+        # Si hay respuesta, enviamos el mail
         if consulta.respuesta:
             try:
                 send_mail(
@@ -671,94 +754,3 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
         consulta.save()
         return super().form_valid(form)
-from django.views.generic import ListView
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from datetime import datetime, timedelta
-# Importar el modelo Viaje (y otros que necesites)
-from .models import Viaje, Chofer # Asumo que Chofer y otros modelos están en .models
-from django.db.models import Count, Q
-
-# --- LÓGICA DEL REPORTE PDF (Usaremos una librería como ReportLab o fpdf, pero aquí se simula con un HttpResponse básico) ---
-# NOTA: Para un PDF real, necesitarías instalar y configurar una librería como ReportLab.
-# Este ejemplo solo prepara la respuesta HTTP para la descarga.
-
-def generar_reporte_pdf(viaje_id):
-    """
-    Simula la generación de un ticket/reporte en formato PDF para un viaje completado.
-    """
-    viaje = get_object_or_404(Viaje, pk=viaje_id)
-
-    # 1. Recopilar Datos (Datos de Ticket)
-    ticket_data = {
-        "Número de Viaje": viaje.id,
-        "Fecha y Hora Inicio Real": viaje.fecha_hora_inicio_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_inicio_real else 'N/A',
-        "Fecha y Hora Fin Real": viaje.fecha_hora_fin_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_fin_real else 'N/A',
-        "Número de Unidad (Patente)": viaje.patente_bus.patente_bus,
-        "Legajo Chofer": viaje.chofer.legajo_chofer,
-        "Nombre Completo Chofer": f"{viaje.chofer.nombre_chofer} {viaje.chofer.apellido_chofer}",
-        "Duración Real (minutos)": viaje.duracion_minutos_real if viaje.duracion_minutos_real is not None else 'N/A',
-        "Recorrido": str(viaje.recorrido)
-    }
-
-    # 2. Simulación de respuesta PDF
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="reporte_viaje_{viaje.id}.pdf"'
-
-    # --- Aquí iría la lógica de renderizado del PDF con ReportLab o similar ---
-    # Por simplicidad, se retorna un texto plano simulando el contenido del PDF.
-    pdf_content = "\n".join([f"{k}: {v}" for k, v in ticket_data.items()])
-    response.write(f"Contenido del Reporte PDF:\n\n{pdf_content}")
-
-    return response
-
-
-# --- VISTA PRINCIPAL DE GESTIÓN DE VIAJES ---
-
-class ViajeListView(ListView):
-    model = Viaje
-    template_name = 'admin/viajes.html'
-    context_object_name = 'viajes'
-
-    def get_queryset(self):
-        # 1. Definir el filtro base (asume que el 'estado_actual' es un método o atributo)
-        queryset = Viaje.objects.all().select_related('patente_bus', 'chofer', 'recorrido')
-        
-        # 2. Aplicar filtro de estado basado en la URL
-        self.status_filter = self.request.GET.get('status', 'en_curso')
-        
-        # Lógica de filtrado (ESTO DEBE ADAPTARSE a cómo calculas el estado_actual)
-        if self.status_filter == 'en_curso':
-            # Ejemplo: tiene fecha_hora_inicio_real, pero no fecha_hora_fin_real
-            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
-        elif self.status_filter == 'programados':
-            # Ejemplo: no tiene fecha_hora_inicio_real
-            queryset = queryset.filter(fecha_hora_inicio_real__isnull=True)
-        elif self.status_filter == 'completados':
-            # Ejemplo: tiene fecha_hora_fin_real
-            queryset = queryset.filter(fecha_hora_fin_real__isnull=False)
-        else:
-            # Por defecto, mostrar En Curso
-            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
-            self.status_filter = 'en_curso'
-        
-        # Ordenar por fecha programada
-        return queryset.order_by('fecha_programada', 'hora_inicio_programada')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # 3. Recalcular contadores (para las pestañas de filtro)
-        all_viajes = Viaje.objects.all()
-        
-        context['viajes_en_curso_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True).count()
-        context['viajes_programados_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=True).count()
-        context['viajes_completados_count'] = all_viajes.filter(fecha_hora_fin_real__isnull=False).count()
-        
-        context['status_filter'] = self.status_filter
-        
-        # Nota: La lógica para obtener 'viaje.estado_actual' y 'viaje.closest_parada'
-        # debe estar implementada como un @property en el modelo Viaje o ser anotada aquí.
-        # Asumo que están como @property en el modelo.
-        
-        return context
