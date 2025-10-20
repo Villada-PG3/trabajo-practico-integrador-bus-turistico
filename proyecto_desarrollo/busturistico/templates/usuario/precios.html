@@ -127,9 +127,10 @@
                       <!-- precios.html - dentro del loop de cada precio (MODIFICADO) -->
                         <div class="d-grid gap-2 mt-auto">
                             <!-- MODIFICADO: ahora dirige al formulario de reserva para ese pase -->
-                            <a href="{% url 'usuario-reservar' precio.id %}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-ticket-alt me-2"></i>Reservar Ahora
+                            <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-info-circle me-2"></i>Consultar
                             </a>
+
                             <small class="text-muted">
                                 <i class="fas fa-shield-alt me-1"></i>Cancelación gratuita hasta 24h antes
                             </small>
@@ -141,14 +142,18 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-tags text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
-                <h4 class="text-muted mt-3">No hay precios disponibles en este momento</h4>
-                <p class="text-muted">Contactános para más información</p>
-                <a href="{% url 'usuario-contacto' %}" class="btn btn-primary">
-                    <i class="fas fa-phone me-2"></i>Contactar
+           <!-- precios.html - dentro del loop de cada precio (MODIFICADO) -->
+            <div class="d-grid gap-2 mt-auto">
+                <!-- MODIFICADO: ahora dirige al formulario de reserva para ese pase -->
+                <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-info-circle me-2"></i>Consultar
                 </a>
+
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>Cancelación gratuita hasta 24h antes
+                </small>
             </div>
+
         {% endif %}
     </div>
 </section>

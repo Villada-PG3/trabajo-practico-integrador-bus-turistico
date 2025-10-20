@@ -10,93 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'usuario/styles.css' %}">
     <style>
-        .language-selector {
-            position: relative;
-        }
-        .language-btn {
-            background: transparent;
-            border: 2px solid rgba(13, 110, 253, 0.3);
-            border-radius: 50px;
-            padding: 8px 16px;
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .language-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-        }
-        .language-btn i {
-            font-size: 1rem;
-        }
-        .language-dropdown {
-            position: absolute;
-            top: 120%;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            padding: 8px;
-            min-width: 180px;
-            display: none;
-            z-index: 1000;
-            animation: fadeInDown 0.3s ease;
-        }
-        .language-dropdown.show {
-            display: block;
-        }
-        .language-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-        }
-        .language-option:hover {
-            background: #f8f9fa;
-        }
-        .language-option.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--ba-blue));
-            color: white;
-        }
-        .language-option .flag {
-            font-size: 1.5rem;
-        }
-        .language-option .lang-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .language-option .lang-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .language-option .lang-native {
-            font-size: 0.75rem;
-            opacity: 0.7;
-        }
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         
         /* Responsive adjustments */
         @media (max-width: 991px) {
@@ -130,7 +43,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'usuario-precios' %}">
-                            <i class="fas fa-tag me-1"></i>Reservas
+                            <i class="fas fa-tag me-1"></i>Precios
                         </a>
                     </li>
                     <li class="nav-item">
@@ -144,52 +57,6 @@
                         </a>
                     </li>
 
-                    <!-- Selector de idioma mejorado -->
-                    <li class="nav-item language-selector ms-lg-2">
-                        <button class="language-btn" id="languageBtn" type="button">
-                            <i class="fas fa-globe"></i>
-                            <span id="currentLang">
-                                {% if request.session.idioma == 'en' %}EN
-                                {% elif request.session.idioma == 'pt' %}PT
-                                {% else %}ES{% endif %}
-                            </span>
-                            <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
-                        </button>
-                        
-                        <div class="language-dropdown" id="languageDropdown">
-                            <form action="{% url 'cambiar-idioma' %}" method="post" id="languageForm">
-                                {% csrf_token %}
-                                <input type="hidden" name="idioma" id="idiomaInput" value="">
-                                
-                                <button type="button" class="language-option {% if request.session.idioma == 'es' or not request.session.idioma %}active{% endif %}" 
-                                        onclick="cambiarIdioma('es')">
-                                    <span class="flag">🇦🇷</span>
-                                    <div class="lang-text">
-                                        <span class="lang-name">Español</span>
-                                        <span class="lang-native">Argentina</span>
-                                    </div>
-                                </button>
-                                
-                                <button type="button" class="language-option {% if request.session.idioma == 'en' %}active{% endif %}" 
-                                        onclick="cambiarIdioma('en')">
-                                    <span class="flag">🇬🇧</span>
-                                    <div class="lang-text">
-                                        <span class="lang-name">English</span>
-                                        <span class="lang-native">International</span>
-                                    </div>
-                                </button>
-                                
-                                <button type="button" class="language-option {% if request.session.idioma == 'pt' %}active{% endif %}" 
-                                        onclick="cambiarIdioma('pt')">
-                                    <span class="flag">🇧🇷</span>
-                                    <div class="lang-text">
-                                        <span class="lang-name">Português</span>
-                                        <span class="lang-native">Brasil</span>
-                                    </div>
-                                </button>
-                            </form>
-                        </div>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -254,27 +121,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Language selector dropdown
-        const languageBtn = document.getElementById('languageBtn');
-        const languageDropdown = document.getElementById('languageDropdown');
         
-        languageBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            languageDropdown.classList.toggle('show');
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!languageDropdown.contains(e.target) && !languageBtn.contains(e.target)) {
-                languageDropdown.classList.remove('show');
-            }
-        });
-        
-        // Change language function
-        function cambiarIdioma(idioma) {
-            document.getElementById('idiomaInput').value = idioma;
-            document.getElementById('languageForm').submit();
-        }
         
         // Animaciones al scroll
         const observerOptions = {

@@ -8,7 +8,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje, Consulta, Reserva
+from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje, Consulta
 import datetime
 from .models import Bus, EstadoBus
 User = get_user_model()
