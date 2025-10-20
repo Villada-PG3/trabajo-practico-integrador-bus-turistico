@@ -8,6 +8,19 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.conf import settings
 from math import radians, sin, cos, sqrt, atan2
+from .models import (
+    Bus,
+    Chofer,
+    Viaje,
+    EstadoBusHistorial,
+    EstadoBus,
+    EstadoViaje,
+    Parada,
+    Recorrido,
+    ParadaAtractivo,
+    RecorridoParada,
+    UbicacionColectivo,
+)
 import requests
 import json
 from .services_viaje import finalizar_viaje
