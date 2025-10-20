@@ -38,6 +38,8 @@ urlpatterns = [
     path('admin/viajes/', views.ViajesView.as_view(), name='admin-viajes'),
     path('admin/nuevo-viaje/', views.CrearViajeView.as_view(), name='admin-nuevo-viaje'),
     path('viajes/completar/<int:pk>/', views.completar_viaje_y_limpiar, name='completar-viaje'),
+    path('admin/viajes/', ViajeListView.as_view(), name='admin-gestion-viajes'),
+    path('admin/viajes/<int:viaje_id>/reporte/', generar_reporte_pdf, name='generar-reporte-viaje'),
     # Paradas
     path('admin/paradas/', views.ParadasView.as_view(), name='admin-paradas'),
     path('admin/nuevo-parada/', views.CrearParadaView.as_view(), name='admin-nuevo-parada'),

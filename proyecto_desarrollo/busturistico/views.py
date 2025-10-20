@@ -671,3 +671,94 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
         consulta.save()
         return super().form_valid(form)
+from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from datetime import datetime, timedelta
+# Importar el modelo Viaje (y otros que necesites)
+from .models import Viaje, Chofer # Asumo que Chofer y otros modelos están en .models
+from django.db.models import Count, Q
+
+# --- LÓGICA DEL REPORTE PDF (Usaremos una librería como ReportLab o fpdf, pero aquí se simula con un HttpResponse básico) ---
+# NOTA: Para un PDF real, necesitarías instalar y configurar una librería como ReportLab.
+# Este ejemplo solo prepara la respuesta HTTP para la descarga.
+
+def generar_reporte_pdf(viaje_id):
+    """
+    Simula la generación de un ticket/reporte en formato PDF para un viaje completado.
+    """
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+
+    # 1. Recopilar Datos (Datos de Ticket)
+    ticket_data = {
+        "Número de Viaje": viaje.id,
+        "Fecha y Hora Inicio Real": viaje.fecha_hora_inicio_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_inicio_real else 'N/A',
+        "Fecha y Hora Fin Real": viaje.fecha_hora_fin_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_fin_real else 'N/A',
+        "Número de Unidad (Patente)": viaje.patente_bus.patente_bus,
+        "Legajo Chofer": viaje.chofer.legajo_chofer,
+        "Nombre Completo Chofer": f"{viaje.chofer.nombre_chofer} {viaje.chofer.apellido_chofer}",
+        "Duración Real (minutos)": viaje.duracion_minutos_real if viaje.duracion_minutos_real is not None else 'N/A',
+        "Recorrido": str(viaje.recorrido)
+    }
+
+    # 2. Simulación de respuesta PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_viaje_{viaje.id}.pdf"'
+
+    # --- Aquí iría la lógica de renderizado del PDF con ReportLab o similar ---
+    # Por simplicidad, se retorna un texto plano simulando el contenido del PDF.
+    pdf_content = "\n".join([f"{k}: {v}" for k, v in ticket_data.items()])
+    response.write(f"Contenido del Reporte PDF:\n\n{pdf_content}")
+
+    return response
+
+
+# --- VISTA PRINCIPAL DE GESTIÓN DE VIAJES ---
+
+class ViajeListView(ListView):
+    model = Viaje
+    template_name = 'admin/viajes.html'
+    context_object_name = 'viajes'
+
+    def get_queryset(self):
+        # 1. Definir el filtro base (asume que el 'estado_actual' es un método o atributo)
+        queryset = Viaje.objects.all().select_related('patente_bus', 'chofer', 'recorrido')
+        
+        # 2. Aplicar filtro de estado basado en la URL
+        self.status_filter = self.request.GET.get('status', 'en_curso')
+        
+        # Lógica de filtrado (ESTO DEBE ADAPTARSE a cómo calculas el estado_actual)
+        if self.status_filter == 'en_curso':
+            # Ejemplo: tiene fecha_hora_inicio_real, pero no fecha_hora_fin_real
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
+        elif self.status_filter == 'programados':
+            # Ejemplo: no tiene fecha_hora_inicio_real
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=True)
+        elif self.status_filter == 'completados':
+            # Ejemplo: tiene fecha_hora_fin_real
+            queryset = queryset.filter(fecha_hora_fin_real__isnull=False)
+        else:
+            # Por defecto, mostrar En Curso
+            queryset = queryset.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True)
+            self.status_filter = 'en_curso'
+        
+        # Ordenar por fecha programada
+        return queryset.order_by('fecha_programada', 'hora_inicio_programada')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 3. Recalcular contadores (para las pestañas de filtro)
+        all_viajes = Viaje.objects.all()
+        
+        context['viajes_en_curso_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=False, fecha_hora_fin_real__isnull=True).count()
+        context['viajes_programados_count'] = all_viajes.filter(fecha_hora_inicio_real__isnull=True).count()
+        context['viajes_completados_count'] = all_viajes.filter(fecha_hora_fin_real__isnull=False).count()
+        
+        context['status_filter'] = self.status_filter
+        
+        # Nota: La lógica para obtener 'viaje.estado_actual' y 'viaje.closest_parada'
+        # debe estar implementada como un @property en el modelo Viaje o ser anotada aquí.
+        # Asumo que están como @property en el modelo.
+        
+        return context

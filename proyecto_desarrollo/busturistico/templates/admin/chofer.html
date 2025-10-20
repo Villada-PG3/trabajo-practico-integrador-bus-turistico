@@ -43,7 +43,7 @@
                         <h5>{{ chofer.nombre_chofer }} {{ chofer.apellido_chofer }}</h5>
                         <p>Legajo: {{ chofer.legajo_chofer }}</p>
                         <p>Tel: {{ chofer.telefono|default:"N/A" }}</p>
-                        <p>Email: {{ chofer.email|default:"N/A" }}</p>
+                        <p>DNI: {{ chofer.dni_chofer|default:"N/A" }}</p>
                         <p>Bus Asignado: {{ chofer.bus_asignado_actual|default:"N/A" }}</p>
                         <p>Viajes Realizados: {{ chofer.viajes_realizados|default:0 }}</p>
                     </div>

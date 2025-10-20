@@ -104,13 +104,13 @@ class ParadaForm(forms.ModelForm):
     # Campo adicional para seleccionar el recorrido
     recorrido_a_asignar = forms.ModelChoiceField(
         queryset=Recorrido.objects.all(),
-        required=False,
+        required=True,
         empty_label="No asignar a un recorrido",
         label="Asignar o reasignar a Recorrido"
     )
     # Campo para el orden dentro del recorrido
     orden_en_recorrido = forms.IntegerField(
-        required=False,
+        required=True,
         min_value=1,
         label="Orden en el Recorrido (si se asigna)"
     )
