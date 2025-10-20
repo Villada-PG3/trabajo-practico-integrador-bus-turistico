@@ -1,0 +1,209 @@
+[
+  {
+    "model": "busturistico.recorrido",
+    "pk": 1,
+    "fields": {
+      "color_recorrido": "Verde",
+      "duracion_aproximada_recorrido": "02:30:00",
+      "descripcion_recorrido": "Circuito norte de CABA con conexiones en parques y museos. Ideal para combinar naturaleza y cultura.",
+      "foto_recorrido": null
+    }
+  },
+  {
+    "model": "busturistico.recorrido",
+    "pk": 2,
+    "fields": {
+      "color_recorrido": "Rojo",
+      "duracion_aproximada_recorrido": "02:00:00",
+      "descripcion_recorrido": "Circuito alternativo (Rojo) definido para futuras paradas.",
+      "foto_recorrido": null
+    }
+  },
+
+  { "model": "busturistico.parada", "pk": 1,  "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": "paradas/01_ft1.jpg", "latitud_parada": -34.57732011764099, "longitud_parada": -58.40366662692628 } },
+  { "model": "busturistico.parada", "pk": 2,  "fields": { "nombre_parada": "Planetario", "direccion_parada": "Av. Sarmiento y Belisario Roldán, Palermo", "descripcion_parada": "Planetario Galileo Galilei y Parque Tres de Febrero.", "foto_parada": "paradas/02_ft1.jpg", "latitud_parada": -34.57097823574259, "longitud_parada": -58.41157735841595 } },
+  { "model": "busturistico.parada", "pk": 3,  "fields": { "nombre_parada": "Club de Pescadores", "direccion_parada": "Av. Costanera Rafael Obligado 5470, Costanera Norte", "descripcion_parada": "Muelle histórico sobre el Río de la Plata.", "foto_parada": "paradas/03_ft3.jpg", "latitud_parada": -34.563442603494124, "longitud_parada": -58.40433238869396 } },
+  { "model": "busturistico.parada", "pk": 4,  "fields": { "nombre_parada": "Parque de la Memoria", "direccion_parada": "Av. Costanera Rafael Obligado 6745, Costanera Norte", "descripcion_parada": "Espacio público de homenaje y arte contemporáneo.", "foto_parada": "paradas/parada04.webp", "latitud_parada": -34.542640, "longitud_parada": -58.435527 } },
+  { "model": "busturistico.parada", "pk": 5,  "fields": { "nombre_parada": "El Monumental", "direccion_parada": "Av. Pres. Figueroa Alcorta 7597, Núñez", "descripcion_parada": "Estadio Mâs Monumental (River Plate).", "foto_parada": "paradas/parada05.webp", "latitud_parada": -34.54630291291497, "longitud_parada": -58.45128968434523 } },
+  { "model": "busturistico.parada", "pk": 6,  "fields": { "nombre_parada": "Belgrano Barrio Chino", "direccion_parada": "Arribeños 2100, Belgrano C", "descripcion_parada": "Pórtico y galerías gastronómicas del Barrio Chino.", "foto_parada": "paradas/parada06.jpg", "latitud_parada": -34.5566043340473, "longitud_parada": -58.4498957463885 } },
+  { "model": "busturistico.parada", "pk": 7,  "fields": { "nombre_parada": "Campo Argentino de Polo", "direccion_parada": "Av. del Libertador y Dorrego, Palermo", "descripcion_parada": "Estadio de polo y eventos; cerca de Hipódromo y Bosques.", "foto_parada": "paradas/parada07.jpg", "latitud_parada": -34.570857550552546, "longitud_parada": -58.42467113029715 } },
+  { "model": "busturistico.parada", "pk": 8,  "fields": { "nombre_parada": "Bosques de Palermo (Conexión)", "direccion_parada": "Av. Pedro Montt s/n (Rosedal), Palermo", "descripcion_parada": "Rosedal y lagos de Palermo. Punto de conexión.", "foto_parada": "paradas/parada08.jpg", "latitud_parada": -34.574009301472465, "longitud_parada": -58.41643677243074 } },
+  { "model": "busturistico.parada", "pk": 9,  "fields": { "nombre_parada": "Distrito Arcos II", "direccion_parada": "Paraguay 4979, Palermo", "descripcion_parada": "Paseo de compras a cielo abierto (outlet premium).", "foto_parada": "paradas/parada09.avif", "latitud_parada": -34.58193030544014, "longitud_parada": -58.42803376185722 } },
+  { "model": "busturistico.parada", "pk": 10, "fields": { "nombre_parada": "Palermo Soho II", "direccion_parada": "Plazoleta Julio Cortázar (Honduras y Borges), Palermo", "descripcion_parada": "Corazón de Palermo Soho: diseño, cafés y ferias.", "foto_parada": "paradas/parada10.jpg", "latitud_parada": -34.58893245868958, "longitud_parada": -58.4300691808661 } },
+  { "model": "busturistico.parada", "pk": 11, "fields": { "nombre_parada": "Monumento a los Españoles (Conexión)", "direccion_parada": "Av. del Libertador y Av. Sarmiento, Palermo", "descripcion_parada": "Monumento de los Españoles (La Carta Magna). Punto de conexión.", "foto_parada": "paradas/parada11.jpg", "latitud_parada": -34.57554739144023, "longitud_parada": -58.41532238084112 } },
+  { "model": "busturistico.parada", "pk": 12, "fields": { "nombre_parada": "MALBA (Conexión)", "direccion_parada": "Av. Pres. Figueroa Alcorta 3415, Palermo", "descripcion_parada": "Museo de Arte Latinoamericano de Buenos Aires. Punto de conexión.", "foto_parada": "paradas/01_ft1.jpg", "latitud_parada": -34.57732011764099, "longitud_parada": -58.40366662692628 } },
+  { "model": "busturistico.parada", "pk": 13, "fields": { "nombre_parada": "Bosques de Palermo (Conexión)", "direccion_parada": "Av. Pedro Montt s/n (Rosedal), Palermo", "descripcion_parada": "Rosedal y lagos de Palermo. Punto de conexión.", "foto_parada": "paradas/parada08.jpg", "latitud_parada": -34.574009301472465, "longitud_parada": -58.41643677243074 } },
+  { "model": "busturistico.parada", "pk": 14, "fields": { "nombre_parada": "Monumento a los Españoles (Conexión)", "direccion_parada": "Av. del Libertador y Av. Sarmiento, Palermo", "descripcion_parada": "Monumento de los Españoles (La Carta Magna). Punto de conexión.", "foto_parada": "paradas/parada11.jpg", "latitud_parada": -34.57554739144023, "longitud_parada": -58.41532238084112 } },
+
+
+  { "model": "busturistico.recorridoparada", "pk": 1,  "fields": { "recorrido": 1, "parada": 1,  "orden": 1 } },
+  { "model": "busturistico.recorridoparada", "pk": 2,  "fields": { "recorrido": 1, "parada": 2,  "orden": 2 } },
+  { "model": "busturistico.recorridoparada", "pk": 3,  "fields": { "recorrido": 1, "parada": 3,  "orden": 3 } },
+  { "model": "busturistico.recorridoparada", "pk": 4,  "fields": { "recorrido": 1, "parada": 4,  "orden": 4 } },
+  { "model": "busturistico.recorridoparada", "pk": 5,  "fields": { "recorrido": 1, "parada": 5,  "orden": 5 } },
+  { "model": "busturistico.recorridoparada", "pk": 6,  "fields": { "recorrido": 1, "parada": 6,  "orden": 6 } },
+  { "model": "busturistico.recorridoparada", "pk": 7,  "fields": { "recorrido": 1, "parada": 7,  "orden": 7 } },
+  { "model": "busturistico.recorridoparada", "pk": 8,  "fields": { "recorrido": 1, "parada": 8,  "orden": 8 } },
+  { "model": "busturistico.recorridoparada", "pk": 9,  "fields": { "recorrido": 1, "parada": 9,  "orden": 9 } },
+  { "model": "busturistico.recorridoparada", "pk": 10, "fields": { "recorrido": 1, "parada": 10, "orden": 10 } },
+  { "model": "busturistico.recorridoparada", "pk": 11, "fields": { "recorrido": 1, "parada": 11, "orden": 11 } },
+  { "model": "busturistico.recorridoparada", "pk": 12, "fields": { "recorrido": 2, "parada": 12, "orden": 1 } },
+  { "model": "busturistico.recorridoparada", "pk": 13, "fields": { "recorrido": 2, "parada": 13, "orden": 2 } },
+  { "model": "busturistico.recorridoparada", "pk": 14, "fields": { "recorrido": 2, "parada": 14, "orden": 3 } },
+
+
+  { "model": "busturistico.chofer", "pk": 1, "fields": { "user": 2, "nombre_chofer": "Juan",  "apellido_chofer": "Pérez",     "dni_chofer": 30123456, "legajo_chofer": 3012, "telefono": "+54-11-5555-0101", "fecha_ingreso": "2021-05-10", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 2, "fields": { "user": 3, "nombre_chofer": "María", "apellido_chofer": "López",     "dni_chofer": 32222333, "legajo_chofer": 3222, "telefono": "+54-11-5555-0202", "fecha_ingreso": "2020-09-15", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 3, "fields": { "user": 4, "nombre_chofer": "Carlos","apellido_chofer": "Gómez",     "dni_chofer": 28456789, "legajo_chofer": 2845, "telefono": "+54-11-5555-0303", "fecha_ingreso": "2019-11-22", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 4, "fields": { "user": 5, "nombre_chofer": "Lucía", "apellido_chofer": "Fernández", "dni_chofer": 33111222, "legajo_chofer": 3311, "telefono": "+54-11-5555-0404", "fecha_ingreso": "2022-01-05", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 5, "fields": { "user": 6, "nombre_chofer": "Sofía", "apellido_chofer": "Martínez",  "dni_chofer": 34555999, "legajo_chofer": 3455, "telefono": "+54-11-5555-0505", "fecha_ingreso": "2023-03-18", "activo": true } },
+  { "model": "busturistico.chofer", "pk": 6, "fields": { "user": 7, "nombre_chofer": "Tomas", "apellido_chofer": "Núñez",  "dni_chofer": 48600677, "legajo_chofer": 4860, "telefono": "+5493517881719", "fecha_ingreso": "2023-03-18", "activo": true } },
+
+
+  { "model": "busturistico.bus", "pk": "AA123BB", "fields": { "numero_unidad": 1, "fecha_compra": "2022-03-10T10:00:00Z" } },
+  { "model": "busturistico.bus", "pk": "AC456CD", "fields": { "numero_unidad": 2, "fecha_compra": "2021-11-05T12:30:00Z" } },
+  { "model": "busturistico.bus", "pk": "AE789EF", "fields": { "numero_unidad": 3, "fecha_compra": "2023-01-18T09:15:00Z" } },
+  { "model": "busturistico.bus", "pk": "AG012GH", "fields": { "numero_unidad": 4, "fecha_compra": "2020-07-22T16:45:00Z" } },
+  { "model": "busturistico.bus", "pk": "AI345IJ", "fields": { "numero_unidad": 5, "fecha_compra": "2024-04-02T08:20:00Z" } },
+
+
+  { "model": "busturistico.atractivo", "pk": 1,  "fields": { "nombre_atractivo": "MALBA", "calificacion_estrellas": 5, "descripcion_atractivo": "Museo de Arte Latinoamericano de Buenos Aires.", "latitud_atractivo": -34.5889, "longitud_atractivo": -58.4039, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 2,  "fields": { "nombre_atractivo": "Planetario Galileo Galilei", "calificacion_estrellas": 5, "descripcion_atractivo": "Cúpula y shows astronómicos en el Parque Tres de Febrero.", "latitud_atractivo": -34.5725, "longitud_atractivo": -58.4116, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 3,  "fields": { "nombre_atractivo": "Club de Pescadores", "calificacion_estrellas": 4, "descripcion_atractivo": "Muelle histórico sobre el río.", "latitud_atractivo": -34.5555, "longitud_atractivo": -58.4069, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 4,  "fields": { "nombre_atractivo": "Parque de la Memoria", "calificacion_estrellas": 5, "descripcion_atractivo": "Espacio de memoria y esculturas al aire libre.", "latitud_atractivo": -34.5432, "longitud_atractivo": -58.4336, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 5,  "fields": { "nombre_atractivo": "Estadio Mâs Monumental", "calificacion_estrellas": 5, "descripcion_atractivo": "Estadio del Club Atlético River Plate.", "latitud_atractivo": -34.5453, "longitud_atractivo": -58.4492, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 6,  "fields": { "nombre_atractivo": "Barrio Chino", "calificacion_estrellas": 4, "descripcion_atractivo": "Zona gastronómica y comercial de cultura china.", "latitud_atractivo": -34.5617, "longitud_atractivo": -58.4448, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 7,  "fields": { "nombre_atractivo": "Campo Argentino de Polo", "calificacion_estrellas": 4, "descripcion_atractivo": "Histórico estadio de polo y sede de eventos.", "latitud_atractivo": -34.5729, "longitud_atractivo": -58.4355, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 8,  "fields": { "nombre_atractivo": "Bosques de Palermo (Rosedal)", "calificacion_estrellas": 5, "descripcion_atractivo": "Jardines, lagos y el clásico Rosedal.", "latitud_atractivo": -34.5690, "longitud_atractivo": -58.4217, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 9,  "fields": { "nombre_atractivo": "Distrito Arcos", "calificacion_estrellas": 4, "descripcion_atractivo": "Outlet a cielo abierto en antiguos arcos del ferrocarril.", "latitud_atractivo": -34.5779, "longitud_atractivo": -58.4307, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 10, "fields": { "nombre_atractivo": "Palermo Soho", "calificacion_estrellas": 4, "descripcion_atractivo": "Barrio de diseño, gastronomía y ferias.", "latitud_atractivo": -34.5874, "longitud_atractivo": -58.4306, "foto_atractivo": null } },
+  { "model": "busturistico.atractivo", "pk": 11, "fields": { "nombre_atractivo": "Monumento a los Españoles", "calificacion_estrellas": 5, "descripcion_atractivo": "Monumento La Carta Magna y las cuatro regiones argentinas.", "latitud_atractivo": -34.5717, "longitud_atractivo": -58.4110, "foto_atractivo": null } },
+
+  { "model": "busturistico.paradaatractivo", "pk": 1,  "fields": { "parada": 1,  "atractivo": 1  } },
+  { "model": "busturistico.paradaatractivo", "pk": 2,  "fields": { "parada": 2,  "atractivo": 2  } },
+  { "model": "busturistico.paradaatractivo", "pk": 3,  "fields": { "parada": 3,  "atractivo": 3  } },
+  { "model": "busturistico.paradaatractivo", "pk": 4,  "fields": { "parada": 4,  "atractivo": 4  } },
+  { "model": "busturistico.paradaatractivo", "pk": 5,  "fields": { "parada": 5,  "atractivo": 5  } },
+  { "model": "busturistico.paradaatractivo", "pk": 6,  "fields": { "parada": 6,  "atractivo": 6  } },
+  { "model": "busturistico.paradaatractivo", "pk": 7,  "fields": { "parada": 7,  "atractivo": 7  } },
+  { "model": "busturistico.paradaatractivo", "pk": 8,  "fields": { "parada": 8,  "atractivo": 8  } },
+  { "model": "busturistico.paradaatractivo", "pk": 9,  "fields": { "parada": 9,  "atractivo": 9  } },
+  { "model": "busturistico.paradaatractivo", "pk": 10, "fields": { "parada": 10, "atractivo": 10 } },
+  { "model": "busturistico.paradaatractivo", "pk": 11, "fields": { "parada": 11, "atractivo": 11 } },
+  { "model": "busturistico.paradaatractivo", "pk": 12, "fields": { "parada": 12, "atractivo": 1 } },
+  { "model": "busturistico.paradaatractivo", "pk": 13, "fields": { "parada": 13, "atractivo": 8 } },
+  { "model": "busturistico.paradaatractivo", "pk": 14, "fields": { "parada": 14, "atractivo": 11 } },
+
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$4b9aT3NTRdXx$BpyCeLTNuRe8JXBFt4knek5zDOMwJmTsODRHbhAYbeg=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "",
+      "last_name": "",
+      "email": "admin@admin.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$f046c645ad13$w6s7eP4JoLcXJPMCOMmRaEp7rethc9p11VHs8o6Cn0c=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3012",
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "email": "chofer_3012@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$eb7d6ad5932a$TjM5YOH0V5xSQeGTXPqOoX1/vNs+evREOUdMAOyJmr0=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3222",
+      "first_name": "María",
+      "last_name": "López",
+      "email": "chofer_3222@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$0a7b129ecb6c$7Udb2vrcfkkEtE8mYVIgLEPmIuWQ9sUiDGu6goZERzw=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_2845",
+      "first_name": "Carlos",
+      "last_name": "Gómez",
+      "email": "chofer_2845@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$4b6043f6eb89$VaCPxQ7daNkE1NGFTpOYBeHrLVqOtTu87+Wep0lOqwI=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3311",
+      "first_name": "Lucía",
+      "last_name": "Fernández",
+      "email": "chofer_3311@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$2db85429fe98$pIyex9o70aI+x71NlebeXTvBFpZcriRkVFVPf/wQHyc=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_3455",
+      "first_name": "Sofía",
+      "last_name": "Martínez",
+      "email": "chofer_3455@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$d5d1d9d0e619$86YtsRIrtErLpFzraA83bI4Ct8SzIKtVj3D2opse6J4=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "chofer_4860",
+      "first_name": "Tomas",
+      "last_name": "Núñez",
+      "email": "chofer_4860@busturistico.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  }
+]

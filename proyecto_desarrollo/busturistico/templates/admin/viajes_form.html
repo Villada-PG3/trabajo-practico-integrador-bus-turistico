@@ -1,10 +1,8 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}Programar Nuevo Viaje - Panel Admin{% endblock %}
-
 {% block content %}
 <div class="container mt-5">
   <h2 class="mb-4">Programar Nuevo Viaje</h2>
-
   {% if form.non_field_errors %}
     <div class="alert alert-danger">
       <ul class="mb-0">
@@ -14,10 +12,8 @@
       </ul>
     </div>
   {% endif %}
-
   <form method="post" class="needs-validation" novalidate>
     {% csrf_token %}
-
     <div class="row g-3">
       <!-- Fecha y hora programadas -->
       <div class="col-md-6">
@@ -31,7 +27,6 @@
           </div>
         {% endif %}
       </div>
-
       <div class="col-md-6">
         <label class="form-label" for="{{ form.hora_inicio_programada.id_for_label }}">
           {{ form.hora_inicio_programada.label }}
@@ -43,57 +38,6 @@
           </div>
         {% endif %}
       </div>
-
-      <!-- Fechas/horas reales (opcionales) -->
-      <div class="col-md-6">
-        <label class="form-label" for="{{ form.fecha_hora_inicio_real.id_for_label }}">
-          {{ form.fecha_hora_inicio_real.label }} (Opcional)
-        </label>
-        {{ form.fecha_hora_inicio_real }}
-        {% if form.fecha_hora_inicio_real.errors %}
-          <div class="invalid-feedback d-block">
-            {{ form.fecha_hora_inicio_real.errors|striptags }}
-          </div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label" for="{{ form.fecha_hora_fin_real.id_for_label }}">
-          {{ form.fecha_hora_fin_real.label }} (Opcional)
-        </label>
-        {{ form.fecha_hora_fin_real }}
-        {% if form.fecha_hora_fin_real.errors %}
-          <div class="invalid-feedback d-block">
-            {{ form.fecha_hora_fin_real.errors|striptags }}
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- Números (opcionales) -->
-      <div class="col-md-6">
-        <label class="form-label" for="{{ form.demora_inicio_minutos.id_for_label }}">
-          {{ form.demora_inicio_minutos.label }} (Opcional)
-        </label>
-        {{ form.demora_inicio_minutos }}
-        {% if form.demora_inicio_minutos.errors %}
-          <div class="invalid-feedback d-block">
-            {{ form.demora_inicio_minutos.errors|striptags }}
-          </div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <label class="form-label" for="{{ form.duracion_minutos_real.id_for_label }}">
-          {{ form.duracion_minutos_real.label }} (Opcional)
-        </label>
-        {{ form.duracion_minutos_real }}
-        {% if form.duracion_minutos_real.errors %}
-          <div class="invalid-feedback d-block">
-            {{ form.duracion_minutos_real.errors|striptags }}
-          </div>
-        {% endif %}
-      </div>
-
       <!-- Selects -->
       <div class="col-md-4">
         <label class="form-label" for="{{ form.patente_bus.id_for_label }}">
@@ -106,7 +50,6 @@
           </div>
         {% endif %}
       </div>
-
       <div class="col-md-4">
         <label class="form-label" for="{{ form.chofer.id_for_label }}">
           {{ form.chofer.label }}
@@ -118,7 +61,6 @@
           </div>
         {% endif %}
       </div>
-
       <div class="col-md-4">
         <label class="form-label" for="{{ form.recorrido.id_for_label }}">
           {{ form.recorrido.label }}
@@ -131,7 +73,6 @@
         {% endif %}
       </div>
     </div>
-
     <div class="d-flex gap-2 mt-4">
       <button type="submit" class="btn btn-primary">Guardar</button>
       <a href="{% url 'admin-viajes' %}" class="btn btn-secondary">Cancelar</a>
@@ -139,7 +80,6 @@
   </form>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
   // Bootstrap validation

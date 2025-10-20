@@ -10,7 +10,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .models import Parada, Recorrido, RecorridoParada, Atractivo, Bus, Chofer, Viaje, Consulta
 import datetime
+from django import forms
+import re
 from .models import Bus, EstadoBus
+
 User = get_user_model()
 
 class ChoferLoginForm(forms.Form):
@@ -101,13 +104,13 @@ class ParadaForm(forms.ModelForm):
     # Campo adicional para seleccionar el recorrido
     recorrido_a_asignar = forms.ModelChoiceField(
         queryset=Recorrido.objects.all(),
-        required=False,
+        required=True,
         empty_label="No asignar a un recorrido",
         label="Asignar o reasignar a Recorrido"
     )
     # Campo para el orden dentro del recorrido
     orden_en_recorrido = forms.IntegerField(
-        required=False,
+        required=True,
         min_value=1,
         label="Orden en el Recorrido (si se asigna)"
     )
@@ -242,39 +245,29 @@ class BusForm(forms.ModelForm):
 
 
 class ViajeCreateForm(forms.ModelForm):
-    # Mantengo hora_inicio_programada como requerida (coincide con el modelo)
-    fecha_programada = forms.DateTimeField(
-        widget=forms.DateTimeInput(
-            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
+    fecha_programada = forms.DateField(
+        widget=forms.DateInput(
+            attrs={'type': 'date', 'class': 'form-control'}
         ),
-        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
+        input_formats=['%Y-%m-%d']
     )
     hora_inicio_programada = forms.TimeField(
         required=True,
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         input_formats=['%H:%M', '%H:%M:%S']
     )
-    fecha_hora_inicio_real = forms.DateTimeField(
+    duracion_minutos_real = forms.IntegerField(
         required=False,
-        widget=forms.DateTimeInput(
-            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
-        ),
-        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
-    )
-    fecha_hora_fin_real = forms.DateTimeField(
-        required=False,
-        widget=forms.DateTimeInput(
-            attrs={'type': 'datetime-local', 'class': 'form-control', 'step': 60}
-        ),
-        input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%dT%H:%M:%S']
+        widget=forms.NumberInput(attrs={'min': 0, 'step': 1, 'class': 'form-control'})
     )
 
     class Meta:
         model = Viaje
-        exclude = ['fecha_hora_inicio_real', 'fecha_hora_fin_real', 'duracion_minutos_real']
+        fields = [
+            'fecha_programada', 'hora_inicio_programada', 'duracion_minutos_real',
+            'patente_bus', 'chofer', 'recorrido'
+        ]
         widgets = {
-            'demora_inicio_minutos': forms.NumberInput(attrs={'min': 0, 'step': 1, 'class': 'form-control'}),
-            'duracion_minutos_real': forms.NumberInput(attrs={'min': 0, 'step': 1, 'class': 'form-control'}),
             'patente_bus': forms.Select(attrs={'class': 'form-select'}),
             'chofer': forms.Select(attrs={'class': 'form-select'}),
             'recorrido': forms.Select(attrs={'class': 'form-select'}),
@@ -282,53 +275,43 @@ class ViajeCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 👇 OJO: en tus modelos el related inverso es 'viaje', no 'viajes'
         self.fields['patente_bus'].queryset = Bus.objects.exclude(
             viaje__fecha_hora_inicio_real__isnull=False,
             viaje__fecha_hora_fin_real__isnull=True
         ).distinct()
-
         self.fields['chofer'].queryset = Chofer.objects.exclude(
             viaje__fecha_hora_inicio_real__isnull=False,
             viaje__fecha_hora_fin_real__isnull=True
         ).distinct()
-
         self.fields['recorrido'].queryset = Recorrido.objects.all()
 
     def clean(self):
         cleaned_data = super().clean()
         fecha_programada = cleaned_data.get('fecha_programada')
         hora_inicio_programada = cleaned_data.get('hora_inicio_programada')
-        fecha_hora_inicio_real = cleaned_data.get('fecha_hora_inicio_real')
-        fecha_hora_fin_real = cleaned_data.get('fecha_hora_fin_real')
         patente_bus = cleaned_data.get('patente_bus')
         chofer = cleaned_data.get('chofer')
 
-        # fecha_programada debe ser futura
-        if fecha_programada and fecha_programada < timezone.now():
-            raise ValidationError({'fecha_programada': 'La fecha y hora programada debe ser futura.'})
+        # Validate fecha_programada is today or future
+        if fecha_programada and fecha_programada < timezone.now().date():
+            raise ValidationError({'fecha_programada': 'La fecha programada debe ser hoy o futura.'})
 
-        # Combinar fecha + hora y validar futura
+        # Combine fecha_programada and hora_inicio_programada for validation
         if fecha_programada and hora_inicio_programada:
-            fecha_hora_completa = fecha_programada.replace(
-                hour=hora_inicio_programada.hour,
-                minute=hora_inicio_programada.minute,
-                second=0, microsecond=0
+            fecha_hora_completa = timezone.datetime(
+                fecha_programada.year,
+                fecha_programada.month,
+                fecha_programada.day,
+                hora_inicio_programada.hour,
+                hora_inicio_programada.minute,
+                tzinfo=timezone.get_current_timezone()
             )
             if fecha_hora_completa < timezone.now():
-                raise ValidationError({'hora_inicio_programada': 'La hora de inicio programada debe ser futura.'})
+                raise ValidationError({
+                    'hora_inicio_programada': 'La fecha y hora programadas deben ser futuras.'
+                })
 
-        # inicio real >= programada
-        if fecha_hora_inicio_real and fecha_programada:
-            if fecha_hora_inicio_real < fecha_programada:
-                raise ValidationError({'fecha_hora_inicio_real': 'El inicio real no puede ser anterior a la programada.'})
-
-        # fin > inicio real
-        if fecha_hora_fin_real and fecha_hora_inicio_real:
-            if fecha_hora_fin_real <= fecha_hora_inicio_real:
-                raise ValidationError({'fecha_hora_fin_real': 'El fin debe ser posterior al inicio.'})
-
-        # disponibilidad bus/chofer
+        # Validate bus and driver availability
         if patente_bus and Viaje.objects.filter(
             patente_bus=patente_bus,
             fecha_hora_inicio_real__isnull=False,
@@ -343,7 +326,7 @@ class ViajeCreateForm(forms.ModelForm):
         ).exists():
             raise ValidationError({'chofer': 'Este chofer está asignado a un viaje activo.'})
 
-        return cleaned_data
+        return cleaned_data 
 class AtractivoForm(forms.ModelForm):
     parada_a_asignar = forms.ModelChoiceField(
         queryset=Parada.objects.all(),
@@ -407,23 +390,23 @@ class RespuestaForm(forms.ModelForm):
         }
 
         
+
+
 class RecorridoForm(forms.ModelForm):
-    # Número en minutos (se ve y valida como <input type="number">)
-    duracion_aproximada_recorrido = forms.IntegerField(
-        min_value=1,
-        label='Duración (minutos)',
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',           # Bootstrap limpio
-            'placeholder': 'Duración en minutos',
-            'step': '1',
-            'min': '1',
-            'inputmode': 'numeric'
-        })
+    duracion_aproximada_recorrido = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'HH:MM (ej: 01:30)',
+            'pattern': '[0-2][0-9]:[0-5][0-9]',  # Restricción de formato HH:MM
+            'title': 'Ingresa la duración en formato HH:MM (ej: 01:30)'
+        }),
+        label='Duración Aproximada (HH:MM)'
     )
 
     class Meta:
         model = Recorrido
-        fields = '__all__'
+        fields = ['color_recorrido', 'descripcion_recorrido', 'duracion_aproximada_recorrido', 'foto_recorrido']
         widgets = {
             'color_recorrido': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -434,4 +417,35 @@ class RecorridoForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Breve descripción del recorrido'
             }),
+            'foto_recorrido': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
         }
+
+    def clean_duracion_aproximada_recorrido(self):
+        duracion = self.cleaned_data.get('duracion_aproximada_recorrido')
+        if not duracion:
+            raise forms.ValidationError("Debes ingresar una duración, salame! Usa formato HH:MM (ej: 01:30).")
+        # Validar formato HH:MM (horas 00-23, minutos 00-59)
+        if not re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', duracion):
+            raise forms.ValidationError("Formato inválido, peruano. Usa HH:MM (ej: 01:30). Horas 00-23, minutos 00-59.")
+        # Convertir a objeto time para el modelo
+        try:
+            from django.utils.dateparse import parse_time
+            parsed_time = parse_time(duracion)
+            if not parsed_time:
+                raise ValueError
+            return parsed_time
+        except ValueError:
+            raise forms.ValidationError("Formato inválido, revisa de nuevo. Usa HH:MM (ej: 01:30).")
+from django.forms import inlineformset_factory
+from .models import Parada, RecorridoParada
+
+RecorridoParadaFormSet = inlineformset_factory(
+    Parada, RecorridoParada,
+    fields=('recorrido', 'orden'),
+    extra=1,
+    can_delete=True
+)
+

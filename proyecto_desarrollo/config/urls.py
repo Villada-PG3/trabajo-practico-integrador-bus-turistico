@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import path, include
 from busturistico.views import *
 from busturistico import views
@@ -8,7 +9,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from busturistico import views_chofer, urls_chofer
 
+
+def admin_dashboard_redirect(request, extra_context=None):
+    # Redirect to the custom dashboard after logging into the Django admin.
+    return redirect('admin-dashboard')
+
+
+admin.site.index = admin_dashboard_redirect
+
 urlpatterns = [
+    # API pública JSON
+    path('api/', include('busturistico.urls_api')),
     path('chofer/', include('busturistico.urls_chofer')),
     # Dashboard
     path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),
@@ -36,6 +47,7 @@ urlpatterns = [
     path('admin/viajes/', views.ViajesView.as_view(), name='admin-viajes'),
     path('admin/nuevo-viaje/', views.CrearViajeView.as_view(), name='admin-nuevo-viaje'),
     path('viajes/completar/<int:pk>/', views.completar_viaje_y_limpiar, name='completar-viaje'),
+   
     # Paradas
     path('admin/paradas/', views.ParadasView.as_view(), name='admin-paradas'),
     path('admin/nuevo-parada/', views.CrearParadaView.as_view(), name='admin-nuevo-parada'),
@@ -48,7 +60,6 @@ urlpatterns = [
     path('admin/recorridos/<int:pk>/', views.RecorridoDetailView.as_view(), name='admin-detalle-recorrido'),
     path('admin/recorridos/<int:pk>/editar/', views.EditarRecorridoView.as_view(), name='admin-editar-recorrido'),
     path('admin/recorridos/<int:pk>/eliminar/', views.EliminarRecorridoView.as_view(), name='admin-eliminar-recorrido'),
- 
     # Consultas
     path('admin/consultas/', views.ConsultasView.as_view(), name='admin-consultas'),
     path('admin/consultas/<int:pk>/', views.ConsultaDetailView.as_view(), name='admin-consulta-detalle'),
@@ -61,7 +72,8 @@ urlpatterns = [
     
     # Admin de Django
     path('admin/', admin.site.urls),
-] 
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+ 
 
 # Servir archivos media en desarrollo
 if settings.DEBUG:

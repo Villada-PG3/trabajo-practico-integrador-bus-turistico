@@ -4,30 +4,108 @@
 
 {% block content %}
 <div class="container-fluid py-3">
-    <h1 class="mb-2">Detalles del Chofer</h1>
-    <a href="{% url 'admin-choferes' %}" class="btn btn-secondary mb-3">Volver a Choferes</a>
+    <h1 class="mb-3">Detalles del Chofer</h1>
 
-    <div class="card p-4">
-        <h2 class="mb-3">{{ chofer.nombre_chofer }} {{ chofer.apellido_chofer }}</h2>
-        <div class="row">
+    <div class="card p-4 shadow-sm border-0 rounded-3">
+        
+        <!-- Información personal -->
+        <div class="row mb-4">
             <div class="col-md-6">
-                <p><strong>Legajo:</strong> {{ chofer.legajo_chofer }}</p>
+                <h5 class="mb-2">Información Personal</h5>
+                <p><strong>Legajo:</strong> {{ chofer.legajo_chofer|default:"N/A" }}</p>
+                <p><strong>DNI:</strong> {{ chofer.dni_chofer|default:"N/A" }}</p>
                 <p><strong>Teléfono:</strong> {{ chofer.telefono|default:"N/A" }}</p>
-                <p><strong>Email:</strong> {{ chofer.email|default:"N/A" }}</p>
+                <p><strong>Fecha de Ingreso:</strong> {{ chofer.fecha_ingreso|date:"d/m/Y" }}</p>
             </div>
+
             <div class="col-md-6">
+                <h5 class="mb-2">Actividad Actual</h5>
                 {% if viaje_asignado %}
-                    <div class="alert alert-success">
-                        <p class="mb-1"><strong>Estado:</strong> Activo</p>
-                        <p class="mb-1"><strong>Asignado al Viaje:</strong> {{ viaje_asignado.recorrido.nombre_recorrido }}</p>
-                        <p class="mb-0"><strong>Bus Asignado:</strong> {{ viaje_asignado.patente_bus.patente_bus }}</p>
+                    <div class="alert alert-success mb-2">
+                        <p class="mb-1"><strong>Viaje Actual:</strong> #{{ viaje_asignado.id }}</p>
+                        <p class="mb-1"><strong>Recorrido:</strong> {{ viaje_asignado.recorrido.color_recorrido }}</p>
+                        <p class="mb-1"><strong>Bus Asignado:</strong> {{ viaje_asignado.patente_bus.patente_bus }}</p>
+                        <p class="mb-0"><strong>Inicio:</strong> 
+                            {% if viaje_asignado.fecha_hora_inicio_real %}
+                                {{ viaje_asignado.fecha_hora_inicio_real|date:"d/m/Y H:i" }}
+                            {% else %}
+                                En espera de inicio
+                            {% endif %}
+                        </p>
                     </div>
                 {% else %}
                     <div class="alert alert-warning">
-                        <strong>Estado:</strong> Inactivo
+                        <p class="mb-0"><strong>Sin viaje activo actualmente.</strong></p>
                     </div>
                 {% endif %}
             </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="mb-2">Historial de Viajes</h5>
+                <p><strong>Total de Viajes:</strong> {{ viajes_total }}</p>
+                <p><strong>Completados:</strong> {{ viajes_completados }}</p>
+                <p><strong>En Curso:</strong> {{ viajes_en_curso }}</p>
+                <p><strong>Programados:</strong> {{ viajes_programados }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <h5 class="mb-2">Último Viaje Completado</h5>
+                {% if ultimo_viaje %}
+                    <p><strong>Recorrido:</strong> {{ ultimo_viaje.recorrido.color_recorrido }}</p>
+                    <p><strong>Bus:</strong> {{ ultimo_viaje.patente_bus.patente_bus }}</p>
+                    <p><strong>Finalizado:</strong> {{ ultimo_viaje.fecha_hora_fin_real|date:"d/m/Y H:i" }}</p>
+                {% else %}
+                    <p>No tiene viajes completados aún.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+    <div class="col-md-12">
+        <h5 class="mb-2">Buses Conducidos</h5>
+        {% if buses_conducidos %}
+            <ul class="list-inline">
+                {% for bus in buses_conducidos %}
+                    <li class="list-inline-item badge bg-info text-dark me-1 mb-1">{{ bus }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No hay buses registrados todavía.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Últimos recorridos -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h5 class="mb-2">Últimos Recorridos Asignados</h5>
+        {% if ultimos_recorridos %}
+            <ul class="list-group">
+                {% for v in ultimos_recorridos %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ v.recorrido.color_recorrido }} — Bus {{ v.patente_bus.patente_bus }}</span>
+                        {% if v.fecha_hora_inicio_real %}
+                            <small>{{ v.fecha_hora_inicio_real|date:"d/m/Y H:i" }}</small>
+                        {% else %}
+                            <small>Programado</small>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No hay recorridos recientes.</p>
+        {% endif %}
+    </div>
+</div>
+
+        <!-- Acciones -->
+        <div class="mt-4 text-end">
+            <a href="{% url 'admin-editar-chofer' chofer.pk %}" class="btn btn-primary me-2">Editar Chofer</a>
+            <a href="{% url 'admin-eliminar-chofer' chofer.pk %}" class="btn btn-danger me-2">Eliminar Chofer</a>
+            <a href="{% url 'admin-choferes' %}" class="btn btn-secondary">Volver</a>
         </div>
     </div>
 </div>

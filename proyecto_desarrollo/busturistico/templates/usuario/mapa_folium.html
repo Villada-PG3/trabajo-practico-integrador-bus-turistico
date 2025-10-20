@@ -1,0 +1,276 @@
+{% extends 'usuario/base_usuario.html' %}
+{% block title %}Mapa Folium{% endblock %}
+{% block content %}
+<section class="container py-4">
+  <h1 class="h3 mb-3">Mapa generado con Folium</h1>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% else %}
+    <p class="text-muted mb-2">Recorrido seleccionado: {{ recorrido.color_recorrido }} · Paradas: {{ paradas|length }}</p>
+    <div class="modern-card p-4 mb-3 shadow-sm">
+      <div class="d-flex align-items-center mb-3">
+        <div class="card-icon me-3" style="width:56px;height:56px;">
+          <i class="fas fa-map-signs"></i>
+        </div>
+        <div>
+          <h4 class="mb-1">Panel de Viajes en Vivo</h4>
+          <p class="text-muted mb-0 small">Personalizá la vista del mapa para seguir un recorrido específico o comparar varios colectivos.</p>
+        </div>
+      </div>
+
+      {% if warnings %}
+        <div class="alert alert-warning py-2 mb-4">
+          <ul class="mb-0 small">
+            {% for warning in warnings %}
+              <li>{{ warning }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <form id="mapFiltersForm" method="get" class="row g-3 align-items-end mb-4">
+        <div class="col-12 col-md-4">
+          <label class="form-label text-uppercase fw-semibold small mb-1">Recorrido</label>
+          <select name="recorrido" class="form-select form-select-sm">
+            {% if recorridos_filtrables %}
+              {% for rec in recorridos_filtrables %}
+                <option value="{{ rec.id }}"{% if rec.id == selected_recorrido_id %} selected{% endif %}>
+                  {{ rec.color_recorrido }}
+                </option>
+              {% endfor %}
+            {% else %}
+              <option value="" selected>Sin recorridos activos</option>
+            {% endif %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label text-uppercase fw-semibold small mb-1">Viaje activo</label>
+          <select name="viaje_id" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            {% for viaje in viajes_filtrables %}
+              <option value="{{ viaje.id }}"{% if viaje.id == selected_viaje_id %} selected{% endif %}>
+                #{{ viaje.id }} · {{ viaje.recorrido.color_recorrido }} · {{ viaje.patente_bus.patente_bus }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <button class="btn btn-sm btn-primary w-100" type="submit">
+            <i class="fas fa-filter me-1"></i>Aplicar
+          </button>
+        </div>
+        <div class="col-6 col-md-2">
+          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'usuario-mapa-folium' %}">
+            <i class="fas fa-undo me-1"></i>Limpiar
+          </a>
+        </div>
+      </form>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <h6 class="text-uppercase text-muted small mb-2">Recorridos visibles</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for payload in map_payloads %}
+              <span class="badge rounded-pill px-3 py-2 {% if payload.is_focused %}bg-primary text-white{% else %}bg-light text-dark border{% endif %}">
+                <i class="fas fa-route me-1"></i>{{ payload.recorrido_color }}
+                <span class="small ms-1 text-muted">{{ payload.paradas_total }} paradas{% if payload.bus %} · bus activo{% endif %}</span>
+              </span>
+            {% empty %}
+              <span class="text-muted small">No hay recorridos para mostrar.</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <h6 class="text-uppercase text-muted small mb-2">Estado de viajes</h6>
+          {% if active_viajes_info %}
+            <ul class="list-unstyled mb-0 small">
+              {% for viaje in active_viajes_info %}
+                <li class="py-1 d-flex justify-content-between align-items-center{% if viaje.is_focused %} fw-semibold{% endif %}">
+                  <span>
+                    <i class="fas fa-bus me-2 text-primary"></i>
+                    Recorrido {{ viaje.recorrido_color }} · Bus {{ viaje.bus_patente }} · Chofer {{ viaje.chofer }}
+                  </span>
+                  {% if viaje.is_focused %}
+                    <span class="badge bg-primary">Seleccionado</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="alert alert-info py-2 mb-0 small">
+              No hay viajes en curso en este momento. Se muestra la ruta {{ recorrido.color_recorrido }} de forma estática.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="modern-card p-0 overflow-hidden shadow-sm">
+      <div class="ratio ratio-4x3">
+        <div id="mapaFolium" class="w-100 h-100"></div>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% if not error %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+#mapaFolium { min-height: 400px; }
+.bus-marker-icon {
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+</style>
+<script>
+(function () {
+  const form = document.getElementById('mapFiltersForm');
+  if (!form) {
+    return;
+  }
+
+  const selects = form.querySelectorAll('select');
+  selects.forEach(select => {
+    select.addEventListener('change', () => {
+      if (select.name === 'recorrido') {
+        const viajeSelect = form.querySelector('select[name="viaje_id"]');
+        if (viajeSelect) {
+          viajeSelect.selectedIndex = 0;
+        }
+      }
+      form.requestSubmit ? form.requestSubmit() : form.submit();
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  if (typeof L === 'undefined') {
+    console.error('Leaflet no está disponible.');
+    return;
+  }
+
+  const mapCenter = {{ map_center_json|safe }};
+  const mapBounds = {{ map_bounds_json|safe }};
+  const mapPayloads = {{ map_payloads_json|safe }};
+  const defaultDelay = {{ animation_default_delay_ms|default:2000 }};
+
+  const map = L.map('mapaFolium', {
+    zoomControl: true,
+    preferCanvas: true
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  let userInteracted = false;
+  const interactionEvents = ['dragstart', 'movestart', 'zoomstart', 'mousedown', 'touchstart'];
+  interactionEvents.forEach(evt => map.on(evt, () => { userInteracted = true; }));
+
+  if (Array.isArray(mapBounds) && mapBounds.length === 2) {
+    map.fitBounds(mapBounds, { padding: [30, 30] });
+  } else if (Array.isArray(mapCenter) && mapCenter.length === 2) {
+    map.setView(mapCenter, 13);
+  } else {
+    map.setView([-34.6037, -58.3816], 13);
+  }
+
+  if (!Array.isArray(mapPayloads)) {
+    console.warn('No hay datos de recorridos para renderizar.');
+    return;
+  }
+
+  mapPayloads.forEach(payload => {
+    if (Array.isArray(payload.route_coords) && payload.route_coords.length) {
+      const polyline = L.polyline(payload.route_coords, {
+        color: payload.route_color || '#0d6efd',
+        weight: payload.is_focused ? 5 : 3,
+        opacity: payload.is_focused ? 0.95 : 0.7,
+        dashArray: payload.line_dash || null,
+      }).addTo(map);
+      if (payload.is_focused) {
+        polyline.bringToFront();
+      }
+    }
+
+    if (payload.show_paradas && Array.isArray(payload.paradas)) {
+      payload.paradas.forEach(p => {
+        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') {
+          return;
+        }
+        L.circleMarker([p.lat, p.lng], {
+          radius: 5,
+          color: payload.route_color || '#0d6efd',
+          fillColor: payload.route_color || '#0d6efd',
+          fillOpacity: 0.9,
+          weight: 1,
+        })
+          .addTo(map)
+          .bindPopup(`#${p.orden} · ${p.nombre}`);
+      });
+    }
+
+    if (!payload.bus || !payload.bus.initial_point) {
+      return;
+    }
+
+    const initial = payload.bus.initial_point;
+    if (typeof initial.lat !== 'number' || typeof initial.lng !== 'number') {
+      return;
+    }
+
+    const iconColor = payload.bus.marker_color || payload.route_color || '#0d6efd';
+    const busIcon = L.divIcon({
+      html: `<div style="font-size:26px; line-height:26px; color:${iconColor};">🚌</div>`,
+      className: 'bus-marker-icon',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+
+    const marker = L.marker([initial.lat, initial.lng], { icon: busIcon }).addTo(map);
+    if (payload.bus.tooltip) {
+      marker.bindTooltip(payload.bus.tooltip, { permanent: false });
+    }
+    if (payload.bus.pan_map && !userInteracted) {
+      map.panTo([initial.lat, initial.lng], { animate: true });
+    }
+
+    const futurePoints = Array.isArray(payload.bus.future_points) ? payload.bus.future_points : [];
+    if (!futurePoints.length) {
+      return;
+    }
+
+    const minDelay = 250;
+    function animate(index) {
+      if (index >= futurePoints.length) {
+        return;
+      }
+      const point = futurePoints[index];
+      if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
+        animate(index + 1);
+        return;
+      }
+      const delay = (typeof point.delay_ms === 'number' && point.delay_ms > 0)
+        ? point.delay_ms
+        : defaultDelay;
+
+      setTimeout(() => {
+        marker.setLatLng([point.lat, point.lng]);
+        if (payload.bus.pan_map && !userInteracted) {
+          map.panTo([point.lat, point.lng], { animate: true });
+        }
+        animate(index + 1);
+      }, Math.max(delay, minDelay));
+    }
+
+    animate(0);
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
