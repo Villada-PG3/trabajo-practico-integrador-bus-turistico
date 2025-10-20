@@ -41,7 +41,7 @@ class ChoferRequiredMixin:
         except Chofer.DoesNotExist:
             # Si el usuario no es un chofer activo, cerramos sesión y redirigimos a login
             logout(request)
-            messages.info(request, 'Inicia sesión como chofer para continuar.')
+            request.session['chofer_login_prompt'] = True
             return redirect('chofer-login')
         
         return super().dispatch(request, *args, **kwargs)

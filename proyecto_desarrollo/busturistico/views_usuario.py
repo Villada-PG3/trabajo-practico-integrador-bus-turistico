@@ -217,11 +217,6 @@ class UsuarioPreciosView(TemplateView):
         context['precios'] = Precio.objects.all()  # <- asegurate que trae objetos
         return context
 
-# Mapa en vivo (Leaflet + polling)
-class UsuarioMapaView(TemplateView):
-    template_name = 'usuario/mapa.html'
-
-
 class UsuarioMapaFoliumView(TemplateView):
     template_name = 'usuario/mapa_folium.html'
 

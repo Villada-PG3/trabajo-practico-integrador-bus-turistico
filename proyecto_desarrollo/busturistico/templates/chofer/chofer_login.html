@@ -318,14 +318,12 @@
             </div>
 
             <!-- Mensajes -->
-            {% if messages %}
+            {% if show_prompt %}
                 <div style="padding: 0 2rem; padding-top: 1.5rem;">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Inicia sesión como chofer para continuar.
+                    </div>
                 </div>
             {% endif %}
 
@@ -367,15 +365,6 @@
                     </div>
 
                     <!-- Errores del formulario -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
                     <button type="submit" class="btn btn-login" id="submitBtn">
                         <span class="btn-text">
                             <i class="fas fa-sign-in-alt me-2"></i>Ingresar

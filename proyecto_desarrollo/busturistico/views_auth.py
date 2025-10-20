@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from .forms import ChoferLoginForm
@@ -16,7 +15,12 @@ class ChoferLoginView(TemplateView):
             return redirect('chofer-recorridos')
         
         form = ChoferLoginForm()
-        return render(request, self.template_name, {'form': form})
+        show_prompt = request.session.pop('chofer_login_prompt', False)
+        context = {
+            'form': form,
+            'show_prompt': show_prompt,
+        }
+        return render(request, self.template_name, context)
     
     def post(self, request):
         # Corrección: Elimina 'request' del constructor
@@ -27,10 +31,13 @@ class ChoferLoginView(TemplateView):
             login(request, user)
             return redirect('chofer-recorridos')
         
-        return render(request, self.template_name, {'form': form})
+        context = {
+            'form': form,
+            'show_prompt': request.session.pop('chofer_login_prompt', False),
+        }
+        return render(request, self.template_name, context)
 
 
 def chofer_logout_view(request):
     logout(request)
-    messages.info(request, 'Sesión cerrada correctamente.')
     return redirect('chofer-login')
