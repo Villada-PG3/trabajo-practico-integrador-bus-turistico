@@ -7,7 +7,12 @@ import json
 from math import radians, sin, cos, sqrt, atan2
 
 from .models import (
-    Viaje, UbicacionColectivo, Recorrido, RecorridoParada
+    Viaje,
+    UbicacionColectivo,
+    Recorrido,
+    RecorridoParada,
+    EstadoViaje,
+    HistorialEstadoViaje,
 )
 
 
@@ -94,7 +99,34 @@ def post_ubicacion_viaje(request, viaje_id):
         timestamp_ubicacion=timestamp,
         viaje=viaje,
     )
-    return JsonResponse({'ok': True, 'viaje_id': viaje.id, 'timestamp': timestamp.isoformat()})
+
+    finalizado = False
+    parada_final = (
+        RecorridoParada.objects
+        .filter(recorrido=viaje.recorrido)
+        .select_related('parada')
+        .order_by('-orden')
+        .first()
+    )
+
+    if parada_final and parada_final.parada.latitud_parada is not None and parada_final.parada.longitud_parada is not None:
+        distancia_final = _haversine_km(
+            lat,
+            lng,
+            parada_final.parada.latitud_parada,
+            parada_final.parada.longitud_parada
+        )
+        # Consideramos completado si está dentro de 75 metros de la última parada.
+        distancia_umbral_km = 0.075
+        if distancia_final <= distancia_umbral_km:
+            finalizado = _finalizar_viaje_si_corresponde(viaje)
+
+    return JsonResponse({
+        'ok': True,
+        'viaje_id': viaje.id,
+        'timestamp': timestamp.isoformat(),
+        'finalizado': finalizado,
+    })
 
 
 @require_http_methods(["GET"])
