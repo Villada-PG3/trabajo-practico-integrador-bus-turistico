@@ -88,7 +88,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 - App: http://127.0.0.1:8000  
-- Admin: http://127.0.0.1:8000/admin
+- Admin: http://127.0.0.1:8000/admin/dashboard/
 
 ---
 
