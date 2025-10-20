@@ -1,100 +1,100 @@
-{% extends 'usuario/base_usuario.html' %}
+  {% extends 'usuario/base_usuario.html' %}
 
-{% block title %}Panel del Chofer - Bus Turístico Buenos Aires{% endblock %}
+  {% block title %}Panel del Chofer - Bus Turístico Buenos Aires{% endblock %}
 
-{% block content %}
-<section class="hero-section">
-  <div class="container">
-    <div class="text-center">
-      {% if viaje_en_curso %}
-        <h1 class="hero-title">¡Viaje en curso!</h1>
-        <p class="hero-subtitle">Conduce el recorrido {{ viaje_en_curso.recorrido.color_recorrido }}</p>
-      {% elif viaje_asignado %}
-        <h1 class="hero-title">Tienes un viaje asignado</h1>
-        <p class="hero-subtitle">Recorrido {{ viaje_asignado.recorrido.color_recorrido }} — listo para iniciar</p>
-      {% else %}
-        <h1 class="hero-title">Sin viaje asignado</h1>
-        <p class="hero-subtitle">Aguarda indicaciones del administrador</p>
-      {% endif %}
-    </div>
-  </div>
- </section>
-
-<section class="py-5">
-  <div class="container">
-    {% if messages %}
-      <div class="messages mb-4">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
+  {% block content %}
+  <section class="hero-section">
+    <div class="container">
+      <div class="text-center">
+        {% if viaje_en_curso %}
+          <h1 class="hero-title">¡Viaje en curso!</h1>
+          <p class="hero-subtitle">Conduce el recorrido {{ viaje_en_curso.recorrido.color_recorrido }}</p>
+        {% elif viaje_asignado %}
+          <h1 class="hero-title">Tienes un viaje asignado</h1>
+          <p class="hero-subtitle">Recorrido {{ viaje_asignado.recorrido.color_recorrido }} — listo para iniciar</p>
+        {% else %}
+          <h1 class="hero-title">Sin viaje asignado</h1>
+          <p class="hero-subtitle">Aguarda indicaciones del administrador</p>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
+  </section>
 
-    {% if viaje_en_curso %}
-      <div class="modern-card p-5 mt-4 text-center mb-4">
-        <i class="fas fa-bus text-success mb-4" style="font-size: 5rem;"></i>
-        <h3 class="fw-bold mb-2">Conduciendo</h3>
-        <p class="text-muted mb-3">
-          Bus: {{ viaje_en_curso.patente_bus.patente_bus }} · Recorrido: {{ viaje_en_curso.recorrido.color_recorrido }}<br>
-          Inicio: {{ viaje_en_curso.fecha_hora_inicio_real|date:"d/m H:i" }}
-        </p>
-        <div class="d-flex justify-content-center gap-2 flex-wrap">
-          <a href="{% url 'viaje-en-curso' %}" class="btn btn-primary">
-            <i class="fas fa-info-circle me-2"></i>Ver detalles
-          </a>
-          <form method="post" action="{% url 'finalizar-viaje' %}" onsubmit="return confirm('¿Finalizar el viaje actual?');">
+  <section class="py-5">
+    <div class="container">
+      {% if messages %}
+        <div class="messages mb-4">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if viaje_en_curso %}
+        <div class="modern-card p-5 mt-4 text-center mb-4">
+          <i class="fas fa-bus text-success mb-4" style="font-size: 5rem;"></i>
+          <h3 class="fw-bold mb-2">Conduciendo</h3>
+          <p class="text-muted mb-3">
+            Bus: {{ viaje_en_curso.patente_bus.patente_bus }} · Recorrido: {{ viaje_en_curso.recorrido.color_recorrido }}<br>
+            Inicio: {{ viaje_en_curso.fecha_hora_inicio_real|date:"d/m H:i" }}
+          </p>
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="{% url 'viaje-en-curso' %}" class="btn btn-primary">
+              <i class="fas fa-info-circle me-2"></i>Ver detalles
+            </a>
+            <form method="post" action="{% url 'finalizar-viaje' %}" onsubmit="return confirm('¿Finalizar el viaje actual?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-stop me-2"></i>Finalizar viaje
+              </button>
+            </form>
+          </div>
+        </div>
+      {% elif viaje_asignado %}
+        <div class="modern-card p-5 mt-4 text-center mb-4">
+          <i class="fas fa-route text-primary mb-4" style="font-size: 5rem;"></i>
+          <h3 class="fw-bold mb-2">Viaje asignado</h3>
+          <div class="row justify-content-center mt-3">
+            <div class="col-md-8">
+              <div class="alert alert-info text-start">
+                <div class="mb-2"><strong>Recorrido:</strong> {{ viaje_asignado.recorrido.color_recorrido }}</div>
+                <div class="mb-2"><strong>Descripción:</strong> {{ viaje_asignado.recorrido.descripcion_recorrido|default:'—' }}</div>
+                <div class="mb-2"><strong>Bus:</strong> {{ viaje_asignado.patente_bus.patente_bus }} (Unidad #{{ viaje_asignado.patente_bus.numero_unidad }})</div>
+                <div class="mb-0"><strong>Programado:</strong> {{ viaje_asignado.fecha_programada|date:"d/m/Y" }} — {{ viaje_asignado.hora_inicio_programada|time:"H:i" }}</div>
+              </div>
+            </div>
+          </div>
+          <form method="post" action="{% url 'iniciar-viaje' %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">
-              <i class="fas fa-stop me-2"></i>Finalizar viaje
+            <button type="submit" class="btn btn-success btn-lg">
+              <i class="fas fa-play me-2"></i>Iniciar viaje
             </button>
           </form>
         </div>
-      </div>
-    {% elif viaje_asignado %}
-      <div class="modern-card p-5 mt-4 text-center mb-4">
-        <i class="fas fa-route text-primary mb-4" style="font-size: 5rem;"></i>
-        <h3 class="fw-bold mb-2">Viaje asignado</h3>
-        <div class="row justify-content-center mt-3">
-          <div class="col-md-8">
-            <div class="alert alert-info text-start">
-              <div class="mb-2"><strong>Recorrido:</strong> {{ viaje_asignado.recorrido.color_recorrido }}</div>
-              <div class="mb-2"><strong>Descripción:</strong> {{ viaje_asignado.recorrido.descripcion_recorrido|default:'—' }}</div>
-              <div class="mb-2"><strong>Bus:</strong> {{ viaje_asignado.patente_bus.patente_bus }} (Unidad #{{ viaje_asignado.patente_bus.numero_unidad }})</div>
-              <div class="mb-0"><strong>Programado:</strong> {{ viaje_asignado.fecha_programada|date:"d/m/Y" }} — {{ viaje_asignado.hora_inicio_programada|time:"H:i" }}</div>
-            </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div class="mb-4">
+            <i class="fas fa-calendar-times" style="font-size: 4rem; color: #e2e8f0;"></i>
           </div>
+          <h3 class="text-muted mb-2">No tienes viaje asignado</h3>
+          <p class="text-muted">Cuando te asignen uno, aparecerá aquí para iniciar.</p>
         </div>
-        <form method="post" action="{% url 'iniciar-viaje' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-success btn-lg">
-            <i class="fas fa-play me-2"></i>Iniciar viaje
-          </button>
-        </form>
-      </div>
-    {% else %}
-      <div class="text-center py-5">
-        <div class="mb-4">
-          <i class="fas fa-calendar-times" style="font-size: 4rem; color: #e2e8f0;"></i>
-        </div>
-        <h3 class="text-muted mb-2">No tienes viaje asignado</h3>
-        <p class="text-muted">Cuando te asignen uno, aparecerá aquí para iniciar.</p>
-      </div>
-    {% endif %}
-  </div>
-</section>
+      {% endif %}
+    </div>
+  </section>
 
-<!-- Botón de logout fijo -->
-<a href="{% url 'chofer-logout' %}"
-   class="btn btn-danger btn-sm"
-   style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
-  <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-</a>
+  <!-- Botón de logout fijo -->
+  <a href="{% url 'chofer-logout' %}"
+    class="btn btn-danger btn-sm"
+    style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
+    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+  </a>
 
-<style>
-.modern-card { background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-</style>
+  <style>
+  .modern-card { background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+  </style>
 
-{% endblock %}
+  {% endblock %}

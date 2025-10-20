@@ -31,7 +31,7 @@ from .forms import (
 from django.core.mail import send_mail
 from django.conf import settings
 
-# =============================================================================
+## =============================================================================
 # --- Mixins and Helper Functions ---
 # =============================================================================
 
@@ -478,44 +478,6 @@ def completar_viaje_y_limpiar(request, pk):
     
     messages.success(request, f'El viaje #{viaje.id} se marcó como completado (Duración: {duracion_minutos_real} min).')
     return redirect('admin-viajes')
-
-# -----------------------------------------------------------------------------
-# FUNCIÓN DE REPORTE PDF (PROTEGIDA)
-# -----------------------------------------------------------------------------
-def generar_reporte_pdf(request, viaje_id):
-    if not request.user.is_superuser:
-        messages.error(request, 'Acceso no autorizado.')
-        return redirect('admin-viajes')
-        
-    viaje = get_object_or_404(Viaje, pk=viaje_id)
-
-    # 1. Recopilar Datos (Datos de Ticket)
-    # Se asegura que la duración se calcule si por alguna razón no se guardó antes
-    duracion = viaje.duracion_minutos_real
-    if duracion is None and viaje.fecha_hora_inicio_real and viaje.fecha_hora_fin_real:
-        tiempo_delta = viaje.fecha_hora_fin_real - viaje.fecha_hora_inicio_real
-        duracion = int(tiempo_delta.total_seconds() / 60)
-
-    ticket_data = {
-        "Número de Viaje": viaje.id,
-        "Fecha y Hora Inicio Real": viaje.fecha_hora_inicio_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_inicio_real else 'N/A',
-        "Fecha y Hora Fin Real": viaje.fecha_hora_fin_real.strftime('%d/%m/%Y %H:%M') if viaje.fecha_hora_fin_real else 'N/A',
-        "Número de Unidad (Patente)": viaje.patente_bus.patente_bus,
-        "Legajo Chofer": viaje.chofer.legajo_chofer,
-        "Nombre Completo Chofer": f"{viaje.chofer.nombre_chofer} {viaje.chofer.apellido_chofer}",
-        "Duración Real (minutos)": duracion if duracion is not None else 'N/A',
-        "Recorrido": str(viaje.recorrido)
-    }
-
-    # 2. Simulación de respuesta PDF (Usar ReportLab para producción)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="reporte_viaje_{viaje.id}.pdf"'
-
-    # Generación de contenido simple para simular el PDF
-    pdf_content = "\n".join([f"{k}: {v}" for k, v in ticket_data.items()])
-    response.write(f"Contenido del Reporte PDF (Simulación):\n\n{pdf_content}")
-
-    return response
 
 
 # =============================================================================
