@@ -28,7 +28,7 @@
         </div>
       {% endif %}
 
-      <form method="get" class="row g-3 align-items-end mb-4">
+      <form id="mapFiltersForm" method="get" class="row g-3 align-items-end mb-4">
         <div class="col-12 col-md-4">
           <label class="form-label text-uppercase fw-semibold small mb-1">Recorrido</label>
           <select name="recorrido" class="form-select form-select-sm">
@@ -125,6 +125,27 @@
   pointer-events: none;
 }
 </style>
+<script>
+(function () {
+  const form = document.getElementById('mapFiltersForm');
+  if (!form) {
+    return;
+  }
+
+  const selects = form.querySelectorAll('select');
+  selects.forEach(select => {
+    select.addEventListener('change', () => {
+      if (select.name === 'recorrido') {
+        const viajeSelect = form.querySelector('select[name="viaje_id"]');
+        if (viajeSelect) {
+          viajeSelect.selectedIndex = 0;
+        }
+      }
+      form.requestSubmit ? form.requestSubmit() : form.submit();
+    });
+  });
+})();
+</script>
 <script>
 (function () {
   if (typeof L === 'undefined') {
