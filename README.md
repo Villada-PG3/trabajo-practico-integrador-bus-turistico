@@ -78,6 +78,9 @@ No requiere pasos extra. Django usará un archivo `db.sqlite3` en la raíz (o el
 # Crear/estructurar tablas
 python manage.py migrate
 
+# Hacer un load de los datos del json:
+python manage.py loaddata datos_iniciales.json
+
 # Crear administrador para /admin
 python manage.py createsuperuser
 ```
