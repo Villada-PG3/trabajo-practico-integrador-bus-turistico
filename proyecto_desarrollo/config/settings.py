@@ -46,7 +46,10 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # Apunta a la carpeta templates global
-        'DIRS': [BASE_DIR / 'busturistico' / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'busturistico' / 'templates',
+            BASE_DIR / 'templates',                  # ⬅️ (AGREGADO) carpeta de templates global opcional
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,6 +109,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "busturistico" / "static",
+    BASE_DIR / "static",                          
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
