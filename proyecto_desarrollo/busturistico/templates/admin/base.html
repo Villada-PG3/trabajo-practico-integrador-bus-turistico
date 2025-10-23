@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+
+{# Título de la pestaña #}
+{% block title %}Bus Turístico | {{ title }}{% endblock %}
+
+{# Branding (texto arriba a la izquierda) #}
+{% block branding %}
+  <h1 id="site-name">
+    <a href="{% url 'admin:index' %}">Bus Turístico · Admin</a>
+  </h1>
+{% endblock %}
+
+{# Inyectar tu CSS #}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/custom.css' %}">
+{% endblock %}
