@@ -1,0 +1,51 @@
+/* === Colores base del admin === */
+/* Si tu Django es 4.x/5.x podés pisar variables CSS del admin */
+:root {
+  --primary: #0ea5e9;   /* celeste */
+  --secondary: #0369a1; /* celeste oscuro */
+  --accent: #22d3ee;    /* turquesa */
+}
+
+/* Header superior */
+#header {
+  background: linear-gradient(90deg, var(--secondary), var(--primary));
+  border-bottom: 0;
+}
+#header a:link, #header a:visited {
+  color: #fff;
+}
+
+/* Módulos y títulos */
+.module h2, .module caption {
+  background: var(--secondary);
+  color: #fff;
+}
+
+/* Botón principal (Guardar) */
+.button.default, input[type=submit].default {
+  background: var(--primary);
+  border-color: var(--secondary);
+}
+.button.default:hover, input[type=submit].default:hover {
+  filter: brightness(0.95);
+}
+
+/* Login box */
+.login #container {
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+.login #header {
+  background: var(--primary);
+}
+
+/* Links en listas */
+a:link, a:visited {
+  color: var(--secondary);
+}
+
+/* Footer */
+#footer {
+  border-top: 0;
+  color: #6b7280;
+}
