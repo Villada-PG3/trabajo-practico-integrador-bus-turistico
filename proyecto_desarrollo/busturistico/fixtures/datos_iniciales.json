@@ -6,8 +6,7 @@
       "color_recorrido": "Verde",
       "duracion_aproximada_recorrido": "02:30:00",
       "descripcion_recorrido": "Circuito norte de CABA con conexiones en parques y museos. Ideal para combinar naturaleza y cultura.",
-      "foto_recorrido": null,
-      "activo": true
+      "foto_recorrido": null
     }
   },
   {
@@ -17,8 +16,7 @@
       "color_recorrido": "Rojo",
       "duracion_aproximada_recorrido": "02:00:00",
       "descripcion_recorrido": "Circuito alternativo (Rojo) definido para futuras paradas.",
-      "foto_recorrido": null,
-      "activo": true
+      "foto_recorrido": null
     }
   },
 
