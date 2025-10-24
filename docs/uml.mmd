@@ -1,0 +1,140 @@
+classDiagram
+
+class Recorrido {
+  +id_recorrido: int 
+  +color_recorrido: str
+  +duracion_aproximada_recorrido: time
+  +descripcion_recorrido: str
+  +foto_recorrido: str
+  +obtenerParadas():
+  +proximosHorarios(): 
+  +totalParadas(): int
+}
+
+class Recorrido_Parada {
+  +id_recorrido_parada: int
+  +id_recorrido: int 
+  +id_parada: int 
+  +orden: int
+}
+
+class Parada {
+  +id_parada: int 
+  +nombre_parada: str
+  +direccion_parada: str
+  +descripcion_parada: str
+  +foto_parada: str
+  +latitud_parada: int
+  +longitud_parada: int
+}
+
+class Parada_Atractivo {
+  +id_parada_atractivo: int 
+  +id_parada: int 
+  +id_atractivo: int 
+
+}
+
+class Atractivo {
+  +id_atractivo: int 
+  +nombre_atractivo: str
+  +calificacion_estrellas: int
+  +descripcion_atractivo: str
+  +latitud_atractivo: int
+  +longitud_atractivo: int
+  +foto_atractivo: str
+  +calificar(): void
+}
+
+class Bus {
+  +patente_bus: str
+  +numero_unidad: int
+  +fecha_compra: datetime
+  +estadoActual(): 
+  +registrarEstado():
+}
+
+class Estado_Bus {
+  +id_estado_bus: int 
+  +nombre_estado: str
+  +descripcion_estado: str
+}
+
+class Estado_Bus_Historial {
+  +id_estado_historial: int 
+  +patente_bus: str 
+  +id_estado_bus: int 
+  +fecha_inicio_estado: datetime
+  +registrar(): 
+  +ultimo(): 
+}
+
+class Chofer {
+  +id_chofer: int
+  +nombre_chofer: str
+  +apellido_chofer: str
+  +legajo_chofer: str
+  +dni_chofer: int
+  +telefono: str
+  +fecha_ingreso: date
+  +activo: bool
+  +iniciarViaje(): void
+  +finalizarViaje(): void
+}
+
+class Viaje {
+  +id_viaje: int 
+  +fecha_programada: datetime
+  +hora_inicio_programada: time
+  +fecha_hora_inicio_real: datetime
+  +fecha_hora_fin_real: datetime
+  +demora_inicio_minutos: int
+  +duracion_minutos_real: int
+  +patente_bus: str
+  +id_chofer: int
+  +id_recorrido: int 
+  +id_estado_viaje: int 
+  +id_ubicacion_colectivo: int 
+  +iniciar(): 
+  +finalizar(): 
+  +registrarUbicacion(): 
+  +estado(): 
+  +ubicacionActual():
+
+class EstadoViaje {
+  +id_estado_viaje: int
+  +nombre_estado: str
+  +descripcion_estado: str
+  +id_ubicacion_colectivo: int 
+  
+}
+
+class Ubicacion_Colectivo {
+  +id_ubicacion_colectivo: int
+  +latitud: float
+  +longitud: float
+  +timestamp_ubicacion: datetime
+}
+
+class Historial_Estado_Viaje {
+  +id_historial_estado_viaje: int
+  +id_viaje: int 
+  +id_estado_viaje: int 
+  +fecha_cambio_estado: datetime
+}
+
+Recorrido_Parada --> Recorrido
+Recorrido_Parada --> Parada
+Parada_Atractivo --> Parada
+Parada_Atractivo --> Atractivo
+Estado_Bus_Historial --> Bus
+Estado_Bus_Historial --> Estado_Bus
+Viaje --> Bus
+Viaje --> Chofer
+Viaje --> Recorrido
+Viaje --> EstadoViaje
+Viaje --> Ubicacion_Colectivo
+Historial_Estado_Viaje --> Viaje
+Historial_Estado_Viaje --> EstadoViaje
+Ubicacion_Colectivo --> Viaje
+EstadoViaje --> Ubicacion_Colectivo
