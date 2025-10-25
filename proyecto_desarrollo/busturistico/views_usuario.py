@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView, ListView, CreateView, DetailView, View
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
-from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada, Precio, UbicacionColectivo
+from .models import Consulta, Bus, Chofer, Viaje, EstadoBusHistorial, EstadoBus, EstadoViaje, Parada, Recorrido, ParadaAtractivo, RecorridoParada, UbicacionColectivo
 from django.views import View
 from django.shortcuts import render, redirect,  get_object_or_404
 from django.urls import reverse_lazy
@@ -204,7 +204,6 @@ class UsuarioBusquedaView(TemplateView):
             
         return context
 
-
 class UsuarioPreciosView(TemplateView):
     template_name = 'usuario/precios.html'
 
@@ -212,9 +211,8 @@ class UsuarioPreciosView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['titulo_precios'] = 'Precios Bus Turístico Buenos Aires'
         context['subtitulo_precios'] = 'Elegí el pase que más te convenga'
-        context['precios'] = Precio.objects.all()  # <- asegurate que trae objetos
         return context
-
+        
 class UsuarioMapaFoliumView(TemplateView):
     template_name = 'usuario/mapa_folium.html'
 
