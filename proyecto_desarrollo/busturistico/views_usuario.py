@@ -43,8 +43,6 @@ class UsuarioInicioView(TemplateView):
             'recorridos_populares': Recorrido.objects.annotate(
                 total_paradas=Count('recorridoparadas')  # usando recorridoparadas
             ).order_by('-total_paradas')[:3],
-            # 🔥 Precios
-            'precios': Precio.objects.all(),
         })
         
         return context
@@ -212,7 +210,7 @@ class UsuarioPreciosView(TemplateView):
         context['titulo_precios'] = 'Precios Bus Turístico Buenos Aires'
         context['subtitulo_precios'] = 'Elegí el pase que más te convenga'
         return context
-        
+
 class UsuarioMapaFoliumView(TemplateView):
     template_name = 'usuario/mapa_folium.html'
 

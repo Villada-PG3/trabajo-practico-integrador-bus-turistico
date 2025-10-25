@@ -11,63 +11,69 @@
         </div>
     </div>
 </section>
-
 <!-- Información de Contacto -->
 <section class="py-5">
-    <div class="container">
-        <div class="row g-4 mb-5">
-            <div class="col-lg-3 col-md-6 animate-on-scroll">
-                <div class="modern-card text-center p-4 h-100">
-                    <div class="card-icon mx-auto mb-3">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">Teléfono</h5>
-                    <p class="text-muted mb-3">Llámanos para reservas inmediatas</p>
-                    <a href="tel:+5493515597470" class="btn btn-outline-primary">
-                        +54 9 351 559 7470
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.1s;">
-                <div class="modern-card text-center p-4 h-100">
-                    <div class="card-icon mx-auto mb-3" style="background: #25d366;">
-                        <i class="fab fa-whatsapp"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">WhatsApp</h5>
-                    <p class="text-muted mb-3">Consultas rápidas y reservas</p>
-                    <a href="https://wa.me/5493515597470" class="btn btn-outline-success">
-                        Escribir Mensaje
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.2s;">
-                <div class="modern-card text-center p-4 h-100">
-                    <div class="card-icon mx-auto mb-3">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">Email</h5>
-                    <p class="text-muted mb-3">Consultas detalladas y grupos</p>
-                    <a href="mailto:info@busturisticoba.com.ar" class="btn btn-outline-primary">
-                        Enviar Email
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: 0.3s;">
-                <div class="modern-card text-center p-4 h-100">
-                    <div class="card-icon mx-auto mb-3">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">Punto de Encuentro</h5>
-                    <p class="text-muted mb-3">Todos los tours parten desde aquí</p>
-                    <span class="btn btn-outline-primary">Plaza de Mayo</span>
-                </div>
-            </div>
+  <div class="container">
+    <div class="row g-4 mb-5 text-center">
+
+      <div class="col-lg-3 col-md-6 animate-on-scroll">
+        <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="card-icon mx-auto mb-3"><i class="fas fa-phone"></i></div>
+            <h5 class="fw-bold mb-2">Teléfono</h5>
+            <p class="text-muted mb-4">Llámanos para reservas inmediatas</p>
+          </div>
+          <a href="tel:+5493513844333" class="btn btn-outline-primary w-100 mt-auto">
+            +54 9 351 384 4333
+          </a>
         </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: .1s;">
+        <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="card-icon mx-auto mb-3" style="background:#25d366;"><i class="fab fa-whatsapp"></i></div>
+            <h5 class="fw-bold mb-2">WhatsApp</h5>
+            <p class="text-muted mb-4">Consultas rápidas y reservas</p>
+          </div>
+          <a href="https://wa.me/5493513844333" class="btn btn-outline-success w-100 mt-auto">
+            Escribir Mensaje
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: .2s;">
+        <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="card-icon mx-auto mb-3"><i class="fas fa-envelope"></i></div>
+            <h5 class="fw-bold mb-2">Email</h5>
+            <p class="text-muted mb-4">Consultas detalladas y grupos</p>
+          </div>
+          <a href="mailto:busturistico49@gmail.com" class="btn btn-outline-primary w-100 mt-auto">
+            Enviar Email
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 animate-on-scroll" style="animation-delay: .3s;">
+        <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="card-icon mx-auto mb-3"><i class="fas fa-map-marker-alt"></i></div>
+            <h5 class="fw-bold mb-2">Punto de Encuentro</h5>
+            <p class="text-muted mb-4">Todos los tours parten desde aquí</p>
+          </div>
+          <a href="https://maps.google.com/?q=Plaza+de+Mayo+Buenos+Aires" target="_blank"
+             class="btn btn-outline-primary w-100 mt-auto">
+            Plaza de Mayo
+          </a>
+        </div>
+      </div>
+
     </div>
+  </div>
 </section>
+
+
 
 <!-- Formulario de Contacto y Horarios -->
 <section class="py-5 bg-light">
@@ -183,26 +189,27 @@
                     </h5>
                     
                     <div class="d-grid gap-2">
-                        <a href="tel:{{ contacto_info.telefono|default:'+54 11 4000-0000' }}" class="btn btn-primary">
-                            <i class="fas fa-phone me-2"></i>Llamar Ahora
-                        </a>
-                        <a href="https://wa.me/{{ contacto_info.whatsapp|default:'541140000000' }}" class="btn btn-success">
-                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
-                        </a>
+                    <a href="tel:{{ contacto_info.telefono|default:'+5493513844333' }}" class="btn btn-primary">
+                        <i class="fas fa-phone me-2"></i>Llamar Ahora
+                    </a>
+                    <a href="https://wa.me/{{ contacto_info.whatsapp|default:'5493513844333' }}" class="btn btn-success">
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                    </a>
                     </div>
-                    
+
                     <hr>
-                    
+
                     <div class="small">
-                        <p class="mb-2">
-                            <i class="fas fa-envelope text-muted me-2"></i>
-                            {{ contacto_info.email|default:"info@busturisticoba.com.ar" }}
-                        </p>
-                        <p class="mb-0">
-                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                            {{ contacto_info.direccion|default:"Plaza de Mayo, CABA" }}
-                        </p>
+                    <p class="mb-2">
+                        <i class="fas fa-envelope text-muted me-2"></i>
+                        {{ contacto_info.email|default:"busturistico49@gmail.com" }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                        {{ contacto_info.direccion|default:"Plaza de Mayo, CABA" }}
+                    </p>
                     </div>
+
                 </div>
 
                 <!-- Preguntas Frecuentes -->

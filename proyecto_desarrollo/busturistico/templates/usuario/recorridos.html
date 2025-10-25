@@ -5,299 +5,291 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
-    <div class="container">
-        <div class="text-center">
-            <h1 class="hero-title">Nuestros Recorridos por Buenos Aires</h1>
-            <p class="hero-subtitle">Descubre todos los barrios emblemáticos desde Plaza de Mayo con vistas panorámicas únicas</p>
-        </div>
+  <div class="container">
+    <div class="text-center">
+      <h1 class="hero-title">Nuestros Recorridos por Buenos Aires</h1>
+      <p class="hero-subtitle">Descubre todos los barrios emblemáticos desde Plaza de Mayo con vistas panorámicas únicas</p>
     </div>
+  </div>
 </section>
 
 <!-- Filtros y Búsqueda -->
 <section class="py-4 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <form method="GET" class="d-flex gap-3 align-items-center">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" 
-                               placeholder="Buscar recorridos por barrios..." 
-                               name="search" 
-                               value="{{ search_query }}">
-                    </div>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fas fa-search me-2"></i>Buscar
-                    </button>
-                </form>
-            </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <small class="text-muted">
-                    <i class="fas fa-route me-1"></i>
-                    {{ paginator.count }} recorrido{{ paginator.count|pluralize }} disponible{{ paginator.count|pluralize }}
-                </small>
-            </div>
-        </div>
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <form method="GET" class="d-flex gap-3 align-items-center">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="fas fa-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0"
+                   placeholder="Buscar recorridos por barrios..."
+                   name="search"
+                   value="{{ search_query }}">
+          </div>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="fas fa-search me-2"></i>Buscar
+          </button>
+        </form>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <small class="text-muted">
+          <i class="fas fa-route me-1"></i>
+          {{ paginator.count }} recorrido{{ paginator.count|pluralize }} disponible{{ paginator.count|pluralize }}
+        </small>
+      </div>
     </div>
+  </div>
 </section>
 
 <!-- Recorridos Grid -->
 <section class="py-5">
-    <div class="container">
-        {% if recorridos %}
-            <div class="row g-4">
-                {% for recorrido in recorridos %}
-                <div class="col-lg-4 col-md-6 animate-on-scroll">
-                    <div class="modern-card h-100 overflow-hidden">
-                        <!-- Imagen del recorrido -->
-                        <div style="height: 250px; position: relative; overflow: hidden; border-radius: 8px;">
-                            {% if recorrido.foto_recorrido %}
-                                <img src="{{ recorrido.foto_recorrido.url }}" alt="{{ recorrido.color_recorrido }}"
-                                    style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <div style="height: 100%; background: linear-gradient(45deg, #0d6efd, #6610f2); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-city text-white" style="font-size: 3rem; opacity: 0.7;"></i>
-                                </div>
-                            {% endif %}
-                            <div style="position: absolute; top: 15px; right: 15px;">
-                                <span class="badge bg-white text-primary">
-                                    <i class="fas fa-map-marker-alt me-1"></i>{{ recorrido.total_paradas }} parada{{ recorrido.total_paradas|pluralize }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="p-4">
-                            <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
-                            <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
-                            
-                            <!-- Información adicional -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex gap-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        {{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
-                                    </small>
-                                    <small class="text-muted">
-                                        <i class="fas fa-users me-1"></i>Max 40
-                                    </small>
-                                </div>
-                                <span class="badge bg-success-subtle text-success">Disponible</span>
-                            </div>
-                            
-                            <!-- Próximos horarios (viajes programados) -->
-                            <div class="mb-3">
-                                <small class="text-muted fw-semibold">Próximos horarios:</small>
-                                <div class="d-flex gap-2 mt-1">
-                                    {% if recorrido.proximos_horarios %}
-                                        {% for h in recorrido.proximos_horarios %}
-                                            <span class="badge bg-info-subtle text-info">{{ h }}</span>
-                                        {% endfor %}
-                                    {% else %}
-                                        <small class="text-muted">Sin viajes programados</small>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid">
-                                <a href="{% url 'usuario-detalle-recorrido' recorrido.pk %}" 
-                                   class="btn btn-primary">
-                                    <i class="fas fa-eye me-2"></i>Ver Detalles
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+  <div class="container">
+    {% if recorridos %}
+      <div class="row g-4">
+        {% for recorrido in recorridos %}
+        <div class="col-lg-4 col-md-6 animate-on-scroll">
+          <!-- FIX: card en flex-col para que el contenido pueda crecer -->
+          <div class="modern-card d-flex flex-column h-100">
+            <!-- Imagen -->
+            <div style="height: 250px; position: relative; overflow: hidden; border-radius: 8px;">
+              {% if recorrido.foto_recorrido %}
+                <img src="{{ recorrido.foto_recorrido.url }}" alt="{{ recorrido.color_recorrido }}"
+                     style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="height: 100%; background: linear-gradient(45deg, #0d6efd, #6610f2); display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-city text-white" style="font-size: 3rem; opacity: 0.7;"></i>
                 </div>
-                {% endfor %}
+              {% endif %}
+              <div style="position: absolute; top: 15px; right: 15px;">
+                <span class="badge bg-white text-primary">
+                  <i class="fas fa-map-marker-alt me-1"></i>{{ recorrido.total_paradas }} parada{{ recorrido.total_paradas|pluralize }}
+                </span>
+              </div>
             </div>
-            
-            <!-- Paginación -->
-            {% if is_paginated %}
-            <div class="d-flex justify-content-center mt-5">
-                <nav>
-                    <ul class="pagination pagination-lg">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
-                                    <i class="fas fa-angle-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-                        
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
+
+            <!-- Contenido -->
+            <!-- FIX: flex-grow-1 permite que mt-auto tenga espacio real -->
+            <div class="p-4 d-flex flex-column flex-grow-1">
+              <h5 class="fw-bold mb-2 text-primary">{{ recorrido.color_recorrido }}</h5>
+              <p class="text-muted mb-3">{{ recorrido.descripcion_recorrido|truncatewords:15 }}</p>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-3">
+                  <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ recorrido.duracion_aproximada_recorrido|default:"3-4h" }}
+                  </small>
+                  <small class="text-muted">
+                    <i class="fas fa-users me-1"></i>Max 40
+                  </small>
+                </div>
+                <span class="badge bg-success-subtle text-success">Disponible</span>
+              </div>
+
+              <div class="mb-3">
+                <small class="text-muted fw-semibold">Próximos horarios:</small>
+                <div class="d-flex gap-2 mt-1">
+                  {% if recorrido.proximos_horarios %}
+                    {% for h in recorrido.proximos_horarios %}
+                      <span class="badge bg-info-subtle text-info">{{ h }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <small class="text-muted">Sin viajes programados</small>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- FIX: ahora sí, el botón se pega abajo y NO desaparece -->
+              <div class="d-grid mt-auto pt-2">
+                <a href="{% url 'usuario-detalle-recorrido' recorrido.pk %}" class="btn btn-primary">
+                  <i class="fas fa-eye me-2"></i>Ver Detalles
+                </a>
+              </div>
             </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if is_paginated %}
+      <div class="d-flex justify-content-center mt-5">
+        <nav>
+          <ul class="pagination pagination-lg">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
             {% endif %}
-            
-        {% else %}
-            <!-- Estado vacío -->
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-search" style="font-size: 4rem; color: #e2e8f0;"></i>
-                </div>
-                <h3 class="text-muted mb-3">No se encontraron recorridos</h3>
-                <p class="text-muted mb-4">
-                    {% if search_query %}
-                        No hay resultados para "{{ search_query }}". Intenta con nombres de recorridos como Verde, Rojo.
-                    {% else %}
-                        No hay recorridos disponibles en este momento.
-                    {% endif %}
-                </p>
-                {% if search_query %}
-                    <a href="{% url 'usuario-recorridos' %}" class="btn btn-primary">
-                        <i class="fas fa-list me-2"></i>Ver todos los recorridos
-                    </a>
-                {% endif %}
-            </div>
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% endif %}
+
+    {% else %}
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-search" style="font-size: 4rem; color: #e2e8f0;"></i>
+        </div>
+        <h3 class="text-muted mb-3">No se encontraron recorridos</h3>
+        <p class="text-muted mb-4">
+          {% if search_query %}
+            No hay resultados para "{{ search_query }}". Intenta con nombres de recorridos como Verde, Rojo.
+          {% else %}
+            No hay recorridos disponibles en este momento.
+          {% endif %}
+        </p>
+        {% if search_query %}
+          <a href="{% url 'usuario-recorridos' %}" class="btn btn-primary">
+            <i class="fas fa-list me-2"></i>Ver todos los recorridos
+          </a>
         {% endif %}
-    </div>
+      </div>
+    {% endif %}
+  </div>
 </section>
 
 <!-- Información de Barrios -->
 <section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5 animate-on-scroll">
-            <h3 class="fw-bold mb-3">Barrios que Visitamos</h3>
-            <p class="lead text-muted">Cada uno con su historia, cultura y personalidad única</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-landmark" style="font-size: 2rem; color: var(--ba-blue);"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Centro</h6>
-                    <small class="text-muted">Plaza de Mayo</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.1s;">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-guitar" style="font-size: 2rem; color: #dc3545;"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">San Telmo</h6>
-                    <small class="text-muted">Tango y Antigüedades</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.2s;">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-store" style="font-size: 2rem; color: #fd7e14;"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Belgrano</h6>
-                    <small class="text-muted">Barrio Chino</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.3s;">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-tree" style="font-size: 2rem; color: #198754;"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Palermo</h6>
-                    <small class="text-muted">Parques y Diseño</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.4s;">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-university" style="font-size: 2rem; color: #6f42c1;"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Recoleta</h6>
-                    <small class="text-muted">Museos y Cultura</small>
-                </div>
-            </div>
-            
-            <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.5s;">
-                <div class="text-center p-3">
-                    <div class="mb-2">
-                        <i class="fas fa-ship" style="font-size: 2rem; color: #0dcaf0;"></i>
-                    </div>
-                    <h6 class="fw-bold mb-1">Puerto Madero</h6>
-                    <small class="text-muted">Modernidad</small>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="text-center mb-5 animate-on-scroll">
+      <h3 class="fw-bold mb-3">Barrios que Visitamos</h3>
+      <p class="lead text-muted">Cada uno con su historia, cultura y personalidad única</p>
     </div>
+
+    <div class="row g-4">
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-landmark" style="font-size: 2rem; color: var(--ba-blue);"></i>
+          </div>
+          <h6 class="fw-bold mb-1">Centro</h6>
+          <small class="text-muted">Plaza de Mayo</small>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.1s;">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-guitar" style="font-size: 2rem; color: #dc3545;"></i>
+          </div>
+          <h6 class="fw-bold mb-1">San Telmo</h6>
+          <small class="text-muted">Tango y Antigüedades</small>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.2s;">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-store" style="font-size: 2rem; color: #fd7e14;"></i>
+          </div>
+          <h6 class="fw-bold mb-1">Belgrano</h6>
+          <small class="text-muted">Barrio Chino</small>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.3s;">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-tree" style="font-size: 2rem; color: #198754;"></i>
+          </div>
+          <h6 class="fw-bold mb-1">Palermo</h6>
+          <small class="text-muted">Parques y Diseño</small>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.4s;">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-university" style="font-size: 2rem; color: #6f42c1;"></i>
+          </div>
+          <h6 class="fw-bold mb-1">Recoleta</h6>
+          <small class="text-muted">Museos y Cultura</small>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-6 animate-on-scroll" style="animation-delay: 0.5s;">
+        <div class="text-center p-3">
+          <div class="mb-2">
+            <i class="fas fa-ship" style="font-size: 2rem; color: #0dcaf0;"></i>
+          </div>
+          <h6 class="fw-bold mb-1">Puerto Madero</h6>
+          <small class="text-muted">Modernidad</small>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- Call to Action -->
 {% if recorridos %}
 <section class="py-5">
-    <div class="container text-center">
-        <div class="animate-on-scroll">
-            <h3 class="fw-bold mb-3">¿Necesitas ayuda para elegir tu recorrido?</h3>
-            <p class="lead text-muted mb-4">Nuestros expertos en turismo porteño te ayudan a encontrar el recorrido perfecto según tus intereses</p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="{% url 'usuario-contacto' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-phone me-2"></i>Contactar Asesor
-                </a>
-                <a href="{% url 'usuario-contacto' %}" class="btn btn-outline-primary btn-lg">
-                    <i class="fab fa-whatsapp me-2"></i>WhatsApp
-                </a>
-            </div>
-        </div>
+  <div class="container text-center">
+    <div class="animate-on-scroll">
+      <h3 class="fw-bold mb-3">¿Necesitas ayuda para elegir tu recorrido?</h3>
+      <p class="lead text-muted mb-4">Nuestros expertos en turismo porteño te ayudan a encontrar el recorrido perfecto según tus intereses</p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <a href="tel:{{ contacto_info.telefono|default:'+5493513844333' }}" class="btn btn-primary">
+          <i class="fas fa-phone me-2"></i>Contactar Asesor
+        </a>
+        <a href="https://wa.me/{{ contacto_info.whatsapp|default:'5493513844333' }}" class="btn btn-success">
+          <i class="fab fa-whatsapp me-2"></i>WhatsApp
+        </a>
+      </div>
     </div>
+  </div>
 </section>
 {% endif %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-submit search form on Enter
-    const searchInput = document.querySelector('input[name="search"]');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.target.form.submit();
-            }
-        });
-    }
-    
-    // Add loading state to search button
-    const searchForm = searchInput?.form;
+  const searchInput = document.querySelector('input[name="search"]');
+  if (searchInput) {
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') e.target.form.submit();
+    });
+    const searchForm = searchInput.form;
     if (searchForm) {
-        searchForm.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.innerHTML = '<div class="loading-spinner"></div> Buscando...';
-                submitBtn.disabled = true;
-            }
-        });
+      searchForm.addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.innerHTML = '<div class="loading-spinner"></div> Buscando...';
+          submitBtn.disabled = true;
+        }
+      });
     }
+  }
 });
 </script>
 {% endblock %}
