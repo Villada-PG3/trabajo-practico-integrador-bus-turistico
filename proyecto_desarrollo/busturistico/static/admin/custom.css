@@ -4,6 +4,10 @@
   --primary: #0ea5e9;   /* celeste */
   --secondary: #0369a1; /* celeste oscuro */
   --accent: #22d3ee;    /* turquesa */
+  --bg: #f1f5f9;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e7eb;
 }
 
 /* Header superior */
@@ -23,12 +27,49 @@
 
 /* Botón principal (Guardar) */
 .button.default, input[type=submit].default {
-  background: var(--primary);
-  border-color: var(--secondary);
+  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+  border: none !important;
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  box-shadow: 0 6px 18px rgba(14,165,233,.25);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
 }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.button .btn-icon { display: inline-flex; align-items: center; }
+.button.default.large { padding: 12px 16px; font-size: 1rem; }
 .button.default:hover, input[type=submit].default:hover {
-  filter: brightness(0.95);
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(14,165,233,.28);
 }
+.button.default:active { transform: translateY(0); }
+/* Focus visible suave (evita borde negro por defecto) */
+.button, input[type=submit] { outline: none; }
+.button:focus-visible, input[type=submit]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(14,165,233,.25);
+}
+
+/* Botón contorno (para Volver al sitio) */
+.button.outline {
+  background: #ffffff;
+  color: var(--secondary);
+  border: 1.5px solid #cfe8f6;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  transition: background .12s ease, border-color .12s ease, transform .12s ease;
+}
+.button.outline.large { padding: 12px 16px; font-size: 1rem; }
+.button.outline:hover {
+  background: #f0f9ff;
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+}
+.button.outline:active { transform: translateY(0); }
 
 /* Login box */
 .login #container {
@@ -48,4 +89,87 @@ a:link, a:visited {
 #footer {
   border-top: 0;
   color: #6b7280;
+}
+
+/* --- Admin custom login (simple) --- */
+.admin-login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 20px 40px rgba(2,6,23,.08), 0 4px 16px rgba(2,6,23,.06);
+  border: 1px solid var(--border);
+}
+.admin-login-title {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+.admin-login-subtitle {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+.admin-login-header { display: flex; gap: 12px; align-items: center; }
+.admin-login-logo {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, #e0f2fe, #cffafe);
+  border: 1px solid #bae6fd;
+}
+.admin-login-errors {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.form-field { margin-bottom: 18px; }
+.form-field label {
+  display: block;
+  font-size: 0.9rem;
+  color: #334155;
+  margin-bottom: 6px;
+}
+.input-with-icon { position: relative; }
+.input-with-icon .input-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #94a3b8;
+}
+.input-with-icon input[type="text"],
+.input-with-icon input[type="password"] {
+  width: 100%;
+  padding: 10px 40px 10px 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  outline: none;
+  background: #f8fafc;
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.input-with-icon input:focus {
+  background: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(14,165,233,0.15);
+}
+.toggle-password {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  border: none; background: transparent; padding: 6px; cursor: pointer;
+  border-radius: 8px;
+}
+.toggle-password:hover { background: #eef2f7; }
+.actions { margin-top: 28px; }
+.actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.actions .button { width: 100%; }
+@media (min-width: 460px) { .actions { grid-template-columns: 1fr 1fr; } }
+.admin-login-help {
+  margin-top: 14px;
+  text-align: center;
 }
