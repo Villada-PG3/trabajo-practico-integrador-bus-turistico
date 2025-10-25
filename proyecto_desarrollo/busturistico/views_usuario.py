@@ -25,8 +25,6 @@ import requests
 import json
 from .services_viaje import finalizar_viaje
 
-class MapaView(TemplateView):
-    template_name = "usuario/mapa.html"
 
 
 class UsuarioInicioView(TemplateView):
