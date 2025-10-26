@@ -2,29 +2,25 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, OuterRef, Subquery, Q, F
-from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponseNotAllowed
 from django.utils import timezone
-from datetime import timedelta
-from django.forms import inlineformset_factory
-from django.shortcuts import render
+
 from django.db import transaction
-from .forms import ParadaForm, RecorridoParadaFormSet
+from .forms import ParadaForm 
 from .models import Parada
 from django.views.generic import (
     TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
 ) 
-from math import radians, sin, cos, sqrt, atan2
-import json
+
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje, Consulta
+     Viaje, Consulta
 )
 from .forms import (
-    AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
+    AtractivoForm, BusForm, ChoferForm, ParadaForm,
     RecorridoForm, ViajeCreateForm
 )
 

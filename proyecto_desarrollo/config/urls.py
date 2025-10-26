@@ -1,14 +1,10 @@
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import path, include
 from busturistico.views import *
 from busturistico import views
 from busturistico.views_usuario import *
-from busturistico import views_usuario, urls_usuario
 from django.conf import settings
 from django.conf.urls.static import static
-from busturistico import views_chofer, urls_chofer
-
 
 def admin_dashboard_redirect(request, extra_context=None):
     # Redirect to the custom dashboard after logging into the Django admin.
@@ -16,6 +12,7 @@ def admin_dashboard_redirect(request, extra_context=None):
 
 
 admin.site.index = admin_dashboard_redirect
+
 
 urlpatterns = [
     # API pública JSON
@@ -72,8 +69,7 @@ urlpatterns = [
     
     # Admin de Django
     path('admin/', admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
- 
+]
 
 # Servir archivos media en desarrollo
 if settings.DEBUG:
