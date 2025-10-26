@@ -17,11 +17,9 @@ Este proyecto es una aplicación de bus turístico desarrollada en Django, que p
 2. [Requisitos Previos](#requisitos-previos)
 3. [Instalación](#instalación)
    - [venv + pip (recomendada)](#venv--pip)
-4. [Configuración de Base de Datos](#configuración-de-base-de-datos)
-   - [SQLite (desarrollo)](#sqlite-desarrollo)
-5. [Migraciones, Datos de Ejemplo y Superusuario](#migraciones-datos-de-ejemplo-y-superusuario)
-6. [Ejecutar la Aplicación](#ejecutar-la-aplicación)
-7. [Solución de Problemas Frecuentes](#solución-de-problemas-frecuentes)
+4. [Migraciones, Datos de Ejemplo y Superusuario](#migraciones-datos-de-ejemplo-y-superusuario)
+5. [Ejecutar la Aplicación](#ejecutar-la-aplicación)
+6. [Solución de Problemas Frecuentes](#solución-de-problemas-frecuentes)
 
 ---
 
@@ -61,15 +59,6 @@ python -m venv .venv
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
----
-
-## Configuración de Base de Datos
-
-### SQLite (desarrollo)
-No requiere pasos extra. Django usará un archivo `db.sqlite3` en la raíz (o el path definido en `settings.py`).
-
-> Recomendado para empezar rápido.
 
 ---
 
