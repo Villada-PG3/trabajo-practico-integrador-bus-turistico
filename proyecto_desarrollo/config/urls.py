@@ -15,8 +15,6 @@ admin.site.index = admin_dashboard_redirect
 
 
 urlpatterns = [
-    # API pública JSON
-    path('api/', include('busturistico.urls_api')),
     path('chofer/', include('busturistico.urls_chofer')),
     # Dashboard
     path('admin/dashboard/', views.DashboardView.as_view(), name='admin-dashboard'),

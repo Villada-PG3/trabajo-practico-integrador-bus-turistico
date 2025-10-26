@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, OuterRef, Subquery, Q, F
+from django.db.models import Count, OuterRef, Subquery
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponseNotAllowed
@@ -712,4 +712,3 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
         consulta.save()
         return super().form_valid(form)
-
