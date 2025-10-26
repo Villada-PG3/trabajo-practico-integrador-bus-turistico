@@ -120,15 +120,17 @@
                                 <input type="date" class="form-control" id="fecha_interes" name="fecha_interes">
                             </div>
                             <div class="col-md-6">
-                                <label for="recorrido_interes" class="form-label fw-semibold">Recorrido de Interés</label>
-                                <select class="form-select" id="recorrido_interes" name="recorrido_interes">
-                                    <option value="">Cualquier recorrido</option>
-                                    <option value="centro-historico">Centro Histórico</option>
-                                    <option value="barrios-emblematicos">Barrios Emblemáticos</option>
-                                    <option value="nocturno">Tour Nocturno</option>
-                                    <option value="personalizado">Tour Personalizado</option>
-                                </select>
+                            <label for="recorrido_interes" class="form-label fw-semibold">Recorrido de Interés</label>
+                            <select class="form-select" id="recorrido_interes" name="recorrido_interes">
+                                <option value="">Cualquier recorrido</option>
+                                {% for r in recorridos %}
+                                <option value="{{ r.id }}">{{ r.color_recorrido }}</option>
+                                {% empty %}
+                                <option value="" disabled>(Sin recorridos cargados)</option>
+                                {% endfor %}
+                            </select>
                             </div>
+
                             <div class="col-12">
                                 <label for="mensaje" class="form-label fw-semibold">Mensaje *</label>
                                 <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required 

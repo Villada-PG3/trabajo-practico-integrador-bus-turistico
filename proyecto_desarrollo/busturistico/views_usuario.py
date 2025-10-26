@@ -155,22 +155,39 @@ class UsuarioDetalleParadaView(DetailView):
             'recorridos_relacionados': recorridos_relacionados,
         })
         return context
-
 class UsuarioContactoView(View):
     template_name = "usuario/contacto.html"
 
     def get(self, request, *args, **kwargs):
-        # lo mismo que tenías
-        return render(request, self.template_name)
+        ctx = {
+            "recorridos": Recorrido.objects.order_by("color_recorrido"),
+            # opcional: si usás estos en el template
+            "contacto_info": {
+                "telefono": "5493513844333",
+                "whatsapp": "5493513844333",
+                "email": "busturistico49@gmail.com",
+                "direccion": "Plaza de Mayo, CABA",
+            },
+        }
+        return render(request, self.template_name, ctx)
 
     def post(self, request, *args, **kwargs):
+        # si querés guardar el NOMBRE del recorrido en la consulta
+        rec_id = request.POST.get("recorrido_interes")
+        rec_nombre = ""
+        if rec_id:
+            try:
+                rec_nombre = Recorrido.objects.get(pk=rec_id).color_recorrido
+            except Recorrido.DoesNotExist:
+                rec_nombre = ""
+
         Consulta.objects.create(
             nombre=request.POST.get("nombre"),
             email=request.POST.get("email"),
             telefono=request.POST.get("telefono"),
             personas=request.POST.get("personas"),
             fecha_interes=request.POST.get("fecha_interes") or None,
-            recorrido_interes=request.POST.get("recorrido_interes"),
+            recorrido_interes=rec_nombre or request.POST.get("recorrido_interes"),  # guarda nombre si lo encontró
             mensaje=request.POST.get("mensaje"),
         )
         return redirect("/contacto/?success=1")
