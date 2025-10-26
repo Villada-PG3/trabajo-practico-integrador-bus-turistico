@@ -88,7 +88,6 @@ python manage.py runserver
 - **`ModuleNotFoundError`** → no activaste el entorno virtual. Activá y reinstalá dependencias.
 - **`DisallowedHost`** (prod) → falta tu dominio en `ALLOWED_HOSTS`.
 - **CSS/JS no cargan** (prod) → falta `collectstatic` o el servidor no apunta a `STATIC_ROOT`.
-- **Error con MySQL** → revisá usuario/clave/puerto; probá `PyMySQL` si `mysqlclient` falla.
 - **Permisos o “posesión dudosa” (Linux/montajes)** →
   ```bash
   git config --global --add safe.directory /ruta/a/tu/repo
