@@ -52,8 +52,8 @@ python -m venv .venv
 . .\.venv\Scripts\Activate.ps1
 
 # macOS / Linux
-# python3 -m venv .venv
-# source .venv/bin/activate
+ python3 -m venv .venv
+ source .venv/bin/activate
 
 # 3) Instalar dependencias
 pip install --upgrade pip
