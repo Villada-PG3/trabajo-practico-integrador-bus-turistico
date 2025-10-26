@@ -21,7 +21,7 @@ import json
 from .models import (
     Atractivo, Bus, Chofer, EstadoBus, EstadoBusHistorial, EstadoViaje,
     HistorialEstadoViaje, Parada, ParadaAtractivo, Recorrido, RecorridoParada,
-    UbicacionColectivo, Viaje, Consulta
+    Viaje, Consulta
 )
 from .forms import (
     AtractivoForm, BusForm, ChoferForm, EstadoBusHistorialForm, ParadaForm,
@@ -716,4 +716,3 @@ class ConsultaDetailView(SuperUserRequiredMixin, UpdateView):
 
         consulta.save()
         return super().form_valid(form)
-
