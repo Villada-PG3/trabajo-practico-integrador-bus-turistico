@@ -27,6 +27,7 @@ import threading
 from django.db import connection, transaction
 # --- Fin de Imports ---
 
+from .services_viaje import finalizar_viaje
 
 logger = logging.getLogger(__name__)
 
@@ -168,12 +169,13 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
 
         # 4. Delegar la Simulación a un Hilo (Operación Lenta)
         # Esto permite que el flujo principal continúe de inmediato.
-        if not UbicacionColectivo.objects.filter(viaje=viaje_asignado).exists():
-            simulation_thread = threading.Thread(
-                target=self._run_simulation_async, 
-                args=(viaje_asignado.id,)
-            )
-            simulation_thread.start()
+        UbicacionColectivo.objects.filter(viaje=viaje_asignado).delete()
+        simulation_thread = threading.Thread(
+            target=self._run_simulation_async,
+            args=(viaje_asignado.id,),
+            daemon=True,
+        )
+        simulation_thread.start()
         
         # 5. Respuesta RÁPIDA (Redirección Inmediata)
         messages.success(request, f'Viaje al recorrido {viaje_asignado.recorrido.color_recorrido} iniciado correctamente.')
@@ -290,6 +292,27 @@ class IniciarRecorridoView(ChoferRequiredMixin, View):
         # 2) ¡Optimización clave: Insertar todo en una sola consulta!
         # Esto reduce cientos o miles de consultas a UNA.
         UbicacionColectivo.objects.bulk_create(ubicaciones_a_crear)
+
+        self._schedule_finalizacion(viaje.id, current_ts)
+
+    def _schedule_finalizacion(self, viaje_id, final_timestamp):
+        delay = max((final_timestamp - timezone.now()).total_seconds(), 0)
+        timer = threading.Timer(delay, self._finalize_viaje_safe, args=(viaje_id, final_timestamp))
+        timer.daemon = True
+        timer.start()
+
+    def _finalize_viaje_safe(self, viaje_id, final_timestamp):
+        try:
+            viaje = Viaje.objects.get(pk=viaje_id)
+        except Viaje.DoesNotExist:
+            return
+
+        try:
+            finalizar_viaje(viaje, timestamp=final_timestamp, registrar_inicio=False)
+        except Exception as exc:
+            logger.error("Error auto-finalizando viaje %s: %s", viaje_id, exc)
+        finally:
+            connection.close()
 
     def _route_with_osrm(self, points):
         if len(points) < 2:

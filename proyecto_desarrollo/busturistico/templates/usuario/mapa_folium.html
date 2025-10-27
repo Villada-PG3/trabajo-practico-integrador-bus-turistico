@@ -88,7 +88,10 @@
                 <li class="py-1 d-flex justify-content-between align-items-center{% if viaje.is_focused %} fw-semibold{% endif %}">
                   <span>
                     <i class="fas fa-bus me-2 text-primary"></i>
-                    Recorrido {{ viaje.recorrido_color }} · Bus {{ viaje.bus_patente }} · Chofer {{ viaje.chofer }}
+                    Recorrido {{ viaje.recorrido_color }}
+                    {% if viaje.bus_numero %}· Unidad {{ viaje.bus_numero }}{% endif %}
+                    {% if viaje.bus_patente %}· Patente {{ viaje.bus_patente }}{% endif %}
+                    {% if viaje.chofer %}· Chofer {{ viaje.chofer }}{% endif %}
                   </span>
                   {% if viaje.is_focused %}
                     <span class="badge bg-primary">Seleccionado</span>

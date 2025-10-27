@@ -10,6 +10,7 @@ from django.conf import settings
 from datetime import timedelta
 import requests
 import json
+from .services_viaje import finalizar_viaje
 
 
 
@@ -361,36 +362,55 @@ class UsuarioMapaFoliumView(TemplateView):
             return context
 
         total_points = len(route_coords)
-        period_ms = default_delay_ms * total_points
-        cycle_start = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        elapsed_ms = int((now_dt - cycle_start).total_seconds() * 1000) % period_ms
-        current_index = elapsed_ms // default_delay_ms
-        ms_into_segment = elapsed_ms % default_delay_ms
+        segment_count = max(total_points - 1, 1)
+        total_duration_ms = default_delay_ms * segment_count
 
-        initial_point = {
-            'lat': route_coords[current_index][0],
-            'lng': route_coords[current_index][1],
-            'timestamp': now_dt.isoformat(),
-        }
+        def interpolate(point_a, point_b, fraction):
+            lat = point_a[0] + (point_b[0] - point_a[0]) * fraction
+            lng = point_a[1] + (point_b[1] - point_a[1]) * fraction
+            return lat, lng
 
-        future_points = []
-        time_cursor = now_dt
-        remaining_delay = default_delay_ms - ms_into_segment if ms_into_segment else default_delay_ms
+        def build_animation(start_dt):
+            if start_dt is None:
+                return None, [], True
 
-        loops = 2  # mantener el bus en movimiento un buen rato
-        for step in range(1, total_points * loops + 1):
-            next_index = (current_index + step) % total_points
-            delay_ms = remaining_delay if step == 1 else default_delay_ms
-            time_cursor += timedelta(milliseconds=delay_ms)
-            future_points.append({
-                'lat': route_coords[next_index][0],
-                'lng': route_coords[next_index][1],
-                'delay_ms': delay_ms,
-                'timestamp': time_cursor.isoformat(),
-            })
-            remaining_delay = default_delay_ms
+            elapsed_ms = int(max((now_dt - start_dt).total_seconds(), 0) * 1000)
+            elapsed_ms = min(elapsed_ms, total_duration_ms)
 
-        map_payloads = [{
+            current_index = min(elapsed_ms // default_delay_ms, total_points - 1)
+            ms_into_segment = 0 if current_index == total_points - 1 else elapsed_ms % default_delay_ms
+
+            if current_index == total_points - 1 or default_delay_ms == 0:
+                lat, lng = route_coords[-1]
+            else:
+                fraction = ms_into_segment / default_delay_ms if default_delay_ms else 0
+                lat, lng = interpolate(route_coords[current_index], route_coords[current_index + 1], fraction)
+
+            initial_point = {
+                'lat': lat,
+                'lng': lng,
+                'timestamp': now_dt.isoformat(),
+            }
+
+            future_points = []
+            if current_index < total_points - 1:
+                remaining_delay = default_delay_ms - ms_into_segment if ms_into_segment else default_delay_ms
+                time_cursor = now_dt
+                for idx in range(current_index + 1, total_points):
+                    delay_ms = remaining_delay if idx == current_index + 1 else default_delay_ms
+                    time_cursor += timedelta(milliseconds=delay_ms)
+                    future_points.append({
+                        'lat': route_coords[idx][0],
+                        'lng': route_coords[idx][1],
+                        'delay_ms': delay_ms,
+                        'timestamp': time_cursor.isoformat(),
+                    })
+                    remaining_delay = default_delay_ms
+
+            finished = current_index == total_points - 1 and not future_points
+            return initial_point, future_points, finished
+
+        base_payload = {
             'viaje_id': None,
             'recorrido_id': recorrido.id,
             'recorrido_color': recorrido.color_recorrido,
@@ -399,28 +419,79 @@ class UsuarioMapaFoliumView(TemplateView):
             'route_color': route_data['route_color'],
             'line_dash': route_data['line_dash'],
             'paradas': route_data['paradas_geo'],
-            'bus': {
-                'tooltip': f"Simulación · Recorrido {recorrido.color_recorrido}",
-                'initial_point': initial_point,
-                'future_points': future_points,
-                'marker_color': route_data['route_color'],
-                'pan_map': True,
-            },
+            'bus': None,
             'is_focused': True,
             'show_paradas': True,
-        }]
+        }
 
-        active_viajes_info = [{
-            'viaje_id': None,
-            'recorrido_id': recorrido.id,
-            'recorrido_color': recorrido.color_recorrido,
-            'bus_patente': f"SIM-{recorrido.id}",
-            'chofer': 'Simulación',
-            'is_focused': True,
-        }]
+        active_viajes_qs = (
+            Viaje.objects
+            .filter(
+                fecha_hora_inicio_real__isnull=False,
+                fecha_hora_fin_real__isnull=True
+            )
+            .select_related('patente_bus', 'chofer', 'recorrido')
+            .order_by('fecha_hora_inicio_real')
+        )
+
+        active_viajes_for_recorrido = [
+            viaje for viaje in active_viajes_qs if viaje.recorrido_id == recorrido.id
+        ]
+
+        map_payloads = []
+        active_viajes_info = []
+
+        for viaje in active_viajes_for_recorrido:
+            animation = build_animation(viaje.fecha_hora_inicio_real)
+            if not animation:
+                continue
+            initial_point, future_points, finished = animation
+            if finished:
+                if viaje.fecha_hora_fin_real is None:
+                    finalizar_viaje(viaje, timestamp=now_dt, registrar_inicio=False)
+                continue
+
+            bus_patente = viaje.patente_bus.patente_bus if viaje.patente_bus_id else None
+            bus_numero = viaje.patente_bus.numero_unidad if viaje.patente_bus_id else None
+            chofer_nombre = str(viaje.chofer) if viaje.chofer_id else None
+
+            tooltip_parts = [f"Recorrido {viaje.recorrido.color_recorrido}"]
+            if bus_numero is not None:
+                tooltip_parts.append(f"Unidad {bus_numero}")
+            if bus_patente:
+                tooltip_parts.append(f"Patente {bus_patente}")
+            if chofer_nombre:
+                tooltip_parts.append(f"Chofer {chofer_nombre}")
+
+            map_payloads.append({
+                **base_payload,
+                'viaje_id': viaje.id,
+                'bus': {
+                    'tooltip': " · ".join(tooltip_parts),
+                    'initial_point': initial_point,
+                    'future_points': future_points,
+                    'marker_color': route_data['route_color'],
+                    'pan_map': True,
+                },
+            })
+
+            active_viajes_info.append({
+                'viaje_id': viaje.id,
+                'recorrido_id': viaje.recorrido_id,
+                'recorrido_color': viaje.recorrido.color_recorrido,
+                'bus_patente': bus_patente,
+                'bus_numero': bus_numero,
+                'chofer': chofer_nombre,
+                'is_focused': True,
+            })
+
+        if not map_payloads:
+            map_payloads.append(base_payload)
 
         context['recorrido'] = recorrido
         context['paradas'] = [p.parada for p in paradas_qs]
+        selected_viaje_id = active_viajes_info[0]['viaje_id'] if active_viajes_info else None
+
         context['active_viajes_info'] = active_viajes_info
         context['map_payloads'] = map_payloads
         context['map_payloads_json'] = json.dumps(map_payloads)
@@ -428,10 +499,10 @@ class UsuarioMapaFoliumView(TemplateView):
         context['map_bounds_json'] = json.dumps(route_data['bounds'])
         context['animation_default_delay_ms'] = default_delay_ms
         context['selected_recorrido_id'] = recorrido.id
-        context['selected_viaje_id'] = None
+        context['selected_viaje_id'] = selected_viaje_id
         context['viajes_filtrables'] = []
         context['recorridos_filtrables'] = list(recorridos_disponibles)
-        context['has_active_viajes'] = True
+        context['has_active_viajes'] = bool(active_viajes_info)
         if warnings_list:
             context['warnings'] = warnings_list
         return context
