@@ -434,9 +434,18 @@ class UsuarioMapaFoliumView(TemplateView):
             .order_by('fecha_hora_inicio_real')
         )
 
+        selected_viaje_id_param = self.request.GET.get('viaje_id')
+        try:
+            selected_viaje_id = int(selected_viaje_id_param)
+        except (TypeError, ValueError):
+            selected_viaje_id = None
+
         active_viajes_for_recorrido = [
             viaje for viaje in active_viajes_qs if viaje.recorrido_id == recorrido.id
         ]
+
+        if selected_viaje_id is not None and not any(v.id == selected_viaje_id for v in active_viajes_for_recorrido):
+            selected_viaje_id = None
 
         map_payloads = []
         active_viajes_info = []
@@ -463,18 +472,22 @@ class UsuarioMapaFoliumView(TemplateView):
             if chofer_nombre:
                 tooltip_parts.append(f"Chofer {chofer_nombre}")
 
-            map_payloads.append({
-                **base_payload,
-                'viaje_id': viaje.id,
-                'bus': {
-                    'tooltip': " · ".join(tooltip_parts),
-                    'initial_point': initial_point,
-                    'future_points': future_points,
-                    'marker_color': route_data['route_color'],
-                    'pan_map': True,
-                },
-            })
+            is_selected = selected_viaje_id is None or viaje.id == selected_viaje_id
+            if is_selected:
+                map_payloads.append({
+                    **base_payload,
+                    'viaje_id': viaje.id,
+                    'is_focused': selected_viaje_id is None or viaje.id == selected_viaje_id,
+                    'bus': {
+                        'tooltip': " · ".join(tooltip_parts),
+                        'initial_point': initial_point,
+                        'future_points': future_points,
+                        'marker_color': route_data['route_color'],
+                        'pan_map': True,
+                    },
+                })
 
+            info_is_focused = selected_viaje_id is not None and viaje.id == selected_viaje_id
             active_viajes_info.append({
                 'viaje_id': viaje.id,
                 'recorrido_id': viaje.recorrido_id,
@@ -482,7 +495,7 @@ class UsuarioMapaFoliumView(TemplateView):
                 'bus_patente': bus_patente,
                 'bus_numero': bus_numero,
                 'chofer': chofer_nombre,
-                'is_focused': True,
+                'is_focused': info_is_focused or selected_viaje_id is None,
             })
 
         if not map_payloads:
@@ -490,7 +503,6 @@ class UsuarioMapaFoliumView(TemplateView):
 
         context['recorrido'] = recorrido
         context['paradas'] = [p.parada for p in paradas_qs]
-        selected_viaje_id = active_viajes_info[0]['viaje_id'] if active_viajes_info else None
 
         context['active_viajes_info'] = active_viajes_info
         context['map_payloads'] = map_payloads
@@ -500,7 +512,7 @@ class UsuarioMapaFoliumView(TemplateView):
         context['animation_default_delay_ms'] = default_delay_ms
         context['selected_recorrido_id'] = recorrido.id
         context['selected_viaje_id'] = selected_viaje_id
-        context['viajes_filtrables'] = []
+        context['viajes_filtrables'] = active_viajes_for_recorrido
         context['recorridos_filtrables'] = list(recorridos_disponibles)
         context['has_active_viajes'] = bool(active_viajes_info)
         if warnings_list:
