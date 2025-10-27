@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-x)^k!vu&d^04j_!6oc0-=m(z+6rj7qyo+qsos4!xehghq@^@l%
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+LOGIN_REDIRECT_URL = '/admin/dashboard/'
 
 # Application definition
 INSTALLED_APPS = [
