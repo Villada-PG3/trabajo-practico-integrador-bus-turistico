@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'material',
     'material.admin',
     
-    'django.contrib.admin',
+    
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -131,6 +131,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Motor de ruteo (OSRM)
 OSRM_BASE_URL = os.environ.get('OSRM_BASE_URL', 'https://bonnie-stoney-boorishly.ngrok-free.dev')
+
+
+
+#consultas
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587

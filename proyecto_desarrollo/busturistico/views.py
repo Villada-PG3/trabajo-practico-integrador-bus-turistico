@@ -261,16 +261,11 @@ class FlotaView(SuperUserRequiredMixin, TemplateView):
             if estado_filter and estado_bus_nombre != estado_filter:
                 continue
 
-            last_mant = EstadoBusHistorial.objects.filter(
-                patente_bus=bus, 
-                estado_bus__nombre_estado__iexact='en mantenimiento'
-            ).order_by('-fecha_inicio_estado').first()
-            ultimo_mantenimiento = last_mant.fecha_inicio_estado if last_mant else None
+            
 
             bus_data.append({
                 'bus': bus,
                 'estado': estado_bus_nombre.capitalize() if estado_bus_nombre != 'sin_estado' else 'Sin Estado',
-                'ultimo_mantenimiento': ultimo_mantenimiento
             })
 
         context.update({
