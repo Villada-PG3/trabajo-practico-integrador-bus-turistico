@@ -29,7 +29,7 @@
       {% endif %}
 
       <form id="mapFiltersForm" method="get" class="row g-3 align-items-end mb-4">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label text-uppercase fw-semibold small mb-1">Recorrido</label>
           <select name="recorrido" class="form-select form-select-sm">
             {% if recorridos_filtrables %}
@@ -43,7 +43,7 @@
             {% endif %}
           </select>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label text-uppercase fw-semibold small mb-1">Viaje activo</label>
           <select name="viaje_id" class="form-select form-select-sm">
             <option value="">Todos</option>
@@ -54,15 +54,11 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-6 col-md-2">
-          <button class="btn btn-sm btn-primary w-100" type="submit">
-            <i class="fas fa-filter me-1"></i>Aplicar
-          </button>
-        </div>
-        <div class="col-6 col-md-2">
-          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'usuario-mapa-folium' %}">
-            <i class="fas fa-undo me-1"></i>Limpiar
-          </a>
+        <div class="col-12 col-lg-4">
+          <div class="filter-hint small text-muted d-flex align-items-center gap-2">
+            <i class="fas fa-mouse-pointer text-primary"></i>
+            <span>Los cambios se aplican automáticamente al elegir un recorrido o viaje.</span>
+          </div>
         </div>
       </form>
 

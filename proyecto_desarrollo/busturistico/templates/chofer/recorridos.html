@@ -2,7 +2,15 @@
 
   {% block title %}Panel del Chofer - Bus Turístico Buenos Aires{% endblock %}
 
-  {% block content %}
+{% block navbar_actions %}
+  <li class="nav-item">
+    <a class="nav-link logout-link" href="{% url 'chofer-logout' %}">
+      <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+    </a>
+  </li>
+{% endblock %}
+
+{% block content %}
   <section class="hero-section">
     <div class="container">
       <div class="text-center">
@@ -82,16 +90,9 @@
           <h3 class="text-muted mb-2">No tienes viaje asignado</h3>
           <p class="text-muted">Cuando te asignen uno, aparecerá aquí para iniciar.</p>
         </div>
-      {% endif %}
+{% endif %}
     </div>
   </section>
-
-  <!-- Botón de logout fijo -->
-  <a href="{% url 'chofer-logout' %}"
-    class="btn btn-danger btn-sm"
-    style="position: fixed; top: 15px; right: 15px; z-index: 1050;">
-    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-  </a>
 
   <style>
   .modern-card { background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
