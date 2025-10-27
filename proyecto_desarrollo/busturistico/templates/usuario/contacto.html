@@ -49,9 +49,15 @@
             <h5 class="fw-bold mb-2">Email</h5>
             <p class="text-muted mb-4">Consultas detalladas y grupos</p>
           </div>
-          <a href="mailto:busturistico49@gmail.com" class="btn btn-outline-primary w-100 mt-auto">
+         <a href="#"
+            onclick="const url='https://mail.google.com/mail/?view=cm&fs=1&to=busturistico49@gmail.com&su='+encodeURIComponent('Consulta Bus Turístico')+'&body='+encodeURIComponent('Hola, quiero consultar por los recorridos del bus turístico.'); const w=window.open(url,'_blank'); if(!w||w.closed||typeof w.closed==='undefined'){ window.location.href='mailto:busturistico49@gmail.com?subject='+encodeURIComponent('Consulta Bus Turístico')+'&body='+encodeURIComponent('Hola, quiero consultar por los recorridos del bus turístico.'); } return false;"
+            target="_blank"
+            class="btn btn-outline-primary w-100 mt-auto">
             Enviar Email
-          </a>
+        </a>
+
+
+
         </div>
       </div>
 
@@ -377,5 +383,6 @@ if (window.location.search.includes('success=1')) {
         successAlert.remove();
     }, 5000);
 }
+
 </script>
 {% endblock %}
