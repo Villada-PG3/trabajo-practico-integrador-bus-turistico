@@ -23,14 +23,14 @@
   <section class="py-5">
     <div class="container">
       {% if messages %}
-        <div class="messages mb-4">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {% for message in messages %}
+          {% if 'error' in message.tags or 'warning' in message.tags or 'danger' in message.tags %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-          {% endfor %}
-        </div>
+          {% endif %}
+        {% endfor %}
       {% endif %}
 
       {% if viaje_en_curso %}
