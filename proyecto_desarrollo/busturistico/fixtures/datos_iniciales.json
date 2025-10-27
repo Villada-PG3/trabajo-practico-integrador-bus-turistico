@@ -6,7 +6,7 @@
       "color_recorrido": "Verde",
       "duracion_aproximada_recorrido": "02:30:00",
       "descripcion_recorrido": "Circuito norte de CABA con conexiones en parques y museos. Ideal para combinar naturaleza y cultura.",
-      "foto_recorrido": null
+      "foto_recorrido": "recorridos/verde.jpg"
     }
   },
   {
@@ -16,7 +16,7 @@
       "color_recorrido": "Rojo",
       "duracion_aproximada_recorrido": "02:00:00",
       "descripcion_recorrido": "Recorrido rojo que enlaza Palermo, Recoleta, Retiro y el casco histórico con paradas en MALBA, Planetario, Jardín Japonés, Bellas Artes, Recoleta, Plaza de Mayo, San Telmo y Puerto Madero.",
-      "foto_recorrido": null
+      "foto_recorrido": "recorridos/rojo.jpg"
     }
   },
 

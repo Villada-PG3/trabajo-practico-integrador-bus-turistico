@@ -89,25 +89,37 @@
                                 <div class="timeline-marker bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="min-width: 40px; height: 40px;">
                                     {{ parada_recorrido.orden }}
                                 </div>
-                                <div class="timeline-content flex-grow-1">
-                                    <h6 class="fw-bold mb-1">
-                                        <a href="{% url 'usuario-detalle-parada' parada_recorrido.parada.pk %}" class="text-decoration-none">
-                                            {{ parada_recorrido.parada.nombre_parada }}
-                                        </a>
-                                    </h6>
-                                    <p class="text-muted mb-1">
-                                        <i class="fas fa-map-marker-alt me-1"></i>
-                                        {{ parada_recorrido.parada.direccion_parada }}
-                                    </p>
-                                    <small class="text-muted">{{ parada_recorrido.parada.descripcion_parada|truncatewords:20 }}</small>
-                                    
-                                    <!-- Tiempo estimado en la parada -->
-                                    <div class="mt-2">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="fas fa-clock me-1"></i>
-                                            {% if parada_recorrido.orden == 1 %}Punto de partida{% else %}30-45 min{% endif %}
-                                        </span>
+
+                                <div class="timeline-content flex-grow-1 d-flex align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1">
+                                            <a href="{% url 'usuario-detalle-parada' parada_recorrido.parada.pk %}" class="text-decoration-none">
+                                                {{ parada_recorrido.parada.nombre_parada }}
+                                            </a>
+                                        </h6>
+                                        <p class="text-muted mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ parada_recorrido.parada.direccion_parada }}
+                                        </p>
+                                        <small class="text-muted">{{ parada_recorrido.parada.descripcion_parada|truncatewords:20 }}</small>
+
+                                        <div class="mt-2">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {% if parada_recorrido.orden == 1 %}Punto de partida{% else %}30-45 min{% endif %}
+                                            </span>
+                                        </div>
                                     </div>
+
+                                    {% if parada_recorrido.parada.foto_parada %}
+                                        <img 
+                                            src="{{ parada_recorrido.parada.foto_parada.url }}" 
+                                            alt="{{ parada_recorrido.parada.nombre_parada }}"
+                                            class="rounded shadow-sm"
+                                            style="width: 140px; height: 95px; object-fit: cover;"
+                                            loading="lazy"
+                                        >
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -144,7 +156,7 @@
                     <a href="tel:{{ contacto_info.telefono|default:'+5493513844333' }}" class="btn btn-primary">
                         <i class="fas fa-phone me-2"></i>Reservar Por Teléfono
                     </a>
-                     <a href="https://wa.me/{{ contacto_info.whatsapp|default:'5493513844333' }}" class="btn btn-success">
+                    <a href="https://wa.me/{{ contacto_info.whatsapp|default:'5493513844333' }}" class="btn btn-success">
                         <i class="fab fa-whatsapp me-2"></i>WhatsApp: Consulta Rápida
                     </a>
                 </div>
@@ -165,60 +177,33 @@
                 </div>
             </div>
 
-            <!-- Información adicional -->
             <div class="modern-card p-4 mb-4">
                 <h6 class="fw-bold mb-3">
                     <i class="fas fa-info-circle text-primary me-2"></i>Información del Tour
                 </h6>
                 <ul class="list-unstyled small">
-                    <li class="mb-2">
-                        <i class="fas fa-language text-primary me-2"></i>
-                        <strong>Idiomas:</strong> Español, Inglés
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-wheelchair text-primary me-2"></i>
-                        <strong>Accesibilidad:</strong> Buses adaptados
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-camera text-primary me-2"></i>
-                        <strong>Fotografía:</strong> Paradas fotográficas
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-umbrella text-primary me-2"></i>
-                        <strong>Clima:</strong> Funciona con lluvia
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-child text-primary me-2"></i>
-                        <strong>Niños:</strong> Descuentos especiales
-                    </li>
+                    <li class="mb-2"><i class="fas fa-language text-primary me-2"></i><strong>Idiomas:</strong> Español, Inglés</li>
+                    <li class="mb-2"><i class="fas fa-wheelchair text-primary me-2"></i><strong>Accesibilidad:</strong> Buses adaptados</li>
+                    <li class="mb-2"><i class="fas fa-camera text-primary me-2"></i><strong>Fotografía:</strong> Paradas fotográficas</li>
+                    <li class="mb-2"><i class="fas fa-umbrella text-primary me-2"></i><strong>Clima:</strong> Funciona con lluvia</li>
+                    <li class="mb-2"><i class="fas fa-child text-primary me-2"></i><strong>Niños:</strong> Descuentos especiales</li>
                 </ul>
             </div>
 
-            <!-- Política de cancelación -->
             <div class="modern-card p-4">
                 <h6 class="fw-bold mb-3">
                     <i class="fas fa-calendar-times text-warning me-2"></i>Política de Cancelación
                 </h6>
                 <ul class="list-unstyled small text-muted">
-                    <li class="mb-1">
-                        <i class="fas fa-check text-success me-1"></i>
-                        Cancelación gratuita hasta 24h antes
-                    </li>
-                    <li class="mb-1">
-                        <i class="fas fa-clock text-warning me-1"></i>
-                        Reagendamiento sin costo adicional
-                    </li>
-                    <li class="mb-1">
-                        <i class="fas fa-shield-alt text-info me-1"></i>
-                        Reembolso completo por mal tiempo
-                    </li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i>Cancelación gratuita hasta 24h antes</li>
+                    <li class="mb-1"><i class="fas fa-clock text-warning me-1"></i>Reagendamiento sin costo adicional</li>
+                    <li class="mb-1"><i class="fas fa-shield-alt text-info me-1"></i>Reembolso completo por mal tiempo</li>
                 </ul>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Testimonios específicos del recorrido -->
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
@@ -231,11 +216,7 @@
                 <div class="modern-card p-4">
                     <div class="d-flex mb-3">
                         <div class="text-warning me-3">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
                         <small class="text-muted">Hace 2 días</small>
                     </div>
@@ -256,11 +237,7 @@
                 <div class="modern-card p-4">
                     <div class="d-flex mb-3">
                         <div class="text-warning me-3">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
                         <small class="text-muted">Hace 1 semana</small>
                     </div>
@@ -279,5 +256,4 @@
         </div>
     </div>
 </section>
-
 {% endblock %}
